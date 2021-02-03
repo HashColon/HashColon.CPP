@@ -2,8 +2,9 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <filesystem>
 #include <HashColon/Helper/Exception.hpp>
-#include <HashColon/Helper/CLI11_extended.hpp>
+#include <HashColon/Helper/ext/CLI11/CLI11_extended.hpp>
 #include <HashColon/Helper/CommonLogger.hpp>
 #include <HashColon/Helper/SingletonCLI.hpp>
 
@@ -25,127 +26,139 @@ namespace hidden
 	}
 }
 
-HASHCOLON::Helper::CommonLogger::_Params HASHCOLON::Helper::CommonLogger::_cDefault;
-//HASHCOLON::Helper::Logger<HASHCOLON::Helper::LogUtils::Tag>::operator()<
+HashColon::Helper::CommonLogger::_Params HashColon::Helper::CommonLogger::_cDefault;
+//HashColon::Helper::Logger<HashColon::Helper::LogUtils::Tag>::operator()<
 
-namespace HASHCOLON::Helper
+namespace HashColon::Helper
 {
 	using namespace std;
 	namespace Util = LogUtils;
-	using SingletonCLI = HASHCOLON::Helper::SingletonCLI;
-			
+	using SingletonCLI = HashColon::Helper::SingletonCLI;
+
 	void CommonLogger::Initialize()
-	{		
+	{
 		CLI::App* cli = SingletonCLI::GetInstance().GetCLI("Log");
 
-		{
-			using namespace CLI::BooleanOption;
-			add_option(cli, "--enableLogScreen", _cDefault.enableLog.Screen, "Enable logging to screen");
-			add_option(cli, "--enableLogFile", _cDefault.enableLog.File, "Enable logging to file");
-			add_option(cli, "--enableErrorScreen", _cDefault.enableError.Screen, "Enable error logging to screen");
-			add_option(cli, "--enableErrorFile", _cDefault.enableError.File, "Enable error logging to file");
-			add_option(cli, "--enableDebugScreen", _cDefault.enableDebug.Screen, "Enable debug logging to screen");
-			add_option(cli, "--enableDebugFile", _cDefault.enableDebug.File, "Enable debug logging to file");
-			add_option(cli, "--enableMessageScreen", _cDefault.enableMessage, "Enable Message logging to screen");		
-		}
-		
+		cli->add_option("--enableLogScreen", _cDefault.enableLog.Screen, "Enable logging to screen");
+		cli->add_option("--enableLogFile", _cDefault.enableLog.File, "Enable logging to file");
+		cli->add_option("--enableErrorScreen", _cDefault.enableError.Screen, "Enable error logging to screen");
+		cli->add_option("--enableErrorFile", _cDefault.enableError.File, "Enable error logging to file");
+		cli->add_option("--enableDebugScreen", _cDefault.enableDebug.Screen, "Enable debug logging to screen");
+		cli->add_option("--enableDebugFile", _cDefault.enableDebug.File, "Enable debug logging to file");
+		cli->add_option("--enableMessageScreen", _cDefault.enableMessage, "Enable Message logging to screen");
 
 		cli->add_option(
-			"--errorlogDir", 
+			"--errorlogDir",
 			[](vector<string> res)
-			{				
+			{
 				string ErrDir;
-				bool re = CLI::detail::lexical_cast(res[0], ErrDir);				
-				if(re)
-				{	
+				bool re = CLI::detail::lexical_cast(res[0], ErrDir);
+				if (re)
+				{
+					using namespace std::filesystem;
+					path ErrDirPath = absolute(path(ErrDir));					
+					if (!is_directory(ErrDirPath))
+					{
+						if (!create_directory(ErrDirPath))
+							throw CommonLogger::Exception("Cannot find/create errorLogDir", __CODEINFO__);
+					}
+
 					shared_ptr<ofstream> ofFile
 						= make_shared<ofstream>(hidden::getFilename(ErrDir, "errorlog_"));
-					
+
 					if (ofFile->is_open())
-					{					
+					{
 						_cDefault.ErrorFile = ofFile;
 						return true;
-					}	
+					}
 					else
 					{
 						_cDefault.ErrorFile = nullptr;
 						return false;
 					}
-				}				
-				else return false;
-			},
-			"Directory for errorlog files. Error/Debug messages are written as [dir]/errorlog_yymmddHHMMSS.log"
-		)->check(CLI::ExistingDirectory);
-
-		string logDir;
-		cli->add_option(
-			"--logDir",
-			[](vector<string> res)
-			{
-				string logDir;
-				bool re = CLI::detail::lexical_cast(res[0], logDir);				
-				if(re)
-				{			
-					shared_ptr<ofstream> ofFile
-						= make_shared<ofstream>(hidden::getFilename(logDir, "log_"));					
-					if (ofFile->is_open())
-					{
-						_cDefault.LogFile = ofFile;
-						return true;
-					}						
-					else
-					{
-						_cDefault.LogFile = nullptr;
-						return false;
-					}
 				}
 				else return false;
 			},
-			"Directory for log files. Log/Error/Debug messages are written as [dir]/log_yymmddHHMMSS.log"
-		)->check(CLI::ExistingDirectory);
+			"Directory for errorlog files. Error/Debug messages are written as [dir]/errorlog_yymmddHHMMSS.log"
+				);//->check(CLI::ExistingDirectory);
 
-		cli->add_option(
-			"--verboseLvl",
-			_cDefault.verbose_level,
-			"Enable verbose level. Logs with level exceeding verbose level will not be logged."
-		);
+			string logDir;
+			cli->add_option(
+				"--logDir",
+				[](vector<string> res)
+				{
+					string logDir;
+					bool re = CLI::detail::lexical_cast(res[0], logDir);
+					if (re)
+					{
+						using namespace std::filesystem;
+						path LogDirPath = absolute(path(logDir));						
+						if (!is_directory(LogDirPath))
+						{
+							if (!create_directory(LogDirPath))
+								throw CommonLogger::Exception("Cannot find/create errorLogDir", __CODEINFO__);
+						}
 
-		
+						shared_ptr<ofstream> ofFile
+							= make_shared<ofstream>(hidden::getFilename(logDir, "log_"));
+						if (ofFile->is_open())
+						{
+							_cDefault.LogFile = ofFile;
+							return true;
+						}
+						else
+						{
+							_cDefault.LogFile = nullptr;
+							return false;
+						}
+					}
+					else return false;
+				},
+				"Directory for log files. Log/Error/Debug messages are written as [dir]/log_yymmddHHMMSS.log"
+					);//->check(CLI::ExistingDirectory);
+
+				cli->add_option(
+					"--verboseLvl",
+					_cDefault.verbose_level,
+					"Enable verbose level. Logs with level exceeding verbose level will not be logged."
+				);
+
+
 	}
 
 	CommonLogger::CommonLogger(_Params params)
-		: _c(params) ,
+		: _c(params),
 		Log({}, Util::LogFormat, Util::VerboseFilter, { {Util::Tag::type, " Log "} }),
-		Error({}, Util::ErrFormat, Util::VerboseFilter, {{Util::Tag::type, "Error"} }),
-		Debug({}, Util::ErrFormat, Util::VerboseFilter, {{Util::Tag::type, "Debug"}}),
+		Error({}, Util::ErrFormat, Util::VerboseFilter, { {Util::Tag::type, "Error"} }),
+		Debug({}, Util::ErrFormat, Util::VerboseFilter, { {Util::Tag::type, "Debug"} }),
 		Message({}, Util::BasicFormat, Util::PassFilter, { {Util::Tag::type, "Message"} })
-	{
-		// check file streams 
-		// if there is no logfile and  at least one of the file option is on,
-		// throw an exception
-		if (!_c.LogFile && (_c.enableLog.File || _c.enableError.File || _c.enableDebug.File))
-			throw CommonLogger::Exception("Log file missing while constructing CommonLogger.",
-				__CODEINFO__);
-		// if there is no errorlogfile and at least one of the file option is on,
-		// throw an exception
-		if (!_c.ErrorFile && (_c.enableError.File || _c.enableDebug.File))
-			throw CommonLogger::Exception("Error log file missing while constructing CommonLogger.",
-				__CODEINFO__);
-		
+	{			
 		// assert _c.LogFile and _c.ErrorFile exists
-		assert(_c.LogFile && _c.ErrorFile && LogUtils::Stdout && LogUtils::Stderr);
+		assert(LogUtils::Stdout && LogUtils::Stderr);
+		//assert(_c.LogFile && _c.ErrorFile && LogUtils::Stdout && LogUtils::Stderr);
 
 		// set streams and options for each logger
 		// log
 		if (_c.enableLog.Screen)
 			Log.Stream().StreamList().push_back(LogUtils::Stdout);
 		if (_c.enableLog.File)
+		{
+			if(!_c.LogFile)
+				throw CommonLogger::Exception("Log file missing while constructing CommonLogger. Check option logDir.",
+					__CODEINFO__);
 			Log.Stream().StreamList().push_back(_c.LogFile);
+		}
 		// error
 		if (_c.enableError.Screen)
 			Error.Stream().StreamList().push_back(LogUtils::Stderr);
 		if (_c.enableError.File)
 		{
+			if (!_c.LogFile)
+				throw CommonLogger::Exception("Log file missing while constructing CommonLogger. Check option logDir.",
+					__CODEINFO__);
+			if (!_c.ErrorFile)
+				throw CommonLogger::Exception("Error log file missing while constructing CommonLogger. Check option errorLogDir.",
+					__CODEINFO__);
 			Error.Stream().StreamList().push_back(_c.LogFile);
 			Error.Stream().StreamList().push_back(_c.ErrorFile);
 		}
@@ -154,6 +167,12 @@ namespace HASHCOLON::Helper
 			Debug.Stream().StreamList().push_back(LogUtils::Stderr);
 		if (_c.enableDebug.File)
 		{
+			if (!_c.LogFile)
+				throw CommonLogger::Exception("Log file missing while constructing CommonLogger. Check option logDir.",
+					__CODEINFO__);
+			if (!_c.ErrorFile)
+				throw CommonLogger::Exception("Error log file missing while constructing CommonLogger. Check option errorLogDir.",
+					__CODEINFO__);
 			Debug.Stream().StreamList().push_back(_c.LogFile);
 			Debug.Stream().StreamList().push_back(_c.ErrorFile);
 		}
@@ -172,8 +191,8 @@ namespace HASHCOLON::Helper
 	}
 }
 
-HASHCOLON::Helper::ResultPrinter::_Params HASHCOLON::Helper::ResultPrinter::_cDefault;
-namespace HASHCOLON::Helper
+HashColon::Helper::ResultPrinter::_Params HashColon::Helper::ResultPrinter::_cDefault;
+namespace HashColon::Helper
 {
 	using namespace std;
 	using RP = ResultPrinter;
@@ -181,17 +200,15 @@ namespace HASHCOLON::Helper
 	void RP::Initialize()
 	{
 		CLI::App* cli = SingletonCLI::GetInstance().GetCLI("Log");
-
-		{
-			using namespace CLI::BooleanOption;
-			add_option(cli, "--enableResultScreen", _cDefault.Screen, "Enable logging to screen");
-			add_option(cli, "--enableResultFile", _cDefault.File, "Enable logging to file");			
-		}
+				
+		cli->add_option("--enableResultScreen", _cDefault.Screen, "Enable logging to screen");
+		cli->add_option("--enableResultFile", _cDefault.File, "Enable logging to file");
+		
 	}
 
 	RP::ResultPrinter(string filepath, _Params params)
-		: _c(params), 
-		Logger({}, LogUtils::BasicFormat, LogUtils::PassFilter, {{LogUtils::Tag::type, "Result"}})
+		: _c(params),
+		Logger({}, LogUtils::BasicFormat, LogUtils::PassFilter, { {LogUtils::Tag::type, "Result"} })
 	{
 		if (_c.File)
 		{
@@ -201,7 +218,7 @@ namespace HASHCOLON::Helper
 			else
 				this->Stream().StreamList().push_back(filestream);
 		}
-		
+
 		if (_c.Screen)
 		{
 			assert(LogUtils::Stdout);
@@ -210,5 +227,5 @@ namespace HASHCOLON::Helper
 	}
 
 	RP::ResultPrinter(const ResultPrinter& rhs)
-		: _c(rhs._c), Logger(rhs) {}; 
+		: _c(rhs._c), Logger(rhs) {};
 }

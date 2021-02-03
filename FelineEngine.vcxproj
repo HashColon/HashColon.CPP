@@ -34,38 +34,10 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="HashColon\Helper\ClassPropertyForCpp.hpp" />
-    <ClInclude Include="HashColon\Helper\CLI11.hpp" />
-    <ClInclude Include="HashColon\Helper\CLI11_ConfigJson.hpp" />
-    <ClInclude Include="HashColon\Helper\CLI11_extended.hpp" />
-    <ClInclude Include="HashColon\Helper\CommonLogger.hpp" />
-    <ClInclude Include="HashColon\Helper\ErrorCodes.hpp" />
-    <ClInclude Include="HashColon\Helper\Exception.hpp" />
-    <ClInclude Include="HashColon\Helper\FileUtility.hpp" />
-    <ClInclude Include="HashColon\Helper\Helper.hpp" />
-    <ClInclude Include="HashColon\Helper\InitializeInterface.hpp" />
-    <ClInclude Include="HashColon\Helper\Json.hpp" />
-    <ClInclude Include="HashColon\Helper\Log.hpp" />
-    <ClInclude Include="HashColon\Helper\LogUtils.hpp" />
-    <ClInclude Include="HashColon\Helper\Macros.hpp" />
-    <ClInclude Include="HashColon\Helper\MultiDimensionArray.hpp" />
-    <ClInclude Include="HashColon\Helper\ProgramConst.hpp" />
-    <ClInclude Include="HashColon\Helper\SimpleVector.hpp" />
-    <ClInclude Include="HashColon\Helper\SingletonCLI.hpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="HashColon\Helper\src\CLI11_extended.cpp" />
-    <ClCompile Include="HashColon\Helper\src\CommonLogger.cpp" />
-    <ClCompile Include="HashColon\Helper\src\FileUtility.cpp" />
-    <ClCompile Include="HashColon\Helper\src\LogUtils.cpp" />
-    <ClCompile Include="HashColon\Helper\src\ProgramConst.cpp" />
-    <ClCompile Include="HashColon\Helper\src\SingletonCLI.cpp" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{95ff5267-948b-4222-b815-5ca1d7e8c791}</ProjectGuid>
+    <ProjectGuid>{75343262-6c4b-47dd-98fc-d9e72a76f9fc}</ProjectGuid>
     <Keyword>Linux</Keyword>
-    <RootNamespace>Helper</RootNamespace>
+    <RootNamespace>FelineEngine</RootNamespace>
     <MinimumVisualStudioVersion>15.0</MinimumVisualStudioVersion>
     <ApplicationType>Linux</ApplicationType>
     <ApplicationTypeRevision>1.0</ApplicationTypeRevision>
@@ -75,11 +47,9 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
-    <RemoteRootDir>~/WTK/Projects</RemoteRootDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
-    <RemoteRootDir>~/WTK/Projects</RemoteRootDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
@@ -89,13 +59,11 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
-    <RemoteRootDir>~/WTK/Projects/$(SolutionName)</RemoteRootDir>
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <RemoteRootDir>~/WTK/Projects</RemoteRootDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
-    <RemoteRootDir>~/WTK/Projects/$(SolutionName)</RemoteRootDir>
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <RemoteRootDir>~/WTK/Projects</RemoteRootDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
@@ -109,36 +77,90 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <RemoteProjectDir>$(RemoteRootDir)/HashColon/$(ProjectName)</RemoteProjectDir>
+    <MultiProcNumber>20</MultiProcNumber>
     <IncludePath>$(ProjectDir)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <RemoteProjectDir>$(RemoteRootDir)/HashColon/$(ProjectName)</RemoteProjectDir>
+    <MultiProcNumber>20</MultiProcNumber>
     <IncludePath>$(ProjectDir)</IncludePath>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
-    <RemoteProjectDir>$(RemoteRootDir)/HashColon/$(ProjectName)</RemoteProjectDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
-    <RemoteProjectDir>$(RemoteRootDir)/HashColon/$(ProjectName)</RemoteProjectDir>
-  </PropertyGroup>
+  <ItemGroup>
+    <ClInclude Include="HashColon\Clustering\ClusteringBase.hpp" />
+    <ClInclude Include="HashColon\Clustering\ext\dkm\dkm.hpp" />
+    <ClInclude Include="HashColon\Clustering\ext\dkm\dkm_parallel.hpp" />
+    <ClInclude Include="HashColon\Clustering\ext\dkm\dkm_utils.hpp" />
+    <ClInclude Include="HashColon\Clustering\NJW.hpp" />
+    <ClInclude Include="HashColon\Feline\Feline_config.h" />
+    <ClInclude Include="HashColon\Feline\TrajectoryClustering\FelineJsonIO.hpp" />
+    <ClInclude Include="HashColon\Feline\TrajectoryClustering\TrajectoryDistanceMeasure.hpp" />
+    <ClInclude Include="HashColon\Feline\Types\ValueTypes.hpp" />
+    <ClInclude Include="HashColon\Feline\Types\VoyageSimple.hpp" />
+    <ClInclude Include="HashColon\Helper\ClassPropertyForCpp.hpp" />
+    <ClInclude Include="HashColon\Helper\CommonLogger.hpp" />
+    <ClInclude Include="HashColon\Helper\ErrorCodes.hpp" />
+    <ClInclude Include="HashColon\Helper\Exception.hpp" />
+    <ClInclude Include="HashColon\Helper\ext\CLI11\CLI11.hpp" />
+    <ClInclude Include="HashColon\Helper\ext\CLI11\CLI11_extended.hpp" />
+    <ClInclude Include="HashColon\Helper\ext\CLI11\nlohmann\json.hpp" />
+    <ClInclude Include="HashColon\Helper\FileUtility.hpp" />
+    <ClInclude Include="HashColon\Helper\Helper.hpp" />
+    <ClInclude Include="HashColon\Helper\Log.hpp" />
+    <ClInclude Include="HashColon\Helper\LogUtils.hpp" />
+    <ClInclude Include="HashColon\Helper\Macros.hpp" />
+    <ClInclude Include="HashColon\Helper\MultiDimensionArray.hpp" />
+    <ClInclude Include="HashColon\Helper\Real.hpp" />
+    <ClInclude Include="HashColon\Helper\SimpleVector.hpp" />
+    <ClInclude Include="HashColon\Helper\SingletonCLI.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="HashColon\Feline\TrajectoryClustering\src\FelineJsonIO.cpp" />
+    <ClCompile Include="HashColon\Feline\TrajectoryClustering\src\main.cpp" />
+    <ClCompile Include="HashColon\Feline\TrajectoryClustering\src\TrajectoryDistanceMeasure.cpp" />
+    <ClCompile Include="HashColon\Feline\Types\src\ValueTypes.cpp" />
+    <ClCompile Include="HashColon\Feline\Types\src\VoyageSimple.cpp" />
+    <ClCompile Include="HashColon\Helper\src\CommonLogger.cpp" />
+    <ClCompile Include="HashColon\Helper\src\FileUtility.cpp" />
+    <ClCompile Include="HashColon\Helper\src\LogUtils.cpp" />
+    <ClCompile Include="HashColon\Helper\src\Real.cpp" />
+    <ClCompile Include="HashColon\Helper\src\SingletonCLI.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="config\CommonLogger.json" />
+    <None Include="config\TrajectoryClustering.json" />
+  </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>%(ClCompile.AdditionalIncludeDirectories);$(SolutionDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(ClCompile.AdditionalIncludeDirectories);$(RemoteRootDir);/usr/include/eigen3;/usr/include/opencv4;</AdditionalIncludeDirectories>
       <CppLanguageStandard>c++17</CppLanguageStandard>
+      <AdditionalOptions>-fPIC -fopenmp %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
-      <LibraryDependencies>boost_filesystem</LibraryDependencies>
+      <AdditionalOptions>-fopenmp %(AdditionalOptions)</AdditionalOptions>
     </Link>
+    <RemotePreBuildEvent>
+      <Command>
+      </Command>
+    </RemotePreBuildEvent>
+    <RemotePostBuildEvent>
+      <Command>cp -r $(RemoteProjectDir)/config $(RemoteOutDir)</Command>
+    </RemotePostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>%(ClCompile.AdditionalIncludeDirectories);$(SolutionDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(ClCompile.AdditionalIncludeDirectories);$(RemoteRootDir);/usr/include/eigen3;/usr/include/opencv4;</AdditionalIncludeDirectories>
       <CppLanguageStandard>c++17</CppLanguageStandard>
+      <AdditionalOptions>-fPIC -fopenmp %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
-      <LibraryDependencies>boost_filesystem</LibraryDependencies>
+      <AdditionalOptions>-fopenmp %(AdditionalOptions)</AdditionalOptions>
     </Link>
+    <RemotePreBuildEvent>
+      <Command>
+      </Command>
+    </RemotePreBuildEvent>
+    <RemotePostBuildEvent>
+      <Command>cp -r $(RemoteProjectDir)/config $(RemoteOutDir)</Command>
+    </RemotePostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

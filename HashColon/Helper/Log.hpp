@@ -1,4 +1,3 @@
-#pragma once
 #ifndef HASHCOLON_HELPER_LOG_HPP
 #define HASHCOLON_HELPER_LOG_HPP
 
@@ -13,7 +12,7 @@
 #include <ostream>
 #include <string>
 
-namespace HASHCOLON::Helper
+namespace HashColon::Helper
 {
 	template <typename tagtype>
 	class LogStreamBuf : public std::streambuf
@@ -47,11 +46,12 @@ namespace HASHCOLON::Helper
 
 		virtual int sync() final override
 		{
-			std::string formattedString = _formatter(_ss.str(), _args);
-
-			if (_filter(_args))
+			if (_filter(_args)) 
+			{
+				std::string formattedString = _formatter(_ss.str(), _args);
 				for (auto& aStream : _streams)
 					(*aStream) << formattedString << std::flush;
+			}
 
 			// clear string after flush
 			std::stringstream().swap(_ss);
@@ -102,8 +102,27 @@ namespace HASHCOLON::Helper
 	};
 }
 
-namespace HASHCOLON::Helper
+namespace HashColon::Helper
 {
+	/*
+		This is the base class for logging. 
+		To use this class, tag type(enum)/filter function/format function needs to be defined.
+		Do not use this class for direct logging. use CommonLogger instead 
+
+		<Logger ingredients descriptions>
+		tagtype: enum for argument tags. all arguments will be passed as {tag, value} pairs
+		Formatter: formatting function in form: string [func](string, { {tag, value}, ... } )
+				   example) 
+				       string TimestampedMessages(string msg, { { tag::time, timevalue} } )
+					   this formatter gets msg as original message, timevalue as given argument name time.
+					   this formatter may give output as "[timevalue] msg"				       
+		Filter: filter function in form: bool [func]( { {tag, value}, ... } )
+				this function determines wheter the logging message should be shown or not.
+				example)
+				       bool levelFilter( { { tag::lvl, level } } )
+					   If the given level is over certain value, the function will return false.
+					   Which will suppress the message.
+	*/
 	template <typename tagtype>
 	class Logger : public std::ostream
 	{
@@ -157,7 +176,7 @@ namespace HASHCOLON::Helper
 	};
 }
 
-namespace HASHCOLON::Helper
+namespace HashColon::Helper
 {
 	template <typename T>	
 	LogStreamBuf<T> LogStreamBuf<T>::withArgs(const ArgListType args) const
@@ -274,7 +293,7 @@ namespace HASHCOLON::Helper
 	}
 }
 
-namespace HASHCOLON::Helper
+namespace HashColon::Helper
 {
 	template<typename T>
 	Logger<T> Logger<T>::withArgs(const ArgListType args) const

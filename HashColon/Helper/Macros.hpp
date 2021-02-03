@@ -36,4 +36,8 @@
 #define __CODEINFO__ __FILE__, __LINE__, __FUNC__
 #define __CODEINFO_STR__ __FILE__, STR(__LINE__), __FUNC__
 
+// define Real (precision definition)
+#define HASHCOLON_REAL_AS_DOUBLEPRECISION
+// #define HASHCOLON_REAL_AS_SINGLEPRECISION
+
 #endif

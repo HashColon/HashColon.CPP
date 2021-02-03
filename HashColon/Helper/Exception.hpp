@@ -7,7 +7,7 @@
 #include <map>
 #include <HashColon/Helper/Macros.hpp>
 
-namespace HASHCOLON
+namespace HashColon
 {
 	namespace Exceptions
 	{
@@ -97,10 +97,10 @@ namespace HASHCOLON
 }
 
 #define NotImplementedException \
-HASHCOLON::Exceptions::NotImplementedException(__CODEINFO__)
+HashColon::Exceptions::NotImplementedException(__CODEINFO__)
 
 #define HASHCOLON_CLASS_EXCEPTION_DEFINITION(classname) \
-class Exception : public HASHCOLON::Exceptions::Exception \
+class Exception : public HashColon::Exceptions::Exception \
 {	\
 public:	\
 	Exception(	\
@@ -108,12 +108,12 @@ public:	\
 		const std::string file = __FILE__,	\
 		const int line = __LINE__,	\
 		const std::string func = __FUNC__)	\
-		: HASHCOLON::Exceptions::Exception(msg, file, line, func) {};	\
+		: HashColon::Exceptions::Exception(msg, file, line, func) {};	\
 	virtual std::string name() const override { return std::string(STR(classname)) + " error"; };	\
 }
 
 #define HASHCOLON_NAMED_EXCEPTION_DEFINITION(exception_name) \
-class exception_name##Exception : public HASHCOLON::Exceptions::Exception \
+class exception_name##Exception : public HashColon::Exceptions::Exception \
 {	\
 public:	\
 	exception_name##Exception(	\
@@ -121,7 +121,7 @@ public:	\
 		const std::string file = __FILE__,	\
 		const int line = __LINE__,	\
 		const std::string func = __FUNC__)	\
-		: HASHCOLON::Exceptions::Exception(msg, file, line, func) {};	\
+		: HashColon::Exceptions::Exception(msg, file, line, func) {};	\
 	virtual std::string name() const override { return std::string(STR(exception_name)) + " error"; };	\
 }
 

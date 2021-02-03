@@ -20,7 +20,7 @@
 /// <summary>
 /// The HASHCOLON namespace.
 /// </summary>
-namespace HASHCOLON
+namespace HashColon
 {
 	/// <summary>
 	/// The Helper namespace.

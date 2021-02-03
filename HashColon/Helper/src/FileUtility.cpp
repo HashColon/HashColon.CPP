@@ -1,12 +1,14 @@
 #include <string>
 #include <vector>
 #include <regex>
-#include <boost/filesystem.hpp>
+#include <sstream>
+#include <filesystem>
+//#include <boost/filesystem.hpp>
 #include <HashColon/Helper/FileUtility.hpp>
 
 using namespace std;
 
-namespace HASHCOLON
+namespace HashColon
 {
 	namespace Helper
 	{
@@ -33,10 +35,11 @@ namespace HASHCOLON
 				// we are not checking the validity of directory cause we have done it with cli11
 
 				// we are using boost::filesystem library here
-				using namespace boost::filesystem;
+				//using namespace boost::filesystem;				
+				using namespace std::filesystem;
 				
 				// define a path 
-				path aPath(aPathStr);
+				path aPath = aPathStr.c_str();
 
 				// if current path is a file
 				if (is_regular_file(aPath))
@@ -48,14 +51,15 @@ namespace HASHCOLON
 				else if (is_directory(aPath))
 				{
 					// iterate 
-					for (directory_entry& aItem : recursive_directory_iterator(aPath))
+					for (const directory_entry aItem : recursive_directory_iterator(aPath.c_str()))
 					{
 						// if aItem is a file
 						if (is_regular_file(aItem.path()))
 						{
 							// if filename matches the regex filter, 
 							// add the file's full path to output
-							if (regex_match(aItem.path().filename().string(), base_match, filterRegex))
+							string filenamestr = aItem.path().filename().string();
+							if (regex_match(filenamestr, base_match, filterRegex))
 								re.push_back(aItem.path().string());
 						}
 					}
@@ -84,19 +88,21 @@ namespace HASHCOLON
 				// we are not checking the validity of directory cause we have done it with cli11
 
 				// we are using boost::filesystem library here
-				using namespace boost::filesystem;
+				//using namespace boost::filesystem;
+				using namespace std::filesystem;
 
 				// define a path 
-				path aDirPath(aDirStr);
+				path aDirPath = aDirStr.c_str();
 
-				for (directory_entry& aItem : recursive_directory_iterator(aDirPath))
+				for (const directory_entry aItem : recursive_directory_iterator(aDirPath))
 				{
 					// if aItem is a file
 					if (is_regular_file(aItem.path()))
 					{
 						// if filename matches the regex filter, 
 						// add the file's full path to output
-						if (regex_match(aItem.path().filename().string(), base_match, filterRegex))
+						string filenamestr = aItem.path().filename().string();
+						if (regex_match(filenamestr, base_match, filterRegex))
 							re.push_back(aItem.path().string());
 					}
 				}

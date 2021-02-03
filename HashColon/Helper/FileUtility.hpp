@@ -3,12 +3,8 @@
 
 #include <string>
 #include <vector>
-#include <map>
-#include <regex>
-#include <sstream>
-#include <HashColon/Helper/Exception.hpp>
 
-namespace HASHCOLON
+namespace HashColon
 {
 	namespace Helper
 	{

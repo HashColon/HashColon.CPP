@@ -1,0 +1,26 @@
+{
+  "inputDir": "/home/cadit/WTK/WTK_data/ExactEarth/result/in",
+  "outputDir": "/home/cadit/WTK/WTK_data/ExactEarth/result/euclidean",
+  "outputPrefix": "cluster_",
+  "clusteringMethodName" :  "NJW",
+  "measuringMethodName":  "Euclidean",
+  "enableUniformSampling": "false",
+
+  "Clustering":{
+    "NJW": {
+      "similaritySigma": 50,
+      "k": 2,
+      "kmeansEpsilon": 0.01,
+      "kmeansIteration": 100
+    }
+  },
+
+  "TrajectoryDistanceMeasure": {
+    "Enable_ReversedSequence": "true",
+
+    "LCSS": {
+      "Epsilon": 30,
+      "Delta": 3
+    }
+  }
+}

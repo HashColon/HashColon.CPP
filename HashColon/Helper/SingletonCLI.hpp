@@ -5,13 +5,12 @@
 #include <mutex>
 #include <vector>
 #include <sstream>
-#include <iostream>
 #include <exception>
 
-#include <HashColon/Helper/CLI11.hpp>
+#include <HashColon/Helper/ext/CLI11/CLI11_extended.hpp>
 
 
-namespace HASHCOLON
+namespace HashColon
 {
 	namespace Helper
 	{
@@ -21,7 +20,7 @@ namespace HASHCOLON
 			static std::shared_ptr<SingletonCLI> _instance;
 			static std::once_flag _onlyOne;
 
-			CLI::App cli; 
+			CLI::App cli;
 
 			SingletonCLI(int id) : cli("HASHCOLON@SNU") { };
 			SingletonCLI(const SingletonCLI& rs)
@@ -38,70 +37,68 @@ namespace HASHCOLON
 				return *this;
 			}
 
-			CLI::App* GetCLI_core(CLI::App* parent, const std::string iClassname)
+			CLI::App* GetCLI_core(CLI::App* app, const std::string iClassname)
 			{
+
 				// iClassname is empty string, return parent
 				if (iClassname.empty())
-					return parent;
+					return app;
 
 				// get first part of iClassname
 				std::stringstream sscn(iClassname);
-				std::string first, leftovers;
-				std::getline(sscn, first, '.');
+				std::string name;
+				CLI::App* parent; parent = app;
+				CLI::App* child; 
 
-				CLI::App* child;
-
-				// if no matching class found,
-				try
+				do
 				{
-					child = parent->get_subcommand(first);
-				}
-				catch(std::exception e)
-				{
-					parent->add_subcommand(first, "");
-				}
-				
-				// get leftover string from sscn
-				std::getline(sscn, leftovers);
+					std::getline(sscn, name, '.');					
+					try
+					{
+						child = parent->get_subcommand(name);
+					}
+					catch (std::exception e)
+					{
+						parent->add_subcommand(name, "");
+						child = parent->get_subcommand(name);
+					}
+					parent = child;											
+				} while (sscn.rdbuf()->in_avail());
 
-				return GetCLI_core(parent->get_subcommand(first), leftovers);
+				return parent;
 			}
 
 
 
 		public:
+			enum ConfigurationFileType { json };
+
 			~SingletonCLI() {};
 
 			static SingletonCLI& GetInstance(int id = 0)
 			{
 				std::call_once(SingletonCLI::_onlyOne,
 					[](int idx)
-				{
-					SingletonCLI::_instance.reset(new SingletonCLI(idx));
-				}, id);
+					{
+						SingletonCLI::_instance.reset(new SingletonCLI(idx));
+					}, id);
 				return *SingletonCLI::_instance;
 			}
 
+			static SingletonCLI& Initialize(				
+				ConfigurationFileType configtype = ConfigurationFileType::json);
+
+			void Parse(int argc, char** argv, 
+				std::vector<std::string> configFiles);
+
 			CLI::App* GetCLI(const std::string iClassname = "")
-			{	
+			{
 				return GetCLI_core(&cli, iClassname);
 			}
-			
 		};
 
 
 	}
 }
-
-/* IMPORTANT */
-// must instantiate as following in ONLY ONE CPP FILE
-//namespace HASHCOLON
-//{
-//	namespace Helper
-//	{
-//		std::once_flag IniReader_CLI::_onlyOne;
-//		std::shared_ptr<IniReader_CLI> IniReader_CLI::_instance = nullptr;
-//	}
-//}
 
 #endif 

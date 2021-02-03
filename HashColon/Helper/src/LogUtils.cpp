@@ -7,7 +7,7 @@
 //const std::shared_ptr<std::ostream > Stdout = std::shared_ptr<std::ostream>(&std::cout, [](std::ostream*) {});
 //const std::shared_ptr<std::ostream> Stderr = std::shared_ptr<std::ostream>(&std::cerr, [](std::ostream*) {});
 
-namespace HASHCOLON::Helper::LogUtils
+namespace HashColon::Helper::LogUtils
 {
 	using namespace std;
 
@@ -65,7 +65,7 @@ namespace HASHCOLON::Helper::LogUtils
 	bool BlockFilter(unordered_map<Tag, ArgValue> args) { return false; }
 
 	bool VerboseFilter(unordered_map<Tag, ArgValue> args)
-	{
+	{		
 		if (args.count(Tag::lvl) == 1 && args.count(Tag::maxlvl) == 1)
 		{
 			int lvl_int = get<int>(args.at(Tag::lvl));
@@ -78,7 +78,7 @@ namespace HASHCOLON::Helper::LogUtils
 	}
 }
 
-namespace HASHCOLON::Helper::LogUtils
+namespace HashColon::Helper::LogUtils
 {
 	using namespace std;
 
@@ -90,7 +90,7 @@ namespace HASHCOLON::Helper::LogUtils
 	}
 }
 
-namespace HASHCOLON::Helper::LogUtils::Frag
+namespace HashColon::Helper::LogUtils::Frag
 {
 	Percentage::Percentage(int item_done, int item_total)
 	{
@@ -117,7 +117,7 @@ namespace HASHCOLON::Helper::LogUtils::Frag
 	}		
 }
 
-namespace HASHCOLON::Helper::LogUtils::Frag
+namespace HashColon::Helper::LogUtils::Frag
 {
 	ostream& operator<< (ostream& lhs, TimeStamp rhs)
 	{

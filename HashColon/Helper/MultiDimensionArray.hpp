@@ -3,7 +3,7 @@
 
 #include <array>
 
-namespace HASHCOLON
+namespace HashColon
 {
 	namespace Helper
 	{	

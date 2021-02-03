@@ -19,7 +19,7 @@
 /// <summary>
 /// The HASHCOLON namespace.
 /// </summary>
-namespace HASHCOLON
+namespace HashColon
 {
 	/// <summary>
 	/// The Helper namespace.
@@ -91,7 +91,7 @@ namespace HASHCOLON
 			/// <returns>HASHCOLON.Helper.Property&lt;OwnerType_, ValueType_, getter_, setter_&gt; &.</returns>
 			Property& operator=(const Property&) = delete;
 			/// <summary>
-			/// Operator=s the specified .
+			// Operator=s the specified .
 			/// </summary>
 			/// <param name="">The .</param>
 			/// <returns>HASHCOLON.Helper.Property&lt;OwnerType_, ValueType_, getter_, setter_&gt; &.</returns>
@@ -126,7 +126,7 @@ namespace HASHCOLON
 	private: valueType _auto_g_get##propName() getBlock \
 	private: void _auto_g_set##propName(valueType value) setBlock \
 	public: using _auto_g_propType##propName = \
-	HASHCOLON::Helper::Property<className, valueType, \
+	HashColon::Helper::Property<className, valueType, \
 	&className::_auto_g_get##propName, \
 	&className::_auto_g_set##propName>; \
 	accessSpec: _auto_g_propType##propName propName = _auto_g_propType##propName(this)

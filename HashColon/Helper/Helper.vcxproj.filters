@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{a942df7e-7a6a-4f24-94dc-579a1e3eff5a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ext">
+      <UniqueIdentifier>{1ec6883d-46d4-44f7-ae06-77463c8f971a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ext\CLI11">
+      <UniqueIdentifier>{f14feece-b211-48b3-a687-e048ce1db3ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ext\CLI11\nlohmann">
+      <UniqueIdentifier>{7fb88bf4-6c88-4be7-b4eb-e37d37594e91}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ext\Eigen">
+      <UniqueIdentifier>{8f332b53-6593-469c-9034-fce75ec92862}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\CommonLogger.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FileUtility.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\LogUtils.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SingletonCLI.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Real.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ClassPropertyForCpp.hpp" />
+    <ClInclude Include="CommonLogger.hpp" />
+    <ClInclude Include="ErrorCodes.hpp" />
+    <ClInclude Include="Exception.hpp" />
+    <ClInclude Include="FileUtility.hpp" />
+    <ClInclude Include="Helper.hpp" />
+    <ClInclude Include="Log.hpp" />
+    <ClInclude Include="LogUtils.hpp" />
+    <ClInclude Include="Macros.hpp" />
+    <ClInclude Include="MultiDimensionArray.hpp" />
+    <ClInclude Include="SimpleVector.hpp" />
+    <ClInclude Include="SingletonCLI.hpp" />
+    <ClInclude Include="Real.hpp" />
+    <ClInclude Include="ext\CLI11\CLI11.hpp">
+      <Filter>ext\CLI11</Filter>
+    </ClInclude>
+    <ClInclude Include="ext\CLI11\CLI11_extended.hpp">
+      <Filter>ext\CLI11</Filter>
+    </ClInclude>
+    <ClInclude Include="ext\CLI11\nlohmann\json.hpp">
+      <Filter>ext\CLI11\nlohmann</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
