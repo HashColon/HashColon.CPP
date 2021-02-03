@@ -33,7 +33,7 @@ namespace HashColon::Feline::TrajectoryClustering::DistanceMeasure
 	public:
 		static _Params& GetDefaultParams() { return _cDefault; };
 		_Params GetParams() { return _c; };
-		static void Initialize();
+		static void Initialize(const std::string configFilePath = "");
 
 		HashColon::Helper::Real Measure(
 			const HashColon::Feline::Types::Simple::XYList& a,
@@ -138,7 +138,7 @@ namespace HashColon::Feline::TrajectoryClustering::DistanceMeasure
 		const _Params _c;
 
 	public:
-		static void Initialize();
+		static void Initialize(const std::string configFilePath = "");
 
 		LCSS(_Params params = _cDefault)
 			: TrajectoryDistanceMeasureBase(				

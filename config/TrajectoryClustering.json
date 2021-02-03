@@ -1,10 +1,11 @@
 {
   "inputDir": "/home/cadit/WTK/WTK_data/ExactEarth/result/in",
-  "outputDir": "/home/cadit/WTK/WTK_data/ExactEarth/result/euclidean",
+  "outputDir": "/home/cadit/WTK/WTK_data/ExactEarth/result",
   "outputPrefix": "cluster_",
   "clusteringMethodName" :  "NJW",
   "measuringMethodName":  "Euclidean",
-  "enableUniformSampling": "false",
+  "enableUniformSampling": "true",
+  "UniformSamplingNumber":  30,
 
   "Clustering":{
     "NJW": {

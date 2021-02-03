@@ -4,6 +4,7 @@
 #include <memory>
 #include <mutex>
 #include <vector>
+#include <string>
 #include <sstream>
 #include <exception>
 
@@ -21,6 +22,7 @@ namespace HashColon
 			static std::once_flag _onlyOne;
 
 			CLI::App cli;
+			std::vector<std::string> _configfiles;
 
 			SingletonCLI(int id) : cli("HASHCOLON@SNU") { };
 			SingletonCLI(const SingletonCLI& rs)
@@ -87,6 +89,11 @@ namespace HashColon
 
 			static SingletonCLI& Initialize(				
 				ConfigurationFileType configtype = ConfigurationFileType::json);
+
+			SingletonCLI& AddConfigFile(std::string configFileName);
+			SingletonCLI& AddConfigFile(std::vector<std::string> configFileNames);
+
+			std::vector<std::string>& GetConfigFileList();
 
 			void Parse(int argc, char** argv, 
 				std::vector<std::string> configFiles);

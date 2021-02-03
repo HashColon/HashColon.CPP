@@ -5,6 +5,7 @@
 #include <any>
 #include <string>
 #include <limits>
+#include <unordered_map>
 
 #include <iostream>
 
@@ -14,6 +15,7 @@
 #include <HashColon/Helper/SingletonCLI.hpp>
 #include <HashColon/Helper/FileUtility.hpp>
 #include <HashColon/Helper/CommonLogger.hpp>
+#include <HashColon/Helper/Exception.hpp>
 
 #include <HashColon/Clustering/ClusteringBase.hpp>
 #include <HashColon/Feline/TrajectoryClustering/TrajectoryDistanceMeasure.hpp>
@@ -42,14 +44,17 @@ static struct _Params
 	string clusteringMethodName;
 	string measuringMethodName;
 	bool enableUniformSampling;
+	size_t UniformSamplingNumber;
 } _c;
+
+HASHCOLON_NAMED_EXCEPTION_DEFINITION(main);
 
 void run()
 {	
 	GlobalLogger logger;
 	logger.Log({ {Tag::lvl, 1} }) << "Start!" << endl;	
-	string dir = "/home/cadit/WTK/WTK_data/ExactEarth/result/in";
-	string outprefix = "/home/cadit/WTK/WTK_data/ExactEarth/result/euclidean/cluster_";
+	string dir = _c.inputDir;
+	string outprefix = _c.outputDir + "/" + _c.clusteringMethodName + "/" + _c.measuringMethodName + "/" + _c.outputPrefix;
 	vector<string> filepaths = GetFilesInDirectory(dir);	
 
 	vector<vector<Simple::XYList>> routes_raw;
@@ -72,35 +77,63 @@ void run()
 	for (auto& raw : routes_raw) { routes.insert(routes.end(), raw.begin(), raw.end()); }
 	routes_raw.clear();
 
-	logger.Log({ {Tag::lvl, 1} }) << "Parsing finished. " << routes.size() << " routes." << endl;	
+	logger.Log({ {Tag::lvl, 1} }) << "Parsing finished. " << routes.size() << " routes." << endl;
 
-	DistanceMeasureBase<Simple::XYList>::Ptr euclidean = make_shared<Euclidean>(Euclidean::_Params{true });
-	DistanceMeasureBase<Simple::XYList>::Ptr hausdorff = make_shared<Hausdorff>(Hausdorff::_Params{true });
-	DistanceMeasureBase<Simple::XYList>::Ptr lcss = make_shared<LCSS>(LCSS::_Params{ {true}, 30, 3 });
-	DistanceMeasureBase<Simple::XYList>::Ptr merge = make_shared<Merge>(Merge::_Params{true});
-	
+	// pick similarity/distance method
+	unordered_map<string, DistanceMeasureBase<Simple::XYList>::Ptr> measuringMethodList
+	{
+		{"Euclidean", make_shared<Euclidean>()},
+		{"Hausdorff", make_shared<Hausdorff>()},
+		{"LCSS", make_shared<LCSS>()},
+		{"Merge", make_shared<Merge>()}
+	};
+	DistanceMeasureBase<Simple::XYList>::Ptr measuringMethod;
+	try {
+		measuringMethod = measuringMethodList[_c.measuringMethodName];
+	}
+	catch (out_of_range e)
+	{
+		throw mainException(
+			"Invalid distance/similarity measuring method name. Check option --measuringMethodName.",
+			__CODEINFO__);
+	}
 
-	NJW<Simple::XYList>::_Params njwparams;
-	njwparams.similaritySigma = 50;
-	njwparams.k = 2;
-	njwparams.kmeansEpsilon = 0.01;
-	njwparams.kmeansIteration = 100;
-	
-	//NJW<Simple::XYList> njw(euclidean, njwparams);
-	//NJW<Simple::XYList> njw(hausdorff, njwparams);
-	//NJW<Simple::XYList> njw(lcss, njwparams);
-	NJW<Simple::XYList> njw(merge, njwparams);
+	// pick clustering method
+	unordered_map<string, DistanceBasedClustering<Simple::XYList>::Ptr> clusteringMethodList
+	{
+		{"NJW", make_shared<NJW<Simple::XYList>>(measuringMethod)}
+	};
+	DistanceBasedClustering<Simple::XYList>::Ptr clusteringmethod;
+	try {
+		clusteringmethod = clusteringMethodList[_c.clusteringMethodName];
+	}
+	catch (out_of_range e)
+	{
+		throw mainException(
+			"Invalid clustering method name. Check option --clusteringMethodName.",
+			__CODEINFO__);
+	}
+
+	if (_c.enableUniformSampling)
+	{
+		#pragma openmp parallel for
+		for (size_t i = 0; i < routes.size(); i++)
+		{
+			routes[i] = routes[i].GetNormalizedXYList(_c.UniformSamplingNumber);
+		}
+	}
 
 	shared_ptr<vector<size_t>> labels = make_shared<vector<size_t>>();
-	njw.TrainModel(routes, labels);
+	clusteringmethod->TrainModel(routes, labels);
 		
 	vector<vector<Simple::XYList>> re;
-	re.resize(njwparams.k);
+	re.resize(clusteringmethod->GetNumOfClusters());
 	for (size_t i = 0; i < routes.size(); i++)
 	{
 		re[labels->at(i)].push_back(routes[i]);
 	}
 
+	#pragma openmp parallel for
 	for (size_t i = 0; i < re.size(); i++)
 	{
 		string refile = outprefix + to_string(i) + ".json";
@@ -116,7 +149,7 @@ static void Initialize()
 	// register config files
 	SingletonCLI::Initialize();
 
-	GlobalLogger::Initialize();
+	GlobalLogger::Initialize("./config/CommonLogger.json");
 	NJW<Simple::XYList>::Initialize();
 	TrajectoryDistanceMeasureBase::Initialize();	
 	LCSS::Initialize();	
@@ -129,7 +162,7 @@ static void Initialize()
 	cli->add_option("--clusteringMethodName", _c.clusteringMethodName);
 	cli->add_option("--measuringMethodName", _c.measuringMethodName);	
 	cli->add_option("--enableUniformSampling", _c.enableUniformSampling);
-	
+	cli->add_option("--UniformSamplingNumber", _c.UniformSamplingNumber);
 
 	// Parse additional options from command line.
 	SingletonCLI::GetInstance().GetCLI()->set_help_all_flag("--help-all");
@@ -146,7 +179,7 @@ int main(int argc, char** argv)
 		SingletonCLI::GetInstance().Parse(
 			argc, argv,
 			{	
-				"./config/CommonLogger.json",
+				//"./config/CommonLogger.json",
 				"./config/TrajectoryClustering.json"
 			});
 	}

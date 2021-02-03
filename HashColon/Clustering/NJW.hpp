@@ -39,9 +39,14 @@ namespace HashColon::Clustering
 			: DistanceBasedClustering<DataType>(distanceFunction), _c(params)
 		{};
 
-		static void Initialize()
+		static void Initialize(const std::string configFilePath = "")
 		{			
 			CLI::App* cli = HashColon::Helper::SingletonCLI::GetInstance().GetCLI("Clustering.NJW");
+
+			if (!configFilePath.empty())
+			{
+				HashColon::Helper::SingletonCLI::GetInstance().AddConfigFile(configFilePath);
+			}
 
 			cli->add_option("--similaritySigma", _cDefault.similaritySigma, "Sigma value for converting distance to similarity");
 			cli->add_option("--k", _cDefault.k, "K value for K-means clustering");
@@ -82,6 +87,8 @@ namespace HashColon::Clustering
 	};
 }
 
+
+// definitions
 namespace HashColon::Clustering
 {
 	template<typename T>

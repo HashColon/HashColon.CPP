@@ -160,17 +160,27 @@ Real LCSS::Measure_core(
 	return lcss[a.size()][b.size()] / ((Real)min(a.size() - 1, b.size() - 1));
 }
 
-void TrajectoryDistanceMeasureBase::Initialize()
+void TrajectoryDistanceMeasureBase::Initialize(const std::string configFilePath)
 {
 	CLI::App* cli = SingletonCLI::GetInstance().GetCLI("TrajectoryDistanceMeasure");
+
+	if (!configFilePath.empty())
+	{
+		SingletonCLI::GetInstance().AddConfigFile(configFilePath);
+	}
 
 	cli->add_option("--Enable_ReversedSequence", _cDefault.Enable_ReversedSequence,
 		"Computes sequence-invariant measure. Computes min(D(A,B), D(A.rev, B))" );	
 }
 
-void LCSS::Initialize()
+void LCSS::Initialize(const std::string configFilePath)
 {
 	CLI::App* cli = SingletonCLI::GetInstance().GetCLI("TrajectoryDistanceMeasure.LCSS");
+
+	if (!configFilePath.empty())
+	{
+		SingletonCLI::GetInstance().AddConfigFile(configFilePath);
+	}
 
 	cli->add_option("--Epsilon", _cDefault.Epsilon,
 		"Criteria distance between two comparing points in LCSS. Represented as epsilon.");

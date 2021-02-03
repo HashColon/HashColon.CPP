@@ -71,7 +71,8 @@ namespace HashColon::Helper
 	public:
 		static _Params& GetDefaultParams() { return _cDefault; };
 		_Params GetParams() { return _c; };
-		static void Initialize();
+		//static void Initialize();
+		static void Initialize(const std::string configFilePath = "");
 		CommonLogger(_Params params = _cDefault);
 
 	public:

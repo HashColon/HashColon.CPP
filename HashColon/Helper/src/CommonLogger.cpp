@@ -35,9 +35,14 @@ namespace HashColon::Helper
 	namespace Util = LogUtils;
 	using SingletonCLI = HashColon::Helper::SingletonCLI;
 
-	void CommonLogger::Initialize()
+	void CommonLogger::Initialize(const std::string configFilePath)
 	{
 		CLI::App* cli = SingletonCLI::GetInstance().GetCLI("Log");
+
+		if (!configFilePath.empty())
+		{
+			SingletonCLI::GetInstance().AddConfigFile(configFilePath);
+		}
 
 		cli->add_option("--enableLogScreen", _cDefault.enableLog.Screen, "Enable logging to screen");
 		cli->add_option("--enableLogFile", _cDefault.enableLog.File, "Enable logging to file");

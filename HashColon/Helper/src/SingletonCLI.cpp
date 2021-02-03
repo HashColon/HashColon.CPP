@@ -22,28 +22,53 @@ namespace HashColon::Helper
 		default:
 			break;
 		}
+
 		return GetInstance();
 	}
 
+	SingletonCLI& SingletonCLI::AddConfigFile(string configFileName)
+	{
+		GetInstance()._configfiles.push_back(configFileName);
+		return GetInstance();
+	}
+
+	SingletonCLI& SingletonCLI::AddConfigFile(vector<string> configFileName)
+	{
+		for (auto& a : configFileName)
+			GetInstance()._configfiles.push_back(a);
+		return GetInstance();
+	}
+
+	vector<string>& SingletonCLI::GetConfigFileList()
+	{
+		return GetInstance()._configfiles;
+	}
+
+
 	void SingletonCLI::Parse(int argc, char** argv, vector<string> configFiles)
 	{
-		stringstream ss;
-		for (size_t i = 1; i < argc; i++)
-			ss << argv[i] << " ";
-
-		for (size_t i = 0; i < configFiles.size(); i++)
-			ss << "--config " << configFiles[i] << " ";
-
+		// set number of config files
 		// set config
 		GetInstance().GetCLI()
 			->set_config("--config", "", "Read configuration json files", true)
-			->expected(configFiles.size())->check(CLI::ExistingFile);
+			->expected(
+				GetInstance().GetConfigFileList().size()
+			+ configFiles.size())->check(CLI::ExistingFile);
 
 		// allow config extras
 		GetInstance().GetCLI()->allow_config_extras(true);
 
-		// parse
-		GetInstance().GetCLI()->parse(ss.str());		
+		stringstream ss;
+		for (size_t i = 0; i < configFiles.size(); i++)
+			ss << "--config " << configFiles[i] << " ";
+
+		for (size_t i = 0; i < GetInstance()._configfiles.size(); i++)
+			ss << "--config " << GetInstance()._configfiles[i] << " ";
+
+		for (size_t i = 1; i < argc; i++)
+			ss << argv[i] << " ";
+
+		GetInstance().GetCLI()->parse(ss.str());
 	}
 
 	once_flag SingletonCLI::_onlyOne;
