@@ -7,6 +7,7 @@
 #include <HashColon/Helper/ext/CLI11/CLI11_extended.hpp>
 #include <HashColon/Helper/CommonLogger.hpp>
 #include <HashColon/Helper/SingletonCLI.hpp>
+#include <HashColon/Helper/FileUtility.hpp>
 
 namespace hidden
 {
@@ -60,13 +61,9 @@ namespace HashColon::Helper
 				bool re = CLI::detail::lexical_cast(res[0], ErrDir);
 				if (re)
 				{
-					using namespace std::filesystem;
-					path ErrDirPath = absolute(path(ErrDir));					
-					if (!is_directory(ErrDirPath))
-					{
-						if (!create_directory(ErrDirPath))
-							throw CommonLogger::Exception("Cannot find/create errorLogDir", __CODEINFO__);
-					}
+					if (!BuildDirectoryStructure(ErrDir))
+						throw CommonLogger::Exception("Cannot find/create errorLogDir", __CODEINFO__);
+
 
 					shared_ptr<ofstream> ofFile
 						= make_shared<ofstream>(hidden::getFilename(ErrDir, "errorlog_"));
@@ -87,46 +84,42 @@ namespace HashColon::Helper
 			"Directory for errorlog files. Error/Debug messages are written as [dir]/errorlog_yymmddHHMMSS.log"
 				);//->check(CLI::ExistingDirectory);
 
-			string logDir;
-			cli->add_option(
-				"--logDir",
-				[](vector<string> res)
+		string logDir;
+		cli->add_option(
+			"--logDir",
+			[](vector<string> res)
+			{
+				string logDir;
+				bool re = CLI::detail::lexical_cast(res[0], logDir);
+				if (re)
 				{
-					string logDir;
-					bool re = CLI::detail::lexical_cast(res[0], logDir);
-					if (re)
+					if (!BuildDirectoryStructure(logDir))
+						throw CommonLogger::Exception("Cannot find/create errorLogDir", __CODEINFO__);
+
+
+					shared_ptr<ofstream> ofFile
+						= make_shared<ofstream>(hidden::getFilename(logDir, "log_"));
+					if (ofFile->is_open())
 					{
-						using namespace std::filesystem;
-						path LogDirPath = absolute(path(logDir));						
-						if (!is_directory(LogDirPath))
-						{
-							if (!create_directory(LogDirPath))
-								throw CommonLogger::Exception("Cannot find/create errorLogDir", __CODEINFO__);
-						}
-
-						shared_ptr<ofstream> ofFile
-							= make_shared<ofstream>(hidden::getFilename(logDir, "log_"));
-						if (ofFile->is_open())
-						{
-							_cDefault.LogFile = ofFile;
-							return true;
-						}
-						else
-						{
-							_cDefault.LogFile = nullptr;
-							return false;
-						}
+						_cDefault.LogFile = ofFile;
+						return true;
 					}
-					else return false;
-				},
-				"Directory for log files. Log/Error/Debug messages are written as [dir]/log_yymmddHHMMSS.log"
-					);//->check(CLI::ExistingDirectory);
+					else
+					{
+						_cDefault.LogFile = nullptr;
+						return false;
+					}
+				}
+				else return false;
+			},
+			"Directory for log files. Log/Error/Debug messages are written as [dir]/log_yymmddHHMMSS.log"
+				);//->check(CLI::ExistingDirectory);
 
-				cli->add_option(
-					"--verboseLvl",
-					_cDefault.verbose_level,
-					"Enable verbose level. Logs with level exceeding verbose level will not be logged."
-				);
+		cli->add_option(
+			"--verboseLvl",
+			_cDefault.verbose_level,
+			"Enable verbose level. Logs with level exceeding verbose level will not be logged."
+		);
 
 
 	}
@@ -137,7 +130,7 @@ namespace HashColon::Helper
 		Error({}, Util::ErrFormat, Util::VerboseFilter, { {Util::Tag::type, "Error"} }),
 		Debug({}, Util::ErrFormat, Util::VerboseFilter, { {Util::Tag::type, "Debug"} }),
 		Message({}, Util::BasicFormat, Util::PassFilter, { {Util::Tag::type, "Message"} })
-	{			
+	{
 		// assert _c.LogFile and _c.ErrorFile exists
 		assert(LogUtils::Stdout && LogUtils::Stderr);
 		//assert(_c.LogFile && _c.ErrorFile && LogUtils::Stdout && LogUtils::Stderr);
@@ -148,7 +141,7 @@ namespace HashColon::Helper
 			Log.Stream().StreamList().push_back(LogUtils::Stdout);
 		if (_c.enableLog.File)
 		{
-			if(!_c.LogFile)
+			if (!_c.LogFile)
 				throw CommonLogger::Exception("Log file missing while constructing CommonLogger. Check option logDir.",
 					__CODEINFO__);
 			Log.Stream().StreamList().push_back(_c.LogFile);
@@ -205,10 +198,10 @@ namespace HashColon::Helper
 	void RP::Initialize()
 	{
 		CLI::App* cli = SingletonCLI::GetInstance().GetCLI("Log");
-				
+
 		cli->add_option("--enableResultScreen", _cDefault.Screen, "Enable logging to screen");
 		cli->add_option("--enableResultFile", _cDefault.File, "Enable logging to file");
-		
+
 	}
 
 	RP::ResultPrinter(string filepath, _Params params)

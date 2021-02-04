@@ -3,6 +3,7 @@
 #include <regex>
 #include <sstream>
 #include <filesystem>
+#include <stack>
 //#include <boost/filesystem.hpp>
 #include <HashColon/Helper/FileUtility.hpp>
 
@@ -113,6 +114,21 @@ namespace HashColon
 				re.insert(re.end(), additonalFiles.begin(), additonalFiles.end());
 
 			return re;
+		}
+
+		inline string RefinedAbsolutePathStr(string iPathstring)
+		{
+			using namespace std::filesystem;
+			return canonical(absolute(path(iPathstring))).string();
+		}
+
+		bool BuildDirectoryStructure(string iDirectoryPathString)
+		{
+			using namespace std::filesystem;
+			path p = absolute(path(iDirectoryPathString));
+			if (!exists(p))
+				return create_directories(p);
+			else return true;
 		}
 
 		

@@ -11,6 +11,7 @@
 
 #include <HashColon/Helper/CommonLogger.hpp>
 #include <HashColon/Feline/Types/VoyageSimple.hpp>
+#include <HashColon/Helper/FileUtility.hpp>
 
 #include <HashColon/Feline/TrajectoryClustering/FelineJsonIO.hpp>
 

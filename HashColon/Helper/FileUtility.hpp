@@ -19,6 +19,11 @@ namespace HashColon
 			std::string iDir,
 			std::vector<std::string> additonalFiles = {}, std::string filterRegexStr = ".*");
 
+		std::string RefinedAbsolutePathStr(std::string iPathString);
+
+		bool BuildDirectoryStructure(std::string iDirectoryPathString);
+		
+
 	}
 }
 
