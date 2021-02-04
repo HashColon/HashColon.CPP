@@ -54,7 +54,7 @@ namespace HashColon::Helper
 		cli->add_option("--enableMessageScreen", _cDefault.enableMessage, "Enable Message logging to screen");
 
 		cli->add_option(
-			"--errorlogDir",
+			"--errorLogDir",
 			[](vector<string> res)
 			{
 				string ErrDir;

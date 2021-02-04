@@ -173,7 +173,7 @@ static void Initialize()
 	cli->add_option("--measuringMethodName", _c.measuringMethodName);
 	cli->add_option("--enableUniformSampling", _c.enableUniformSampling);
 	cli->add_option("--UniformSamplingNumber", _c.UniformSamplingNumber);
-
+		
 	// Parse additional options from command line.
 	SingletonCLI::GetInstance().GetCLI()->set_help_all_flag("--help-all");
 

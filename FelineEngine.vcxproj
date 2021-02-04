@@ -133,6 +133,8 @@
       <AdditionalIncludeDirectories>%(ClCompile.AdditionalIncludeDirectories);$(RemoteRootDir);/usr/include/eigen3;/usr/include/opencv4;</AdditionalIncludeDirectories>
       <CppLanguageStandard>c++17</CppLanguageStandard>
       <AdditionalOptions>-fPIC -fopenmp %(AdditionalOptions)</AdditionalOptions>
+      <PreprocessorDefinitions>
+      </PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalOptions>-fopenmp %(AdditionalOptions)</AdditionalOptions>
@@ -150,6 +152,7 @@
       <AdditionalIncludeDirectories>%(ClCompile.AdditionalIncludeDirectories);$(RemoteRootDir);/usr/include/eigen3;/usr/include/opencv4;</AdditionalIncludeDirectories>
       <CppLanguageStandard>c++17</CppLanguageStandard>
       <AdditionalOptions>-fPIC -fopenmp %(AdditionalOptions)</AdditionalOptions>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalOptions>-fopenmp %(AdditionalOptions)</AdditionalOptions>
