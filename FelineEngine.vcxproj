@@ -60,10 +60,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
     <RemoteRootDir>~/WTK/Projects</RemoteRootDir>
+    <RemoteCopyIncludeDirectories>
+    </RemoteCopyIncludeDirectories>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
     <RemoteRootDir>~/WTK/Projects</RemoteRootDir>
+    <RemoteCopyIncludeDirectories>
+    </RemoteCopyIncludeDirectories>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
@@ -79,10 +83,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <MultiProcNumber>20</MultiProcNumber>
     <IncludePath>$(ProjectDir)</IncludePath>
+    <AdditionalSourcesToCopyMapping>
+    </AdditionalSourcesToCopyMapping>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <MultiProcNumber>20</MultiProcNumber>
     <IncludePath>$(ProjectDir)</IncludePath>
+    <AdditionalSourcesToCopyMapping>
+    </AdditionalSourcesToCopyMapping>
   </PropertyGroup>
   <ItemGroup>
     <ClInclude Include="HashColon\Clustering\ClusteringBase.hpp" />
@@ -144,7 +152,7 @@
       </Command>
     </RemotePreBuildEvent>
     <RemotePostBuildEvent>
-      <Command>cp -r $(RemoteProjectDir)/config $(RemoteOutDir)</Command>
+      <Command>cp $(RemoteProjectDir)/config/* $(RemoteOutDir)</Command>
     </RemotePostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -162,7 +170,7 @@
       </Command>
     </RemotePreBuildEvent>
     <RemotePostBuildEvent>
-      <Command>cp -r $(RemoteProjectDir)/config $(RemoteOutDir)</Command>
+      <Command>cp $(RemoteProjectDir)/config/* $(RemoteOutDir)</Command>
     </RemotePostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

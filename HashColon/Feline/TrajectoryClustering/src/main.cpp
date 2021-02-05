@@ -1,10 +1,14 @@
+#ifndef EIGEN_INITIALIZE_MATRICES_BY_ZERO
+#define EIGEN_INITIALIZE_MATRICES_BY_ZERO
+#endif
+ 
 #include <HashColon/Feline/Feline_config.h>
 #include <cmath>
 #include <vector>
 #include <functional>
 #include <any>
 #include <string>
-#include <limits>
+#include <limits> 
 #include <unordered_map>
 
 #include <iostream>
@@ -146,7 +150,9 @@ void run()
 			throw mainException("Output directory does not exist & cannot be built. Check option --outputDir.",
 				__CODEINFO__);
 		}
-		string refile = outdir + "/" + _c.outputPrefix + to_string(i) + ".json";
+		string refile = outdir + "/" +
+			_c.clusteringMethodName + "_" + _c.measuringMethodName + "_" +
+			_c.outputPrefix + to_string(i) + ".json";
 		IO::WriteGeoJsonFile(refile, re[i]);
 	}
 
@@ -159,7 +165,7 @@ static void Initialize()
 	// register config files
 	SingletonCLI::Initialize();
 
-	GlobalLogger::Initialize("./config/CommonLogger.json");
+	GlobalLogger::Initialize("./CommonLogger.json");
 	NJW<Simple::XYList>::Initialize();
 	TrajectoryDistanceMeasureBase::Initialize();
 	LCSS::Initialize();
@@ -190,7 +196,7 @@ int main(int argc, char** argv)
 			argc, argv,
 			{
 				//"./config/CommonLogger.json",
-				"./config/TrajectoryClustering.json"
+				"./TrajectoryClustering.json"
 			});
 	}
 	catch (const CLI::Error& e)

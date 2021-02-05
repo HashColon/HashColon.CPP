@@ -1,14 +1,14 @@
 {
   "Log": {
-    "enableLogScreen": "true",
-    "enableLogFile": "false",
-    "enableErrorScreen": "true",
-    "enableErrorFile": "false",
-    "enableDebugScreen": "true",
-    "enableDebugFile": "false",
-    "enableMessageScreen": "true",
-    "logDir": "./Log",
+    "enableLogScreen": true,
+    "enableLogFile": true,
+    "enableErrorScreen": true,
+    "enableErrorFile": false,
+    "enableDebugScreen": true,
+    "enableDebugFile": false,
+    "enableMessageScreen": true,
+    "logDir": "/home/cadit/WTK/WTK_data/ExactEarth/result/Ex210205/Log",
     "errorLogDir": "./Log",
     "verboseLvl": 1
-  }
+  } 
 }

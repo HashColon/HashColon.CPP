@@ -1,3 +1,8 @@
+#ifndef EIGEN_INITIALIZE_MATRICES_BY_ZERO
+#define EIGEN_INITIALIZE_MATRICES_BY_ZERO
+#endif
+
+
 #include <cmath>
 #include <limits>
 #include <Eigen/Eigen>
@@ -121,23 +126,23 @@ Real Merge::Measure_core(
 }
 
 Real LCSS::Measure_core(
-	const HashColon::Feline::Types::Simple::XYList& a,
-	const HashColon::Feline::Types::Simple::XYList& b) const
+	const Simple::XYList& a,
+	const Simple::XYList& b) const
 {
-	using namespace std;
-	using namespace HashColon::Helper;
-
 	assert(a.size() > 1 && b.size() > 1);
+
+	size_t aN = a.size() + 1;
+	size_t bN = b.size() + 1;
 
 	// initialize dynamic programming table
 	vector<vector<Real>> lcss;
-	lcss.resize(a.size());
-	for (size_t i = 0; i < a.size(); i++)
-		lcss[i].resize(b.size());
+	lcss.resize(aN);
+	for (size_t i = 0; i < aN; i++)
+		lcss[i].resize(bN);
 
-	for (size_t aend = 0; aend <= a.size(); aend++)
+	for (size_t aend = 0; aend < aN; aend++)
 	{
-		for (size_t bend = 0; bend <= a.size(); bend++)
+		for (size_t bend = 0; bend < bN; bend++)
 		{
 			// if any of the index is 0, then 0.0
 			if (aend == 0 || bend == 0)
@@ -145,7 +150,7 @@ Real LCSS::Measure_core(
 			// if distance btwn the end points is below Epsilon,
 			// end the index difference is less than given delta 
 			else if (
-				(a[aend - 1].DistanceTo(b[bend - 1]) < _c.Epsilon)
+				(a[aend].DistanceTo(b[bend]) < _c.Epsilon)
 				&& ((aend > bend ? aend - bend : bend - aend) <= _c.Delta))
 			{
 				lcss[aend][bend] = 1.0 + lcss[aend - 1][bend - 1];
@@ -157,7 +162,7 @@ Real LCSS::Measure_core(
 		}
 	}
 
-	return lcss[a.size()][b.size()] / ((Real)min(a.size() - 1, b.size() - 1));
+	return lcss[a.size()][b.size()] / ((Real)min(aN, bN));
 }
 
 void TrajectoryDistanceMeasureBase::Initialize(const std::string configFilePath)

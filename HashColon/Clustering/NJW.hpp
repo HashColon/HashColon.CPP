@@ -1,6 +1,11 @@
 #ifndef HASHCOLON_CLUSTERING_NJW_HPP
 #define HASHCOLON_CLUSTERING_NJW_HPP
 
+#ifndef EIGEN_INITIALIZE_MATRICES_BY_ZERO
+#define EIGEN_INITIALIZE_MATRICES_BY_ZERO
+#endif
+
+
 #include <vector>
 #include <Eigen/Eigen>
 
@@ -103,7 +108,7 @@ namespace HashColon::Clustering
 		return D.unaryExpr(
 			[this](HashColon::Helper::Real d) {
 				return ConvertDistance2Similarity(d);
-			}) - Eigen::MatrixXR::Identity(D.rows(), D.cols());
+			}) - Eigen::MatrixXR::Identity(D.rows(), D.cols());		
 	}
 
 	template<typename T>
@@ -126,7 +131,11 @@ namespace HashColon::Clustering
 		MatrixXR A = this->MeasureFunc->GetMeasureType() == DistanceMeasureType::similarity
 			? DistanceBasedClustering<T>::ComputeDistanceMatrix(iTrainingData)
 			: ConvertDistance2Similarity(DistanceBasedClustering<T>::ComputeDistanceMatrix(iTrainingData));
-		logger.Log({ {Tag::lvl, 3} }) << "NJW: Similarity matrix computation finished." << endl;		
+		logger.Log({ {Tag::lvl, 3} }) << "NJW: Similarity matrix computation finished." << endl;	
+
+		logger.Debug({ {Tag::lvl, 1} }) << "\n" <<
+			DistanceBasedClustering<T>::ComputeDistanceMatrix(iTrainingData) << endl;
+		logger.Debug({ {Tag::lvl, 1} }) << "\n" << A << endl;
 
 		// compute D^(-1/2) 
 		MatrixXR D_half = A.rowwise().sum().unaryExpr(
@@ -134,14 +143,21 @@ namespace HashColon::Clustering
 				return 1 / sqrt(a);
 			}).asDiagonal();
 
+			logger.Debug({ {Tag::lvl, 1} }) << A.rowwise().sum() << endl;
+			logger.Debug({ {Tag::lvl, 1} }) << D_half << endl;
+
 		// compute normalized matrix L
 		MatrixXR L = D_half * A * D_half;
 		logger.Log({ {Tag::lvl, 3} }) << "NJW: Normalized matrix L computation finished." << endl;		
+
+		logger.Debug({ {Tag::lvl, 1} }) << L << endl;
 
 		// compute eigen vectors & values
 		SelfAdjointEigenSolver<MatrixXR> eigenSolver(L);
 		VectorXR lambda = eigenSolver.eigenvalues().tail(_c.k);
 		SpectralDomain = eigenSolver.eigenvectors().rightCols(_c.k).colwise().normalized();
+
+		logger.Debug({ {Tag::lvl, 1} }) << SpectralDomain << endl;
 
 		// data conversion for kmeans clustering
 		vector<vector<Real>> samples;

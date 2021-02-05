@@ -162,7 +162,10 @@ namespace HashColon::Helper
 		}
 		// debug
 		if (_c.enableDebug.Screen)
+		{
+			Debug.Stream().StreamList().push_back(LogUtils::Stdout);
 			Debug.Stream().StreamList().push_back(LogUtils::Stderr);
+		}
 		if (_c.enableDebug.File)
 		{
 			if (!_c.LogFile)

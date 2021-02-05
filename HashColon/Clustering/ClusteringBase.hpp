@@ -1,6 +1,10 @@
 #ifndef HASHCOLON_CLUSTERING_CLUSTERINGBASE_HPP
 #define HASHCOLON_CLUSTERING_CLUSTERINGBASE_HPP
 
+#ifndef EIGEN_INITIALIZE_MATRICES_BY_ZERO
+#define EIGEN_INITIALIZE_MATRICES_BY_ZERO
+#endif
+
 #include <array>
 #include <vector>
 #include <memory>
@@ -112,10 +116,11 @@ namespace HashColon::Clustering
 				a.push_back(tmp);
 			}
 
-		//#pragma omp parallel for 
+		#pragma omp parallel for 
 		for (size_t c = 0; c < a.size(); c++)
 		{
 			size_t& i = a[c].i; size_t& j = a[c].j;
+			double tes = re(0, 0);
 			re(i, j) = re(j, i) = MeasureFunc->Measure(iTrainingData[i], iTrainingData[j]);			
 		}
 		return re;

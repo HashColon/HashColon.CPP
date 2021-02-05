@@ -1,10 +1,10 @@
 {
-  "inputDir": "/home/cadit/WTK/WTK_data/ExactEarth/result/in",
-  "outputDir": "/home/cadit/WTK/WTK_data/ExactEarth/result",
-  "outputPrefix": "cluster_",
+  "inputDir": "/home/cadit/WTK/WTK_data/ExactEarth/result/Ex210205/in",
+  "outputDir": "/home/cadit/WTK/WTK_data/ExactEarth/result/Ex210205",
+  "outputPrefix": "C",
   "clusteringMethodName": "NJW",
   "measuringMethodName": "Euclidean",
-  "enableUniformSampling": "true",
+  "enableUniformSampling": false,
   "UniformSamplingNumber": 30,
 
   "Clustering": {
@@ -17,7 +17,7 @@
   },
 
   "TrajectoryDistanceMeasure": {
-    "Enable_ReversedSequence": "true",
+    "Enable_ReversedSequence": true,
 
     "LCSS": {
       "Epsilon": 30,

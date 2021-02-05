@@ -15,6 +15,11 @@
 #ifndef HASHCOLON_FELINE_TYPES_VALUETYPES_HPP
 #define HASHCOLON_FELINE_TYPES_VALUETYPES_HPP
 
+#ifndef EIGEN_INITIALIZE_MATRICES_BY_ZERO
+#define EIGEN_INITIALIZE_MATRICES_BY_ZERO
+#endif
+
+
 #include <HashColon/Feline/Feline_config.h>
 
 /* c++11 features should be supported
