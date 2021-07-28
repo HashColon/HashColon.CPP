@@ -1,0 +1,36 @@
+{
+  "inputDir": "/home/cadit/WTK/WTK_data/KMOF/json/All",
+  "outputDir": "/home/cadit/WTK/WTK_data/KMOF/json/XTD",
+  "shiplistPath": "/home/cadit/WTK/WTK_data/KMOF/json/All/@shiplist.csv",
+  "staticDataPath": "/home/cadit/WTK/WTK_data/KMOF/json/All/@shipstatic.csv",
+  "NumOfThreads": 1,
+  "RouteSimplificationEpsilon": 5000,
+  
+  "Feline": {
+    "Data": {
+      "RasterDataList": [ "Bathymetry" ],
+      "RasterFileList": [ "/home/cadit/WTK/WTK_data/GeoData/gebco_2020_n45.0_s30.0_w120.0_e135.0.nc" ],
+      "cacheOnLoad": [ "true" ]
+    },
+
+    "TrajectoryXtdEstimation": {
+      "CatzocDistanceTable": [
+         6.5, 7.5, 15,
+         20, 20, 20,
+         50, 50, 50,
+         500, 500, 500,
+         500, 500, 500 
+      ],
+      "NavigationalSafetyAllowanceTable": [
+        55.56, 55.56,
+        926, 926,
+        1852, 1852
+      ],
+      "PositionPrecision": 15,
+      "DistanceMargin_D_coast": 30,
+      "DraughtMargin_D_coast": 3
+
+
+    }
+  }
+}

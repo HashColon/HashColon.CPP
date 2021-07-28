@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <HashColon/Helper/Exception.hpp>
+#include <HashColon/Core/Exception.hpp>
 #include <HashColon/Feline/Types/ValueTypes.hpp>
 
 namespace HashColon::Feline::Types

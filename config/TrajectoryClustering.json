@@ -1,27 +1,79 @@
 {
-  "inputDir": "/home/cadit/WTK/WTK_data/ExactEarth/result/Ex210205/in",
-  "outputDir": "/home/cadit/WTK/WTK_data/ExactEarth/result/Ex210205",
-  "outputPrefix": "C",
-  "clusteringMethodName": "NJW",
-  "measuringMethodName": "Euclidean",
-  "enableUniformSampling": false,
+  "experimentName": "DbscanEmd",
+  "experimentComments": "Clustering: DbSCAN, Distance Measure: EMD(Blended with Coeff_EMD=1)",
+  "enableEvaluation": true,
+  "enableBuildReportFiles": true,
+  "enableScreenResults": false,
+  "inputDir": "/home/cadit/WTK/FelineExp/InputData/BusanJeju",
+  "outputDir": "/home/cadit/WTK/FelineExp/ExpReports",
+  "predefinedLabelPath": "",
+  "clusteringMethodName": "DistanceBasedDBSCAN",
+  "measuringMethodName": "DtwXtd_Blended",
+  "trajectoryTypeName": "XYXtdList",
+  "enableUniformSampling": true,
   "UniformSamplingNumber": 30,
-
   "Clustering": {
-    "NJW": {
-      "similaritySigma": 50,
-      "k": 2,
+    "NJW_XYList": {
+      "similaritySigma": 5000.0,
+      "k": 5,
+      "kmeansEpsilon": 0.001,
+      "kmeansIteration": 100
+    },
+    "DistanceBasedDBSCAN_XYList": {
+      "minPts": 2,
+      "DbscanEpsilon": 10000.0,
+      "Verbose": true
+    },
+    "NJW_XYXtdList": {
+      "similaritySigma": 5000.0,
+      "k": 9,
       "kmeansEpsilon": 0.01,
       "kmeansIteration": 100
+    },
+    "DistanceBasedDBSCAN_XYXtdList": {
+      "minPts": 5,
+      "DbscanEpsilon": 2000.0,
+      "Verbose": true
     }
   },
-
-  "TrajectoryDistanceMeasure": {
-    "Enable_ReversedSequence": true,
-
-    "LCSS": {
-      "Epsilon": 30,
-      "Delta": 3
+  "Feline": {
+    "TrajectoryDistanceMeasure": {
+      "Enable_ReversedSequence": true,
+      "LCSS": {
+        "Epsilon": 30.0,
+        "Delta": 3.0
+      },
+      "ProjectedPCA": {
+        "PcaDimension": 0,
+        "Enable_AutoPca": true
+      },
+      "ModifiedHausdorff": {
+        "NeighborhoodWindowSize": 0.1,
+        "InlierPortion": 0.8
+      }
+    },
+    "XtdTrajectoryDistanceMeasure": {
+      "Enable_ReversedSequence": true,
+      "DtwXtd_JS": {
+        "MonteCarloDomainUnit": 1.0,
+        "MonteCarloDomainSize": 3.0,
+        "MonteCarloErrorEpsilon": 0.000001
+      },
+      "DtwXtd_EMD": {
+        "MonteCarloDomainUnit": 1.0,
+        "MonteCarloDomainSize": 3.0,
+        "MonteCarloErrorEpsilon": 0.000001
+      },
+      "DtwXtd_Blended": {
+        "MonteCarloDomainUnit": 1.0,
+        "MonteCarloDomainSize": 3.0,
+        "MonteCarloErrorEpsilon": 0.000001,
+        "PfXtdSigmaRatio": 0.0,
+        "Coeff_Euclidean": 0.0,
+        "Coeff_JS": 0.0,
+        "Coeff_EMD": 1.0,
+        "Coeff_PF": 0.0
+      }
     }
   }
 }

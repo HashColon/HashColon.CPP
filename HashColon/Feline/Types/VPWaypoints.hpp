@@ -138,8 +138,8 @@ namespace HashColon
 				using Ptr = std::shared_ptr<Waypoints>;
 
 			public:
-				Simple::XYList ToXYList() const; 
-				void FromXYList(Simple::XYList xylist);
+				XYList ToXYList() const; 
+				void FromXYList(XYList xylist);
 			};			
 			
 		}

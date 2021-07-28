@@ -91,7 +91,7 @@ namespace HashColon
 				void Add_newSchedules(std::shared_ptr<Schedules> schedulesPtr);				
 				void Add_newSchedule(Schedule schedule);				
 
-				Simple::XYList ToXYList();
+				XYList ToXYList();
 				Simple::XYTList ToXYTList(int idx);
 				Simple::XYVVaTList ToXYVVaTList(int idx) const;
 

@@ -1,30 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|ARM">
-      <Configuration>Debug</Configuration>
-      <Platform>ARM</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|ARM">
-      <Configuration>Release</Configuration>
-      <Platform>ARM</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug|ARM64">
-      <Configuration>Debug</Configuration>
-      <Platform>ARM64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|ARM64">
-      <Configuration>Release</Configuration>
-      <Platform>ARM64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug|x86">
-      <Configuration>Debug</Configuration>
-      <Platform>x86</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|x86">
-      <Configuration>Release</Configuration>
-      <Platform>x86</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
@@ -45,35 +21,19 @@
     <LinuxProjectType>{2238F9CD-F817-4ECC-BD14-2524D2669B35}</LinuxProjectType>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
-    <UseDebugLibraries>true</UseDebugLibraries>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
-    <UseDebugLibraries>false</UseDebugLibraries>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'" Label="Configuration">
-    <UseDebugLibraries>true</UseDebugLibraries>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'" Label="Configuration">
-    <UseDebugLibraries>false</UseDebugLibraries>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
-    <RemoteRootDir>~/WTK/Projects</RemoteRootDir>
+    <RemoteRootDir>~/WTK/Projects/CPP/Feline</RemoteRootDir>
     <RemoteCopyIncludeDirectories>
     </RemoteCopyIncludeDirectories>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
-    <RemoteRootDir>~/WTK/Projects</RemoteRootDir>
+    <RemoteRootDir>~/WTK/Projects/CPP/Feline</RemoteRootDir>
     <RemoteCopyIncludeDirectories>
     </RemoteCopyIncludeDirectories>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="Configuration">
-    <UseDebugLibraries>false</UseDebugLibraries>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
-    <UseDebugLibraries>true</UseDebugLibraries>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings" />
@@ -82,70 +42,122 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <MultiProcNumber>20</MultiProcNumber>
-    <IncludePath>$(ProjectDir)</IncludePath>
+    <IncludePath>$(ProjectDir);$(ProjectDir)/ext;</IncludePath>
     <AdditionalSourcesToCopyMapping>
     </AdditionalSourcesToCopyMapping>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <MultiProcNumber>20</MultiProcNumber>
-    <IncludePath>$(ProjectDir)</IncludePath>
+    <IncludePath>$(ProjectDir);$(ProjectDir)/ext;</IncludePath>
     <AdditionalSourcesToCopyMapping>
     </AdditionalSourcesToCopyMapping>
   </PropertyGroup>
   <ItemGroup>
+    <ClInclude Include="ext\Wasserstein\Wasserstein.hh" />
+    <ClInclude Include="HashColon\Clustering\ClusterEvaluation.hpp" />
     <ClInclude Include="HashColon\Clustering\ClusteringBase.hpp" />
-    <ClInclude Include="HashColon\Clustering\ext\dkm\dkm.hpp" />
-    <ClInclude Include="HashColon\Clustering\ext\dkm\dkm_parallel.hpp" />
-    <ClInclude Include="HashColon\Clustering\ext\dkm\dkm_utils.hpp" />
+    <ClInclude Include="HashColon\Clustering\DBSCAN.hpp" />
+    <ClInclude Include="ext\dkm_modified\dkm.hpp" />
+    <ClInclude Include="ext\dkm_modified\dkm_parallel.hpp" />
+    <ClInclude Include="ext\dkm_modified\dkm_utils.hpp" />
+    <ClInclude Include="HashColon\Clustering\impl\DBSCAN_Impl.hpp" />
     <ClInclude Include="HashColon\Clustering\NJW.hpp" />
+    <ClInclude Include="HashColon\Clustering\SpectralClustering.hpp" />
+    <ClInclude Include="HashColon\Clustering\Kmeans.hpp" />
+    <ClInclude Include="HashColon\Clustering\impl\ClusteringBase_Impl.hpp" />
+    <ClInclude Include="HashColon\Clustering\impl\NJW_Impl.hpp" />
+    <ClInclude Include="HashColon\Core\impl\Log_Impl.hpp" />
+    <ClInclude Include="HashColon\Core\impl\Real_Impl.hpp" />
+    <ClInclude Include="HashColon\Feline\Data\GdalSupport.hpp" />
     <ClInclude Include="HashColon\Feline\Feline_config.h" />
+    <ClInclude Include="HashColon\Feline\impl\RouteSimplification_Impl.hpp" />
+    <ClInclude Include="ext\Wasserstein\internal\CenterWeightedCentroid.hh" />
+    <ClInclude Include="ext\Wasserstein\internal\CorrelationDimension.hh" />
+    <ClInclude Include="ext\Wasserstein\internal\EMD.hh" />
+    <ClInclude Include="ext\Wasserstein\internal\EMDBase.hh" />
+    <ClInclude Include="ext\Wasserstein\internal\EMDUtils.hh" />
+    <ClInclude Include="ext\Wasserstein\internal\EuclideanParticle.hh" />
+    <ClInclude Include="ext\Wasserstein\internal\Event.hh" />
+    <ClInclude Include="ext\Wasserstein\internal\ExternalEMDHandler.hh" />
+    <ClInclude Include="ext\Wasserstein\internal\HistogramUtils.hh" />
+    <ClInclude Include="ext\Wasserstein\internal\NetworkSimplex.hh" />
+    <ClInclude Include="ext\Wasserstein\internal\PairwiseDistance.hh" />
+    <ClInclude Include="ext\Wasserstein\internal\PairwiseEMD.hh" />
     <ClInclude Include="HashColon\Feline\TrajectoryClustering\FelineJsonIO.hpp" />
     <ClInclude Include="HashColon\Feline\TrajectoryClustering\TrajectoryDistanceMeasure.hpp" />
+    <ClInclude Include="HashColon\Feline\TrajectoryClustering\TrajectoryDistanceMeasure_withXTD.hpp" />
+    <ClInclude Include="HashColon\Feline\TrajectoryClustering\XtdClusterEvaluation.hpp" />
+    <ClInclude Include="HashColon\Feline\TrajectoryClustering\XtdDistance.hpp" />
+    <ClInclude Include="HashColon\Feline\TrajectoryXtdEstimation.hpp" />
     <ClInclude Include="HashColon\Feline\Types\ValueTypes.hpp" />
     <ClInclude Include="HashColon\Feline\Types\VoyageSimple.hpp" />
+    <ClInclude Include="HashColon\Feline\RouteSimplification.hpp" />
     <ClInclude Include="HashColon\Helper\ClassPropertyForCpp.hpp" />
-    <ClInclude Include="HashColon\Helper\CommonLogger.hpp" />
-    <ClInclude Include="HashColon\Helper\ErrorCodes.hpp" />
-    <ClInclude Include="HashColon\Helper\Exception.hpp" />
-    <ClInclude Include="HashColon\Helper\ext\CLI11\CLI11.hpp" />
-    <ClInclude Include="HashColon\Helper\ext\CLI11\CLI11_extended.hpp" />
-    <ClInclude Include="HashColon\Helper\ext\CLI11\nlohmann\json.hpp" />
-    <ClInclude Include="HashColon\Helper\FileUtility.hpp" />
-    <ClInclude Include="HashColon\Helper\Helper.hpp" />
-    <ClInclude Include="HashColon\Helper\Log.hpp" />
-    <ClInclude Include="HashColon\Helper\LogUtils.hpp" />
-    <ClInclude Include="HashColon\Helper\Macros.hpp" />
-    <ClInclude Include="HashColon\Helper\MultiDimensionArray.hpp" />
-    <ClInclude Include="HashColon\Helper\Real.hpp" />
+    <ClInclude Include="HashColon\Core\CommonLogger.hpp" />
+    <ClInclude Include="HashColon\Helper\CsvHelper.hpp" />
+    <ClInclude Include="HashColon\Core\Exception.hpp" />
+    <ClInclude Include="ext\CLI11_modified\CLI11.hpp" />
+    <ClInclude Include="ext\CLI11_modified\CLI11_extended.hpp" />
+    <ClInclude Include="HashColon\Helper\DBHelper.hpp" />
+    <ClInclude Include="HashColon\Helper\FsHelper.hpp" />
+    <ClInclude Include="HashColon\Core\Log.hpp" />
+    <ClInclude Include="HashColon\Core\LogUtils.hpp" />
+    <ClInclude Include="HashColon\Core\Macros.hpp" />
+    <ClInclude Include="HashColon\Core\MultiDimensionArray.hpp" />
+    <ClInclude Include="HashColon\Core\Real.hpp" />
+    <ClInclude Include="HashColon\Helper\impl\CsvHelper_Impl.hpp" />
     <ClInclude Include="HashColon\Helper\SimpleVector.hpp" />
-    <ClInclude Include="HashColon\Helper\SingletonCLI.hpp" />
+    <ClInclude Include="HashColon\Core\SingletonCLI.hpp" />
+    <ClInclude Include="HashColon\Helper\StringHelper.hpp" />
+    <ClInclude Include="HashColon\Core\ThreadPool.hpp" />
+    <ClInclude Include="HashColon\Helper\TypeHelper.hpp" />
+    <ClCompile Include="HashColon\Helper\impl\DBHelper.cpp" />
+    <ClCompile Include="HashColon\Statistics\Impl\SimpleStatisticalAnalysis.cpp" />
+    <ClInclude Include="HashColon\Statistics\NomalDistribution.hpp" />
+    <ClInclude Include="HashColon\Statistics\SimpleStatisticalAnalysis.hpp" />
+    <ClInclude Include="HashColon\Statistics\StatisticalDistributionBase.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="HashColon\Feline\TrajectoryClustering\src\FelineJsonIO.cpp" />
-    <ClCompile Include="HashColon\Feline\TrajectoryClustering\src\main.cpp" />
-    <ClCompile Include="HashColon\Feline\TrajectoryClustering\src\TrajectoryDistanceMeasure.cpp" />
-    <ClCompile Include="HashColon\Feline\Types\src\ValueTypes.cpp" />
-    <ClCompile Include="HashColon\Feline\Types\src\VoyageSimple.cpp" />
-    <ClCompile Include="HashColon\Helper\src\CommonLogger.cpp" />
-    <ClCompile Include="HashColon\Helper\src\FileUtility.cpp" />
-    <ClCompile Include="HashColon\Helper\src\LogUtils.cpp" />
-    <ClCompile Include="HashColon\Helper\src\Real.cpp" />
-    <ClCompile Include="HashColon\Helper\src\SingletonCLI.cpp" />
+    <ClCompile Include="HashColon\Clustering\impl\ClusterEvaluation.cpp" />
+    <ClCompile Include="HashColon\Clustering\impl\DBSCAN.cpp" />
+    <ClCompile Include="HashColon\Clustering\impl\Kmeans.cpp" />
+    <ClCompile Include="HashColon\Feline\Data\impl\RasterGeoData.cpp" />
+    <ClCompile Include="HashColon\Feline\TrajectoryClustering\impl\FelineJsonIO.cpp" />
+    <ClCompile Include="HashColon\Feline\TrajectoryClustering\impl\TrajectoryDistanceMeasure.cpp" />
+    <ClCompile Include="HashColon\Feline\TrajectoryClustering\impl\TrajectoryDistanceMeasure_withXTD.cpp" />
+    <ClCompile Include="HashColon\Feline\impl\TrajectoryXtdEstimation.cpp" />
+    <ClCompile Include="HashColon\Feline\TrajectoryClustering\impl\XtdDistance.cpp" />
+    <ClCompile Include="HashColon\Feline\Types\impl\ValueTypes.cpp" />
+    <ClCompile Include="HashColon\Feline\Types\impl\VoyageSimple.cpp" />
+    <ClCompile Include="HashColon\Core\impl\CommonLogger.cpp" />
+    <ClCompile Include="HashColon\Helper\impl\CsvHelper.cpp" />
+    <ClCompile Include="HashColon\Helper\impl\FsHelper.cpp" />
+    <ClCompile Include="HashColon\Core\impl\LogUtils.cpp" />
+    <ClCompile Include="HashColon\Core\impl\Real.cpp" />
+    <ClCompile Include="HashColon\Core\impl\SingletonCLI.cpp" />
+    <ClCompile Include="HashColon\Core\impl\ThreadPool.cpp" />
+    <ClCompile Include="HashColon\Statistics\Impl\NormalDistribution.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="config\CommonLogger.json" />
+    <None Include="config\RefineAIS.json" />
+    <None Include="config\Sandbox.json" />
     <None Include="config\TrajectoryClustering.json" />
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>%(ClCompile.AdditionalIncludeDirectories);$(RemoteRootDir);/usr/include/eigen3;/usr/include/opencv4;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(ClCompile.AdditionalIncludeDirectories);$(RemoteRootDir);$(RemoteProjectDir)/ext;/usr/include/eigen3;$(RemoteRootDir)/TruncatedNormalCPP/include</AdditionalIncludeDirectories>
       <CppLanguageStandard>c++17</CppLanguageStandard>
-      <AdditionalOptions>-fPIC -fopenmp %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-fPIC %(AdditionalOptions)</AdditionalOptions>
       <PreprocessorDefinitions>
       </PreprocessorDefinitions>
+      <Verbose>true</Verbose>
+      <PositionIndependentCode>true</PositionIndependentCode>
     </ClCompile>
     <Link>
-      <AdditionalOptions>-fopenmp %(AdditionalOptions)</AdditionalOptions>
+      <LibraryDependencies>flann;lz4;gdal;pthread;</LibraryDependencies>
+      <AdditionalLibraryDirectories>%(Link.AdditionalLibraryDirectories);</AdditionalLibraryDirectories>
+      <VerboseOutput>false</VerboseOutput>
     </Link>
     <RemotePreBuildEvent>
       <Command>
@@ -157,13 +169,18 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>%(ClCompile.AdditionalIncludeDirectories);$(RemoteRootDir);/usr/include/eigen3;/usr/include/opencv4;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(ClCompile.AdditionalIncludeDirectories);$(ProjectDir);$(ProjectDir)\ext;$(RemoteRootDir);$(RemoteProjectDir)/ext;/usr/include/eigen3;</AdditionalIncludeDirectories>
       <CppLanguageStandard>c++17</CppLanguageStandard>
       <AdditionalOptions>-fPIC -fopenmp %(AdditionalOptions)</AdditionalOptions>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Verbose>true</Verbose>
+      <PositionIndependentCode>true</PositionIndependentCode>
     </ClCompile>
     <Link>
+      <LibraryDependencies>flann;lz4;gdal;pthread;</LibraryDependencies>
+      <AdditionalLibraryDirectories>%(Link.AdditionalLibraryDirectories);</AdditionalLibraryDirectories>
       <AdditionalOptions>-fopenmp %(AdditionalOptions)</AdditionalOptions>
+      <ShowProgress>true</ShowProgress>
     </Link>
     <RemotePreBuildEvent>
       <Command>
