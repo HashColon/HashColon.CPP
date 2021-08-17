@@ -1,10 +1,12 @@
 #ifndef HASHCOLON_FELINE_ROUTESIMPLIFICATION_HPP
 #define HASHCOLON_FELINE_ROUTESIMPLIFICATION_HPP
 
+// std libraries
 #include <functional>
-#include <HashColon/Core/Real.hpp>
-#include <HashColon/Feline/Types/ValueTypes.hpp>
-#include <HashColon/Feline/Types/VoyageSimple.hpp>
+#include <vector>
+// HashColon libraries
+#include <HashColon/Real.hpp>
+#include <HashColon/Feline/ValueTypes.hpp>
 
 namespace HashColon::Feline
 {
@@ -43,6 +45,53 @@ namespace HashColon::Feline
 		std::vector<PointT>& waypoints, const MethodType method,
 		std::function<bool(const PointT&, const PointT&, void*)> validityFunc,
 		void* additionals);
+
+	template <typename PointT>
+	class DouglasPeuckerBase
+	{
+	protected:
+		void RunSimplification(const std::vector<PointT>& waypoints, size_t s, size_t e, std::vector<bool>& result) const;
+		virtual size_t PickConditionPoint(const std::vector<PointT>& waypoints, size_t s, size_t e) const = 0;
+		virtual bool Condition(const std::vector<PointT>& waypoints, size_t s, size_t e, size_t p) const = 0;
+
+	public:
+		std::vector<PointT> GetSimplifiedRoute(const std::vector<PointT>& waypoints) const;
+		void SimplifyRoute(std::vector<PointT>& waypoints) const;				
+	};
+
+	template <typename PointT>
+	class DouglasPeucker : public DouglasPeuckerBase<PointT>
+	{
+	protected:
+		HashColon::Real Epsilon;
+		virtual size_t PickConditionPoint(const std::vector<PointT>& waypoints, size_t s, size_t e) const override;
+		virtual bool Condition(const std::vector<PointT>& waypoints, size_t s, size_t e, size_t p) const override;
+
+	public:
+		DouglasPeucker(HashColon::Real epsilon) : DouglasPeuckerBase<PointT>(), Epsilon(epsilon) {};	
+	};
+
+	template <typename PointT, typename CondParams>
+	class ConditionedDouglasPeucker : public DouglasPeuckerBase<PointT>
+	{
+	public:
+		using CondFunc = std::function<bool(const std::vector<PointT>&, size_t, size_t, size_t, const CondParams&)>;
+
+	protected:
+		CondFunc _condition;
+		CondParams _c;	
+		virtual size_t PickConditionPoint(const std::vector<PointT>& waypoints, size_t s, size_t e) const override;
+		virtual bool Condition(const std::vector<PointT>& waypoints, size_t s, size_t e, size_t p) const override;
+
+	public:
+		ConditionedDouglasPeucker(CondFunc condFunc, CondParams params) 
+			: DouglasPeuckerBase<PointT>(), 
+			_condition(condFunc), _c(params)
+		{};
+	};
+	
+	
+
 }
 
 #endif

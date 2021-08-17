@@ -1,6 +1,15 @@
 #ifndef HASHCOLON_FELINE_ROUTESIMPLIFICATION_IMPL
 #define HASHCOLON_FELINE_ROUTESIMPLIFICATION_IMPL
 
+// HashColon config
+#include <HashColon/HashColon_config.h>
+// std libraries
+#include <algorithm>
+#include <functional>
+#include <vector>
+// HashColon libraries
+#include <HashColon/Real.hpp>
+// header file for this source file
 #include <HashColon/Feline/RouteSimplification.hpp>
 
 namespace HashColon::Feline
@@ -11,8 +20,7 @@ namespace HashColon::Feline
 		std::function<bool(const PointT&, const PointT&, void*)> validityFunc,
 		void* additionals)
 	{
-		using namespace std;
-		using namespace HashColon::Helper;
+		using namespace std;		
 
 		if (waypoints.size() <= 2)
 		{
@@ -58,15 +66,110 @@ namespace HashColon::Feline
 		return re;
 	}
 
-	template<typename PointT, typename MethodType>
-	void SimplifyRoute(
-		std::vector<PointT>& waypoints, const MethodType method,
-		std::function<bool(const PointT&, const PointT&, void*)> validityFunc,
-		void* additionals)
+	namespace _local 
 	{
-		auto tmp = GetSimplifiedRoute(waypoints, method, validityFunc, additionals);
-		waypoints = tmp;
-		//waypoints = GetSimplifiedRoute(waypoints, method, validityFunc, additionals);
+		template <typename PointT>
+		size_t DefaultConditionPoint(const std::vector<PointT>& waypoints, size_t s, size_t e)
+		{
+			size_t idx = 0;
+			Real maxdist = -1.0;
+			for (size_t i = s + 1; i < e - 1; i++)
+			{
+				Position tmps = (Position)waypoints[s];
+				Position tmpe = (Position)waypoints[e];
+				Position tmpp = (Position)waypoints[i];
+				Real dist = abs((double)CrossTrackDistance(tmpp, tmps, tmpe));
+
+				if (maxdist < dist)
+				{
+					maxdist = dist;
+					idx = i;
+				}
+			}
+			return idx;
+		}
+
+	}
+
+	template <typename PointT>
+	void DouglasPeuckerBase<PointT>::RunSimplification(const std::vector<PointT>& waypoints, size_t s, size_t e, std::vector<bool>& result) const
+	{
+		using namespace std;		
+
+		// ending condition
+		if ((e - s) < 2) 
+		{ 
+			result[s] = result[e] = true;
+			return;
+		}
+
+		// Get condition point
+		size_t p = PickConditionPoint(waypoints, s, e);
+
+		// if condition is met, add condition point to result. Call Douglas-Peucker for sub-trajectories.
+		if (Condition(waypoints, s, e, p))
+		{
+			RunSimplification(waypoints, s, p, result);
+			RunSimplification(waypoints, s, e, result);
+			result[s] = result[p] = result[e] = true;
+		}
+		// if condition is not met, return { s, e }
+		else 
+		{
+			result[s] = result[e] = true;			
+		}
+	}
+
+	template <typename PointT>
+	void DouglasPeuckerBase<PointT>::SimplifyRoute(std::vector<PointT>& waypoints) const
+	{
+		waypoints = GetSimplifiedRoute(waypoints);
+	}
+
+	template <typename PointT>
+	std::vector<PointT> DouglasPeuckerBase<PointT>::GetSimplifiedRoute(const std::vector<PointT>& waypoints) const
+	{
+		using namespace std;
+		
+		vector<bool> result(waypoints.size(), false);
+		RunSimplification(waypoints, 0, waypoints.size(), result);
+		size_t size = count_if(result.begin(), result.end(), [](const bool& b) { return b; });
+		vector<PointT> re; re.reserve(size);
+		for (size_t i = 0; i < waypoints.size(); i++) 
+		{
+			if (result[i]) { re.push_back(waypoints[i]); }
+		}
+		return re;
+	}
+
+	template <typename PointT>
+	size_t DouglasPeucker<PointT>::PickConditionPoint(const std::vector<PointT>& waypoints, size_t s, size_t e) const
+	{
+		return _local::DefaultConditionPoint(waypoints, s, e);
+	}
+
+	template <typename PointT>
+	bool DouglasPeucker<PointT>::Condition(const std::vector<PointT>& waypoints, size_t s, size_t e, size_t p) const
+	{
+		Position tmps = (Position)waypoints[s];
+		Position tmpe = (Position)waypoints[e];
+		Position tmpp = (Position)waypoints[p];
+		Real dist = abs(CrossTrackDistance(tmpp, tmps, tmpe));
+		return (dist > Epsilon);
+	}
+
+	template <typename PointT, typename CondParams>
+	size_t ConditionedDouglasPeucker<PointT, CondParams>::PickConditionPoint(
+		const std::vector<PointT>& waypoints, size_t s, size_t e) const
+	{
+		return _local::DefaultConditionPoint(waypoints, s, e);	
+	}
+
+	template <typename PointT, typename CondParams>
+	bool ConditionedDouglasPeucker<PointT, CondParams>::Condition(
+		const std::vector<PointT>& waypoints, size_t s, size_t e, size_t p) const
+	{
+		return _condition(waypoints, s, e, p, _c);
 	}
 }
 
