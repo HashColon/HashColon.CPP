@@ -157,14 +157,14 @@ namespace HashColon::CAGD
 {
 	// point as a column vector
 	template <size_t Dim>
-	using PointT = Eigen::Matrix<HashColon::Real, Dim, 1>;
+	using PointT = Eigen::Matrix<HashColon::Real, (int)Dim, 1>;
 
 	/* Stores points as a list of columns
 	* ex)	| x x x ... x |
 	*		| y y y ... y |
 	*		| z z z ... z |	*/
 	template <size_t Dim>
-	using PointArrT = Eigen::Matrix<HashColon::Real, Dim, -1>;
+	using PointArrT = Eigen::Matrix<HashColon::Real, (int)Dim, -1>;
 }
 
 /* GeometryBase, Curve, Surface, QuadSurface, TriSurface */

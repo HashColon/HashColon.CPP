@@ -42,13 +42,11 @@
     <RemoteCopyIncludeDirectories>config;</RemoteCopyIncludeDirectories>
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <PlatformToolset>WSL_1_0</PlatformToolset>
-    <UseCompiler>true</UseCompiler>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
     <RemoteRootDir>~/WTK/Projects/CPP/Feline</RemoteRootDir>
-    <RemoteCopyIncludeDirectories>
-    </RemoteCopyIncludeDirectories>
+    <RemoteCopyIncludeDirectories>config</RemoteCopyIncludeDirectories>
     <ConfigurationType>DynamicLibrary</ConfigurationType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWSL|x64'" Label="Configuration">
@@ -216,6 +214,9 @@
       <Command>
       </Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>xcopy /s /Y $(ProjectDir)\config $(OutDir)</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -232,7 +233,7 @@
       <LibraryDependencies>flann;lz4;gdal;pthread;</LibraryDependencies>
       <AdditionalLibraryDirectories>%(Link.AdditionalLibraryDirectories);</AdditionalLibraryDirectories>
       <AdditionalOptions>-fopenmp %(AdditionalOptions)</AdditionalOptions>
-      <ShowProgress>true</ShowProgress>
+      <ShowProgress>false</ShowProgress>
     </Link>
     <RemotePreBuildEvent>
       <Command>
@@ -267,6 +268,9 @@
       <Command>
       </Command>
     </RemotePostBuildEvent>
+    <PreBuildEvent>
+      <Command>xcopy /s /Y $(ProjectDir)\config $(OutDir)</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

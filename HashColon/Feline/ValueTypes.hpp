@@ -311,6 +311,8 @@ namespace HashColon::Feline
 		XYXtdList GetNormalizedXYXtdList(size_t sizeN) const;
 		XYXtdList GetReversed() const;
 		XYList ToXYList() const;
+
+		operator XYList() const { return ToXYList(); };
 	};
 
 	class XYTList : public std::vector<XYT>
@@ -320,6 +322,8 @@ namespace HashColon::Feline
 		Duration GetDuration(size_t sIndex = 0, size_t eIndex = std::numeric_limits<size_t>::max()) const;
 		XYTList GetReversed() const;
 		XYList ToXYList() const;
+
+		operator XYList() const { return ToXYList(); };
 	};
 
 	class XYVVaTList : public std::vector<XYVVaT>
@@ -330,6 +334,9 @@ namespace HashColon::Feline
 		XYVVaTList GetReversed() const;
 		XYList ToXYList() const;
 		XYTList ToXYTList() const;
+
+		operator XYList() const { return ToXYList(); };
+		operator XYTList() const { return ToXYTList(); };
 	};
 
 	class XYVVaXtdTList : public std::vector<XYVVaXtdT>
@@ -341,6 +348,12 @@ namespace HashColon::Feline
 		XYList ToXYList() const;
 		XYXtdList ToXYXtdList() const;
 		XYTList ToXYTList() const;
+		XYVVaTList ToXYVVaTList() const;
+
+		operator XYList() const { return ToXYList(); };
+		operator XYXtdList() const { return ToXYXtdList(); };
+		operator XYTList() const { return ToXYTList(); };
+		operator XYVVaTList() const { return ToXYVVaTList(); };
 	};
 }
 

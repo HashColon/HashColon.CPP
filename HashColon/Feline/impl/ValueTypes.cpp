@@ -624,6 +624,17 @@ namespace HashColon::Feline
 		}
 		return re;
 	}
+
+	XYVVaTList XYVVaXtdTList::ToXYVVaTList() const
+	{
+		XYVVaTList re;
+		re.clear(); re.reserve(size());
+		for (const XYVVaXtdT& it : (*this))
+		{
+			re.push_back(it);
+		}
+		return re;
+	}
 }
 
 // Basic Computing functions

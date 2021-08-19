@@ -16,11 +16,13 @@
 #include <boost/type_index.hpp>
 #include <Eigen/Eigen>
 // modified external libraries
+#include <CLI11_modified/CLI11_extended.hpp>
 #include <dkm_modified/dkm_parallel.hpp>
 // HashColon libraries
 #include <HashColon/Exception.hpp>
 #include <HashColon/Helper.hpp>
 #include <HashColon/Log.hpp>
+#include <HashColon/SingletonCLI.hpp>
 // header file for this source file
 #include <HashColon/Clustering.hpp>
 

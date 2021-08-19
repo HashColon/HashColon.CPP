@@ -22,315 +22,639 @@ using namespace std;
 using namespace HashColon::Feline;
 namespace Json = rapidjson;
 
-namespace _local
+// tags for FelineJson
+namespace tag
 {
-	namespace tag
-	{
-		const vector<const char*> lon = { "longitude", "lon", "lng" };
-		const vector<const char*> lat = { "latitude", "lat" };
-		const vector<const char*> xtd = { "xtd" };
-		const vector<const char*> xtd_p = { "xtd_p" };
-		const vector<const char*> xtd_s = { "xtd_s" };
-	}	
+	const char* Routes = "routes";
 
-	bool HasLon(Json::Value& v) 
+	const char* Static = "static";
+	const char* IMO = "imo";
+	const char* MMSI = "mmsi";
+	const char* LOA = "loa";
+	const char* Beam = "beam";
+	const char* Draught = "draught";
+
+	const char* Dynamic = "dynamic";
+	const char* Lon = "longitude";
+	const char* Lat = "latitude";
+	const char* SOG = "sog";
+	const char* COG = "cog";
+	const char* XTD_P = "xtd_p";
+	const char* XTD_S = "xtd_s";
+	const char* Timestamp = "timestamp";
+}
+
+// Read Feline Json file
+namespace HashColon::Feline::IO
+{
+	template <typename T>
+	T ReadFromValue(Json::Value& val, const char* tag)
 	{
-		bool re = false;
-		for (auto t : tag::lon) { re = re || v.HasMember(t); }
-		return re;
+		if (val.HasMember(tag))
+			return val[tag].Get<T>();
+		return 0.0;
 	}
 
-	bool HasLat(Json::Value& v)
+	template <>
+	string ReadFromValue(Json::Value& val, const char* tag)
 	{
-		bool re = false;
-		for (auto t : tag::lat) { re = re || v.HasMember(t); }
-		return re;
+		if (val.HasMember(tag))
+			return val[tag].GetString();
+		return "";
 	}
 
-	bool HasXtd(Json::Value& v)
+	template <>
+	bool ReadFromValue(Json::Value& val, const char* tag)
 	{
-		bool re = false;
-		for (auto t : tag::xtd) { re = re || v.HasMember(t); }
-		return re;
-	}
-
-	bool HasXtd_ps(Json::Value& v)
-	{
-		bool re_p = false;
-		bool re_s = false;		
-		for (auto t : tag::xtd_p) { re_p = re_p || v.HasMember(t); }
-		for (auto t : tag::xtd_s) { re_s = re_s || v.HasMember(t); }
-		return re_p && re_s;
-	}
-
-
-	void SetLon2XY(Json::Value& v, XY& p)
-	{
-		assert(HasLon(v));
-
-		for (const char* tlon : tag::lon)
-			if (v.HasMember(tlon))
-			{
-				assert((v[tlon].IsDouble()) || (v[tlon].IsString()));
-				if (v[tlon].IsDouble())
-					p.longitude = v[tlon].GetDouble();
-				else if (v[tlon].IsString())
-					p.longitude = stod(v[tlon].GetString());
-				return;
-			}
-	}
-
-	void SetLat2XY(Json::Value& v, XY& p)
-	{
-		assert(HasLat(v));
-
-		for (const char* tlat : tag::lat)
-			if (v.HasMember(tlat))
-			{
-				assert((v[tlat].IsDouble()) || (v[tlat].IsString()));
-				if (v[tlat].IsDouble())
-					p.latitude = v[tlat].GetDouble();
-				else if (v[tlat].IsString())
-					p.latitude = stod(v[tlat].GetString());
-				return;
-			}
-	}
-
-	void SetXtd2XYXtd(Json::Value& v, XYXtd& p)
-	{
-		bool hasxtd = HasXtd(v);
-		bool hasxtdps = HasXtd_ps(v);
-		assert(hasxtd || hasxtdps);
-
-		if (hasxtd)
+		if (val.HasMember(tag))
 		{
-			for (const char* txtd : tag::xtd)
-				if (v.HasMember(txtd))
-				{
-					assert(v[txtd].IsArray());
-					const Json::Value& xtdv = v[txtd].GetArray();
-
-					if (xtdv[0].IsDouble())
-						p.Xtd.xtdPortside = xtdv[0].GetDouble();
-					else if (xtdv[0].IsString())
-						p.Xtd.xtdPortside = stod(xtdv[0].GetString());
-
-					if (xtdv[1].IsDouble())
-						p.Xtd.xtdStarboard = xtdv[1].GetDouble();
-					else if (xtdv[1].IsString())
-						p.Xtd.xtdStarboard = stod(xtdv[1].GetString());
-
-					return;
-				}
+			string tfval = String::ToLowerCopy(val[tag].GetString());
+			return (tfval == "true" || tfval == "yes" || tfval == "t" || tfval == "y");
 		}
-		else if (hasxtdps)
+		return false;
+	}
+
+	ShipIDKey ReadShipIDKeyFromValue(Json::Value& val, const char* tag)
+	{
+		if (val.HasMember(tag))
 		{
-			for (const char* txtd : tag::xtd_p)
-				if (v.HasMember(txtd))
-				{
-					assert(v[txtd].IsDouble() || v[txtd].IsString());
-					if (v[txtd].IsDouble())
-						p.Xtd.xtdPortside = v[txtd].GetDouble();
-					else if (v.IsString())
-						p.Xtd.xtdPortside = stod(v[txtd].GetString());
-					break;
-				}
-			for (const char* txtd : tag::xtd_s)
-				if (v.HasMember(txtd))
-				{
-					assert(v[txtd].IsDouble() || v[txtd].IsString());
-					if (v[txtd].IsDouble())
-						p.Xtd.xtdStarboard = v[txtd].GetDouble();
-					else if (v[txtd].IsString())
-						p.Xtd.xtdStarboard = stod(v[txtd].GetString());
-					break;
-				}
-		}		
+			if (val.IsUint64())
+				return (ShipIDKey)val[tag].GetUint64();
+			else if (val.IsUint())
+				return val[tag].GetUint();
+			else if (val.IsString())
+				return (ShipIDKey)stoul(val[tag].GetString());
+		}
+		return false;
+	}
+
+	TimePoint ReadTimepointFromValue(Json::Value& val, const char* tag)
+	{
+		if (val.HasMember(tag))
+		{
+			string tmpval = val[tag].GetString();
+			return TimePoint(tmpval);
+		}
+		else return TimePoint();
+	}
+
+	StaticType ReadStaticFromValues(Json::Value& val)
+	{
+		assert(val.IsObject());
+		StaticType re;
+		re.imo = ReadShipIDKeyFromValue(val, tag::IMO);
+		re.mmsi = ReadShipIDKeyFromValue(val, tag::MMSI);
+		re.Dim.L = ReadFromValue<Real>(val, tag::LOA);
+		re.Dim.B = ReadFromValue<Real>(val, tag::Beam);
+		re.Dim.T = ReadFromValue<Real>(val, tag::Draught);
+		return re;
+	}
+
+	XY ReadXYFromValue(Json::Value& val)
+	{
+		XY re;
+		re.longitude = ReadFromValue<Real>(val, tag::Lon);
+		re.latitude = ReadFromValue<Real>(val, tag::Lat);
+		return re;
+	}
+
+	XTD ReadXtdFromValue(Json::Value& val)
+	{
+		XTD re;
+		re.xtdPortside = ReadFromValue<Real>(val, tag::XTD_P);
+		re.xtdStarboard = ReadFromValue<Real>(val, tag::XTD_S);
+		return re;
+	}
+
+	VVa ReadVelFromValue(Json::Value& val)
+	{
+		VVa re;
+		re.speed = ReadFromValue<Real>(val, tag::SOG);
+		re.angle = ReadFromValue<Real>(val, tag::COG);
+		return re;
+	}
+
+	TimePoint ReadTimestampFromValue(Json::Value& val)
+	{
+		return ReadTimepointFromValue(val, tag::Timestamp);
+	}
+
+	XY& ReadTrajPointFromValue(Json::Value& val, XY& re)
+	{
+		assert(val.IsObject());
+		re = ReadXYFromValue(val);
+		return re;
+	}
+
+	XYXtd& ReadTrajPointFromValue(Json::Value& val, XYXtd& re)
+	{
+		assert(val.IsObject());
+		re.Pos = ReadXYFromValue(val);
+		re.Xtd = ReadXtdFromValue(val);
+		return re;
+	}
+
+	XYT& ReadTrajPointFromValue(Json::Value& val, XYT& re)
+	{
+		assert(val.IsObject());
+		re.Pos = ReadXYFromValue(val);
+		re.TP = ReadTimestampFromValue(val);
+		return re;
+	}
+
+	XYVVaT& ReadTrajPointFromValue(Json::Value& val, XYVVaT& re)
+	{
+		assert(val.IsObject());
+		re.Pos = ReadXYFromValue(val);
+		re.Vel = ReadVelFromValue(val);
+		re.TP = ReadTimestampFromValue(val);
+		return re;
+	}
+
+	XYVVaXtdT& ReadTrajPointFromValue(Json::Value& val, XYVVaXtdT& re)
+	{
+		assert(val.IsObject());
+		re.Pos = ReadXYFromValue(val);
+		re.Vel = ReadVelFromValue(val);
+		re.Xtd = ReadXtdFromValue(val);
+		re.TP = ReadTimestampFromValue(val);
+		return re;
+	}
+
+	template <typename TList>
+	TList ReadTrajectoryFromValues(Json::Value& valDynamic)
+	{
+		assert(valDynamic.IsArray());
+		TList re;
+		for (auto& wpVal : valDynamic.GetArray())
+		{
+			typename TList::value_type wp;
+			re.push_back(ReadTrajPointFromValue(wpVal, wp));
+		}
+		return re;
+	}
+	
+	template <>
+	vector<XYList> ReadFelineJsonFile(const string filepath)
+	{
+		// Return value
+		vector<XYList> re;
+		// read file and parse json
+		ifstream ifs(filepath);
+		Json::IStreamWrapper isw(ifs);
+		Json::Document doc;
+		doc.ParseStream(isw);
+
+		// read routes
+		assert(doc.IsObject());
+		assert(doc.HasMember(tag::Routes));
+		Json::Value& routes = doc[tag::Routes];
+		assert(routes.IsArray());
+
+		// Read each routes
+		for (auto& route : routes.GetArray()) {
+			XYList tmpTraj;
+
+			// No need to read static data
+
+			// fill out dynamic data
+			assert(route.HasMember(tag::Dynamic));
+			tmpTraj = ReadTrajectoryFromValues<XYList>(route[tag::Dynamic]);
+
+			// push to return value
+			re.push_back(tmpTraj);
+		}
+		return re;
+	}
+
+	template <>
+	vector<XYXtdList> ReadFelineJsonFile(const string filepath)
+	{
+		// Return value
+		vector<XYXtdList> re;
+		// read file and parse json
+		ifstream ifs(filepath);
+		Json::IStreamWrapper isw(ifs);
+		Json::Document doc;
+		doc.ParseStream(isw);
+
+		// read routes
+		assert(doc.IsObject());
+		assert(doc.HasMember(tag::Routes));
+		Json::Value& routes = doc[tag::Routes];
+		assert(routes.IsArray());
+
+		// Read each routes
+		for (auto& route : routes.GetArray()) {
+			XYXtdList tmpTraj;
+
+			// No need to read static data
+
+			// fill out dynamic data
+			assert(route.HasMember(tag::Dynamic));
+			tmpTraj = ReadTrajectoryFromValues<XYXtdList>(route[tag::Dynamic]);
+
+			// push to return value
+			re.push_back(tmpTraj);
+		}
+		return re;
+	}
+
+	template <>
+	vector<XYTList> ReadFelineJsonFile(const string filepath)
+	{
+		// Return value
+		vector<XYTList> re;
+		// read file and parse json
+		ifstream ifs(filepath);
+		Json::IStreamWrapper isw(ifs);
+		Json::Document doc;
+		doc.ParseStream(isw);
+
+		// read routes
+		assert(doc.IsObject());
+		assert(doc.HasMember(tag::Routes));
+		Json::Value& routes = doc[tag::Routes];
+		assert(routes.IsArray());
+
+		// Read each routes
+		for (auto& route : routes.GetArray()) {
+			XYTList tmpTraj;
+
+			// No need to read static data
+
+			// fill out dynamic data
+			assert(route.HasMember(tag::Dynamic));
+			tmpTraj = ReadTrajectoryFromValues<XYTList>(route[tag::Dynamic]);
+
+			// push to return value
+			re.push_back(tmpTraj);
+		}
+		return re;
+	}
+
+	template <>
+	vector<XYVVaTList> ReadFelineJsonFile(const string filepath)
+	{
+		// Return value
+		vector<XYVVaTList> re;
+		// read file and parse json
+		ifstream ifs(filepath);
+		Json::IStreamWrapper isw(ifs);
+		Json::Document doc;
+		doc.ParseStream(isw);
+
+		// read routes
+		assert(doc.IsObject());
+		assert(doc.HasMember(tag::Routes));
+		Json::Value& routes = doc[tag::Routes];
+		assert(routes.IsArray());
+
+		// Read each routes
+		for (auto& route : routes.GetArray()) {
+			XYVVaTList tmpTraj;
+
+			// No need to read static data
+
+			// fill out dynamic data
+			assert(route.HasMember(tag::Dynamic));
+			tmpTraj = ReadTrajectoryFromValues<XYVVaTList>(route[tag::Dynamic]);
+
+			// push to return value
+			re.push_back(tmpTraj);
+		}
+		return re;
+	}
+
+	template <>
+	vector<XYVVaXtdTList> ReadFelineJsonFile(const string filepath)
+	{
+		// Return value
+		vector<XYVVaXtdTList> re;
+		// read file and parse json
+		ifstream ifs(filepath);
+		Json::IStreamWrapper isw(ifs);
+		Json::Document doc;
+		doc.ParseStream(isw);
+
+		// read routes
+		assert(doc.IsObject());
+		assert(doc.HasMember(tag::Routes));
+		Json::Value& routes = doc[tag::Routes];
+		assert(routes.IsArray());
+
+		// Read each routes
+		for (auto& route : routes.GetArray()) {
+			XYVVaXtdTList tmpTraj;
+
+			// No need to read static data
+
+			// fill out dynamic data
+			assert(route.HasMember(tag::Dynamic));
+			tmpTraj = ReadTrajectoryFromValues<XYVVaXtdTList>(route[tag::Dynamic]);
+
+			// push to return value
+			re.push_back(tmpTraj);
+		}
+		return re;
+	}
+
+	template <>
+	vector<AisTrajectory<XYList>> ReadFelineJsonFile(const string filepath)
+	{
+		// Return value
+		vector<AisTrajectory<XYList>> re;
+		// read file and parse json
+		ifstream ifs(filepath);
+		Json::IStreamWrapper isw(ifs);
+		Json::Document doc;
+		doc.ParseStream(isw);
+
+		// read routes
+		assert(doc.IsObject());
+		assert(doc.HasMember(tag::Routes));
+		Json::Value& routes = doc[tag::Routes];
+		assert(routes.IsArray());
+
+		// Read each routes
+		for (auto& route : routes.GetArray()) {
+			AisTrajectory<XYList> tmpTraj;
+
+			// fill out static data
+			assert(route.HasMember(tag::Static));
+			tmpTraj.staticInfo = ReadStaticFromValues(route[tag::Static]);
+
+			// fill out dynamic data
+			assert(route.HasMember(tag::Dynamic));
+			tmpTraj.trajectory = ReadTrajectoryFromValues<XYList>(route[tag::Dynamic]);
+
+			// push to return value
+			re.push_back(tmpTraj);
+		}
+		return re;
+	}
+
+	template <>
+	vector<AisTrajectory<XYXtdList>> ReadFelineJsonFile(const string filepath)
+	{
+		// Return value
+		vector<AisTrajectory<XYXtdList>> re;
+		// read file and parse json
+		ifstream ifs(filepath);
+		Json::IStreamWrapper isw(ifs);
+		Json::Document doc;
+		doc.ParseStream(isw);
+
+		// read routes
+		assert(doc.IsObject());
+		assert(doc.HasMember(tag::Routes));
+		Json::Value& routes = doc[tag::Routes];
+		assert(routes.IsArray());
+
+		// Read each routes
+		for (auto& route : routes.GetArray()) {
+			AisTrajectory<XYXtdList> tmpTraj;
+
+			// fill out static data
+			assert(route.HasMember(tag::Static));
+			tmpTraj.staticInfo = ReadStaticFromValues(route[tag::Static]);
+
+			// fill out dynamic data
+			assert(route.HasMember(tag::Dynamic));
+			tmpTraj.trajectory = ReadTrajectoryFromValues<XYXtdList>(route[tag::Dynamic]);
+
+			// push to return value
+			re.push_back(tmpTraj);
+		}
+		return re;
+	}
+
+	template <>
+	vector<AisTrajectory<XYTList>> ReadFelineJsonFile(const string filepath)
+	{
+		// Return value
+		vector<AisTrajectory<XYTList>> re;
+		// read file and parse json
+		ifstream ifs(filepath);
+		Json::IStreamWrapper isw(ifs);
+		Json::Document doc;
+		doc.ParseStream(isw);
+
+		// read routes
+		assert(doc.IsObject());
+		assert(doc.HasMember(tag::Routes));
+		Json::Value& routes = doc[tag::Routes];
+		assert(routes.IsArray());
+
+		// Read each routes
+		for (auto& route : routes.GetArray()) {
+			AisTrajectory<XYTList> tmpTraj;
+
+			// fill out static data
+			assert(route.HasMember(tag::Static));
+			tmpTraj.staticInfo = ReadStaticFromValues(route[tag::Static]);
+
+			// fill out dynamic data
+			assert(route.HasMember(tag::Dynamic));
+			tmpTraj.trajectory = ReadTrajectoryFromValues<XYTList>(route[tag::Dynamic]);
+
+			// push to return value
+			re.push_back(tmpTraj);
+		}
+		return re;
+	}
+
+	template <>
+	vector<AisTrajectory<XYVVaTList>> ReadFelineJsonFile(const string filepath)
+	{
+		// Return value
+		vector<AisTrajectory<XYVVaTList>> re;
+		// read file and parse json
+		ifstream ifs(filepath);
+		Json::IStreamWrapper isw(ifs);
+		Json::Document doc;
+		doc.ParseStream(isw);
+
+		// read routes
+		assert(doc.IsObject());
+		assert(doc.HasMember(tag::Routes));
+		Json::Value& routes = doc[tag::Routes];
+		assert(routes.IsArray());
+
+		// Read each routes
+		for (auto& route : routes.GetArray()) {
+			AisTrajectory<XYVVaTList> tmpTraj;
+
+			// fill out static data
+			assert(route.HasMember(tag::Static));
+			tmpTraj.staticInfo = ReadStaticFromValues(route[tag::Static]);
+
+			// fill out dynamic data
+			assert(route.HasMember(tag::Dynamic));
+			tmpTraj.trajectory = ReadTrajectoryFromValues<XYVVaTList>(route[tag::Dynamic]);
+
+			// push to return value
+			re.push_back(tmpTraj);
+		}
+		return re;
+	}
+
+	template <>
+	vector<AisTrajectory<XYVVaXtdTList>> ReadFelineJsonFile(const string filepath)
+	{
+		// Return value
+		vector<AisTrajectory<XYVVaXtdTList>> re;
+		// read file and parse json
+		ifstream ifs(filepath);
+		Json::IStreamWrapper isw(ifs);
+		Json::Document doc;
+		doc.ParseStream(isw);
+
+		// read routes
+		assert(doc.IsObject());
+		assert(doc.HasMember(tag::Routes));
+		Json::Value& routes = doc[tag::Routes];
+		assert(routes.IsArray());
+
+		// Read each routes
+		for (auto& route : routes.GetArray()) {
+			AisTrajectory<XYVVaXtdTList> tmpTraj;
+
+			// fill out static data
+			assert(route.HasMember(tag::Static));
+			tmpTraj.staticInfo = ReadStaticFromValues(route[tag::Static]);
+
+			// fill out dynamic data
+			assert(route.HasMember(tag::Dynamic));
+			tmpTraj.trajectory = ReadTrajectoryFromValues<XYVVaXtdTList>(route[tag::Dynamic]);
+
+			// push to return value
+			re.push_back(tmpTraj);
+		}
+		return re;
 	}
 }
 
+// Write Feline Json files
 namespace HashColon::Feline::IO
 {
-	template <>
-	vector<XYList> ReadFelineJsonFile<XYList>(string filepath)
+	Json::Value& WriteStaticToValue(const StaticType& staticData, Json::Value& val, Json::MemoryPoolAllocator<>& alloc)
 	{
-		// set logger 
-		//GlobalLogger logger;
-		//logger.Log({ { Tag::lvl, 5 } }) << "ReadJsonFile_SimpleXYList: Reading " << filepath << endl;
+		assert(val.IsObject());
+		val.AddMember(Json::Value(tag::IMO, (unsigned int)strlen(tag::IMO), alloc), Json::Value(staticData.imo), alloc);
+		val.AddMember(Json::Value(tag::MMSI, (unsigned int)strlen(tag::MMSI), alloc), Json::Value(staticData.mmsi), alloc);
+		val.AddMember(Json::Value(tag::LOA, (unsigned int)strlen(tag::LOA), alloc), Json::Value(staticData.Dim.L), alloc);
+		val.AddMember(Json::Value(tag::Beam, (unsigned int)strlen(tag::Beam), alloc), Json::Value(staticData.Dim.B), alloc);
+		val.AddMember(Json::Value(tag::Draught, (unsigned int)strlen(tag::Draught), alloc), Json::Value(staticData.Dim.T), alloc);
+		return val;
+	}
 
-		vector<XYList> re;
-		ifstream ifs(filepath);
-		Json::IStreamWrapper isw(ifs);
+	Json::Value& WritePosToValue(const Position& pos, Json::Value& val, Json::MemoryPoolAllocator<>& alloc)
+	{
+		val.AddMember(Json::Value(tag::Lon, (unsigned int)strlen(tag::Lon), alloc), Json::Value(pos.longitude), alloc);
+		val.AddMember(Json::Value(tag::Lon, (unsigned int)strlen(tag::Lon), alloc), Json::Value(pos.longitude), alloc);
+		return val;
+	}
 
-		// parse JSON into rapidjson object
-		Json::Document doc;
-		doc.ParseStream(isw);
+	Json::Value& WriteXtdToValue(const XTD& xtd, Json::Value& val, Json::MemoryPoolAllocator<>& alloc)
+	{
+		val.AddMember(Json::Value(tag::XTD_P, (unsigned int)strlen(tag::XTD_P), alloc), Json::Value(xtd.xtdPortside), alloc);
+		val.AddMember(Json::Value(tag::XTD_S, (unsigned int)strlen(tag::XTD_S), alloc), Json::Value(xtd.xtdStarboard), alloc);
+		return val;
+	}
 
-		// assertions
-		assert(doc.IsObject());
-		assert(doc.HasMember("routes"));
-		Json::Value& routes = doc["routes"];
-		assert(routes.IsArray());
+	Json::Value& WriteVelToValue(const VVa& vel, Json::Value& val, Json::MemoryPoolAllocator<>& alloc)
+	{
+		val.AddMember(Json::Value(tag::SOG, (unsigned int)strlen(tag::SOG), alloc), Json::Value(vel.speed), alloc);
+		val.AddMember(Json::Value(tag::COG, (unsigned int)strlen(tag::COG), alloc), Json::Value(vel.angle), alloc);
+		return val;
+	}
 
-		for (auto& route : routes.GetArray()) {
-			assert(route.HasMember("dynamic"));
-			assert(route["dynamic"].IsArray());
+	Json::Value& WriteTimestampToValue(const TimePoint& tp, Json::Value& val, Json::MemoryPoolAllocator<>& alloc)
+	{
+		string tpstr = tp.toString();
+		val.AddMember(Json::Value(tag::Timestamp, (unsigned int)strlen(tag::Timestamp), alloc),
+			Json::Value(tpstr.c_str(), (unsigned int)tpstr.size(), alloc), alloc);
+		return val;
+	}
 
-			XYList reRoute;
-			for (auto& pt : route["dynamic"].GetArray())
-			{				
-				XY reXY;
+	Json::Value& WriteTrajPointToValue(const XY& wp, Json::Value& val, Json::MemoryPoolAllocator<>& alloc)
+	{
+		WritePosToValue(wp, val, alloc);
+		return val;
+	}
 
-				_local::SetLon2XY(pt, reXY);
-				_local::SetLat2XY(pt, reXY);
-				
-				reRoute.push_back(reXY);
-			}
-			re.push_back(reRoute);
+	Json::Value& WriteTrajPointToValue(const XYXtd& wp, Json::Value& val, Json::MemoryPoolAllocator<>& alloc)
+	{
+		WritePosToValue(wp.Pos, val, alloc);
+		WriteXtdToValue(wp.Xtd, val, alloc);
+		return val;
+	}
+
+	Json::Value& WriteTrajPointToValue(const XYT& wp, Json::Value& val, Json::MemoryPoolAllocator<>& alloc)
+	{
+		WritePosToValue(wp.Pos, val, alloc);
+		WriteTimestampToValue(wp.TP, val, alloc);
+		return val;
+	}
+
+	Json::Value& WriteTrajPointToValue(const XYVVaT& wp, Json::Value& val, Json::MemoryPoolAllocator<>& alloc)
+	{
+		WritePosToValue(wp.Pos, val, alloc);
+		WriteVelToValue(wp.Vel, val, alloc);
+		WriteTimestampToValue(wp.TP, val, alloc);
+		return val;
+	}
+
+	Json::Value& WriteTrajPointToValue(const XYVVaXtdT& wp, Json::Value& val, Json::MemoryPoolAllocator<>& alloc)
+	{
+		WritePosToValue(wp.Pos, val, alloc);
+		WriteVelToValue(wp.Vel, val, alloc);
+		WriteXtdToValue(wp.Xtd, val, alloc);
+		WriteTimestampToValue(wp.TP, val, alloc);
+		return val;
+	}
+
+	template <typename TList>
+	Json::Value& WriteTrajectoryToValues(const TList& traj, Json::Value& val, Json::MemoryPoolAllocator<>& alloc)
+	{
+		assert(val.IsArray());
+		for (const auto& wp : traj)
+		{
+			Json::Value wpJson(Json::kObjectType);
+			val.PushBack(WriteTrajPointToValue(wp, wpJson, alloc), alloc);
 		}
-
-		//logger.Log({ { Tag::lvl, 5 } }) << "ReadJsonFile_SimpleXYList: Finished reading " << filepath << endl;
-		return re;
+		return val;
 	}
 
 	template <>
-	vector<XYXtdList> ReadFelineJsonFile<XYXtdList>(string filepath)
-	{		
-		vector<XYXtdList> re;
-		ifstream ifs(filepath);
-		Json::IStreamWrapper isw(ifs);
-
-		Json::Document doc;
-		doc.ParseStream(isw);
-
-		assert(doc.IsObject());
-		assert(doc.HasMember("routes"));
-		Json::Value& routes = doc["routes"];
-		assert(routes.IsArray());
-
-		for (auto& route : routes.GetArray()) {
-			assert(route.HasMember("dynamic"));
-			assert(route["dynamic"].IsArray());
-
-			XYXtdList reRoute;
-			for (auto& pt : route["dynamic"].GetArray())
-			{	
-				XY reXY;
-				XYXtd reXYXtd;
-
-				_local::SetLon2XY(pt, reXY);
-				_local::SetLat2XY(pt, reXY);
-				_local::SetXtd2XYXtd(pt, reXYXtd);
-
-				reXYXtd.Pos = reXY;
-
-				reRoute.push_back(reXYXtd);
-			}
-			re.push_back(reRoute);
-		}
-
-		//logger.Log({ { Tag::lvl, 5 } }) << "ReadJsonFile_SimpleXYList: Finished reading " << filepath << endl;
-		return re;
-	}
-
-	template <>
-	vector<AisTrajectory<>> ReadFelineJsonFile<AisTrajectory<>>(string filepath)
+	Json::Document WriteFelineJsonFile(
+		const string outputFilepath, const vector<XYList>& routes, Json::MemoryPoolAllocator<>& alloc, bool writePretty)
 	{
-		vector<AisTrajectory<>> re;
-		ifstream ifs(filepath);
-		Json::IStreamWrapper isw(ifs);
-
 		Json::Document doc;
-		doc.ParseStream(isw);
 
-		assert(doc.IsObject());
-		assert(doc.HasMember("routes"));
-		Json::Value& routes = doc["routes"];		
-		assert(routes.IsArray());
-
-		for (auto& route : routes.GetArray()) {
-			AisTrajectory tmpTraj;
-
-			// fill out static data
-			assert(route.HasMember("static"));
-			assert(route["static"].IsObject());
-			{
-				assert(route["static"].HasMember("imo"));
-				tmpTraj.staticInfo.imo = route["static"]["imo"].GetInt();
-				assert(route["static"].HasMember("mmsi"));
-				tmpTraj.staticInfo.mmsi = route["static"]["mmsi"].GetInt();
-				assert(route["static"].HasMember("loa"));
-				tmpTraj.staticInfo.Dim.L = route["static"]["loa"].GetDouble();
-				assert(route["static"].HasMember("beam"));
-				tmpTraj.staticInfo.Dim.B = route["static"]["beam"].GetDouble();
-				assert(route["static"].HasMember("draught"));
-				tmpTraj.staticInfo.Dim.T = route["static"]["draught"].GetDouble();
-			}
-			
-			// fill out dynamic data
-			assert(route.HasMember("dynamic"));
-			assert(route["dynamic"].IsArray());			
-			for (auto& wp : route["dynamic"].GetArray())
-			{
-				assert(wp.IsObject());
-				XYVVaT tmpWP;
-				if (wp.HasMember("latitude"))
-					tmpWP.Pos.latitude = wp["latitude"].GetDouble();
-				if (wp.HasMember("longitude"))
-					tmpWP.Pos.longitude = wp["longiitude"].GetDouble();
-				if (wp.HasMember("sog"))
-					tmpWP.Vel.speed = wp["sog"].GetDouble();
-				if (wp.HasMember("cog"))
-					tmpWP.Vel.angle = wp["cog"].GetDouble();
-				if (wp.HasMember("timestamp"))
-					tmpWP.TP.fromString(wp["timestamp"].GetString());
-				tmpTraj.trajectory.push_back(tmpWP);
-			}			
-			re.push_back(tmpTraj);
-		}
-		//logger.Log({ { Tag::lvl, 5 } }) << "ReadJsonFile_SimpleXYList: Finished reading " << filepath << endl;
-		return re;
-	}
-
-	template <>
-	Json::Document WriteGeoJsonFile<XYList>(
-		string outputFilepath, const vector<XYList>& routes, Json::MemoryPoolAllocator<>& alloc, bool writePretty)
-	{
-		//GlobalLogger logger;
-		//logger.Log({ { Tag::lvl, 5 } }) << "ReadJsonFile_SimpleXYList: Writing " << outputFilepath << endl;
-
-		Json::Document doc;
 		// make base structure for geojson "FeatureCollection"
 		doc.Parse(R"str(
 		{
-			"type": "FeatureCollection",
-			"features" : []
+			"routes" : []
 		}
 		)str");
 
-		for (size_t i = 0; i < routes.size(); i++)
+		for (const auto& route : routes)
 		{
-			// make base structure for geojson "Feature"
-			Json::Value feature;
-			feature.SetObject();
-			feature.AddMember("type", Json::Value("Feature"), alloc);
-			feature.AddMember("properties", Json::Value(Json::kObjectType), alloc);			
-			feature.AddMember("geometry", Json::Value(Json::kObjectType), alloc);
-			feature["geometry"].AddMember("type", Json::Value("LineString"), alloc);
-			feature["geometry"].AddMember("coordinates", Json::Value(Json::kArrayType), alloc);
+			Json::Value routeJson(Json::kObjectType);
 
-			// fill out coordinates
-			Json::Value& coordinates = feature["geometry"]["coordinates"];
-			for (size_t j = 0; j < routes[i].size(); j++)
-			{
-				Json::Value apoint(Json::kArrayType);
-				apoint.PushBack(Json::Value(routes[i][j].longitude), alloc);
-				apoint.PushBack(Json::Value(routes[i][j].latitude), alloc);
-				coordinates.PushBack(apoint, alloc);
-			}
+			// set static & dynamic
+			routeJson.AddMember("static", Json::Value(Json::kObjectType), alloc);
+			Json::Value& dynamicVal = routeJson.AddMember("dynamic", Json::Value(Json::kArrayType), alloc);
 
-			// push feature into feature collection
-			doc["features"].PushBack(feature, alloc);
+			// no static data is given, ignore lol
+
+			// write dynamic data
+			WriteTrajectoryToValues(route, dynamicVal, alloc);
+
+			// push to routes
+			doc["routes"].PushBack(routeJson, alloc);
 		}
 
 		// print to file (use pretty writer if the writePretty option is on)
@@ -346,18 +670,450 @@ namespace HashColon::Feline::IO
 			Json::Writer<Json::OStreamWrapper> writer(osw);
 			doc.Accept(writer);
 		}
-		
 		return doc;
 	}
 
 	template <>
-	Json::Document WriteGeoJsonFile<XYXtdList>(
-		string outputFilepath, const vector<XYXtdList>& routes, Json::MemoryPoolAllocator<>& alloc, bool writePretty)
+	Json::Document WriteFelineJsonFile(
+		const string outputFilepath, const vector<XYXtdList>& routes, Json::MemoryPoolAllocator<>& alloc, bool writePretty)
 	{
-		//GlobalLogger logger;
-		//logger.Log({ { Tag::lvl, 5 } }) << "ReadJsonFile_SimpleXYList: Writing " << outputFilepath << endl;
+		Json::Document doc;
 
-		Json::Document doc;		
+		// make base structure for geojson "FeatureCollection"
+		doc.Parse(R"str(
+		{
+			"routes" : []
+		}
+		)str");
+
+		for (const auto& route : routes)
+		{
+			Json::Value routeJson(Json::kObjectType);
+
+			// set static & dynamic
+			routeJson.AddMember("static", Json::Value(Json::kObjectType), alloc);
+			Json::Value& dynamicVal = routeJson.AddMember("dynamic", Json::Value(Json::kArrayType), alloc);
+
+			// no static data is given, ignore lol
+
+			// write dynamic data
+			WriteTrajectoryToValues(route, dynamicVal, alloc);
+
+			// push to routes
+			doc["routes"].PushBack(routeJson, alloc);
+		}
+
+		// print to file (use pretty writer if the writePretty option is on)
+		ofstream ofs(outputFilepath);
+		Json::OStreamWrapper osw(ofs);
+		if (writePretty)
+		{
+			Json::PrettyWriter<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		else
+		{
+			Json::Writer<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		return doc;
+	}
+
+	template <>
+	Json::Document WriteFelineJsonFile(
+		const string outputFilepath, const vector<XYTList>& routes, Json::MemoryPoolAllocator<>& alloc, bool writePretty)
+	{
+		Json::Document doc;
+
+		// make base structure for geojson "FeatureCollection"
+		doc.Parse(R"str(
+		{
+			"routes" : []
+		}
+		)str");
+
+		for (const auto& route : routes)
+		{
+			Json::Value routeJson(Json::kObjectType);
+
+			// set static & dynamic
+			routeJson.AddMember("static", Json::Value(Json::kObjectType), alloc);
+			Json::Value& dynamicVal = routeJson.AddMember("dynamic", Json::Value(Json::kArrayType), alloc);
+
+			// no static data is given, ignore lol
+
+			// write dynamic data
+			WriteTrajectoryToValues(route, dynamicVal, alloc);
+
+			// push to routes
+			doc["routes"].PushBack(routeJson, alloc);
+		}
+
+		// print to file (use pretty writer if the writePretty option is on)
+		ofstream ofs(outputFilepath);
+		Json::OStreamWrapper osw(ofs);
+		if (writePretty)
+		{
+			Json::PrettyWriter<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		else
+		{
+			Json::Writer<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		return doc;
+	}
+
+	template <>
+	Json::Document WriteFelineJsonFile(
+		const string outputFilepath, const vector<XYVVaTList>& routes, Json::MemoryPoolAllocator<>& alloc, bool writePretty)
+	{
+		Json::Document doc;
+
+		// make base structure for geojson "FeatureCollection"
+		doc.Parse(R"str(
+		{
+			"routes" : []
+		}
+		)str");
+
+		for (const auto& route : routes)
+		{
+			Json::Value routeJson(Json::kObjectType);
+
+			// set static & dynamic
+			routeJson.AddMember("static", Json::Value(Json::kObjectType), alloc);
+			Json::Value& dynamicVal = routeJson.AddMember("dynamic", Json::Value(Json::kArrayType), alloc);
+
+			// no static data is given, ignore lol
+
+			// write dynamic data
+			WriteTrajectoryToValues(route, dynamicVal, alloc);
+
+			// push to routes
+			doc["routes"].PushBack(routeJson, alloc);
+		}
+
+		// print to file (use pretty writer if the writePretty option is on)
+		ofstream ofs(outputFilepath);
+		Json::OStreamWrapper osw(ofs);
+		if (writePretty)
+		{
+			Json::PrettyWriter<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		else
+		{
+			Json::Writer<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		return doc;
+	}
+
+	template <>
+	Json::Document WriteFelineJsonFile(
+		const string outputFilepath, const vector<XYVVaXtdTList>& routes, Json::MemoryPoolAllocator<>& alloc, bool writePretty)
+	{
+		Json::Document doc;
+
+		// make base structure for geojson "FeatureCollection"
+		doc.Parse(R"str(
+		{
+			"routes" : []
+		}
+		)str");
+
+		for (const auto& route : routes)
+		{
+			Json::Value routeJson(Json::kObjectType);
+
+			// set static & dynamic
+			routeJson.AddMember("static", Json::Value(Json::kObjectType), alloc);
+			Json::Value& dynamicVal = routeJson.AddMember("dynamic", Json::Value(Json::kArrayType), alloc);
+
+			// no static data is given, ignore lol
+
+			// write dynamic data
+			WriteTrajectoryToValues(route, dynamicVal, alloc);
+
+			// push to routes
+			doc["routes"].PushBack(routeJson, alloc);
+		}
+
+		// print to file (use pretty writer if the writePretty option is on)
+		ofstream ofs(outputFilepath);
+		Json::OStreamWrapper osw(ofs);
+		if (writePretty)
+		{
+			Json::PrettyWriter<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		else
+		{
+			Json::Writer<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		return doc;
+	}
+
+	template <>
+	Json::Document WriteFelineJsonFile(
+		const string outputFilepath, const vector<AisTrajectory<XYList>>& routes, Json::MemoryPoolAllocator<>& alloc, bool writePretty)
+	{
+		Json::Document doc;
+
+		// make base structure for geojson "FeatureCollection"
+		doc.Parse(R"str(
+		{
+			"routes" : []
+		}
+		)str");
+
+		for (const auto& route : routes)
+		{
+			Json::Value routeJson(Json::kObjectType);
+
+			// set static & dynamic
+			Json::Value& staticVal = routeJson.AddMember("static", Json::Value(Json::kObjectType), alloc);
+			Json::Value& dynamicVal = routeJson.AddMember("dynamic", Json::Value(Json::kArrayType), alloc);
+
+			// write static data			
+			WriteStaticToValue(route.staticInfo, staticVal, alloc);
+
+			// write dynamic data
+			WriteTrajectoryToValues(route.trajectory, dynamicVal, alloc);
+
+			// push to routes
+			doc["routes"].PushBack(routeJson, alloc);
+		}
+
+		// print to file (use pretty writer if the writePretty option is on)
+		ofstream ofs(outputFilepath);
+		Json::OStreamWrapper osw(ofs);
+		if (writePretty)
+		{
+			Json::PrettyWriter<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		else
+		{
+			Json::Writer<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		return doc;
+	}
+
+	template <>
+	Json::Document WriteFelineJsonFile(
+		const string outputFilepath, const vector<AisTrajectory<XYXtdList>>& routes, Json::MemoryPoolAllocator<>& alloc, bool writePretty)
+	{
+		Json::Document doc;
+
+		// make base structure for geojson "FeatureCollection"
+		doc.Parse(R"str(
+		{
+			"routes" : []
+		}
+		)str");
+
+		for (const auto& route : routes)
+		{
+			Json::Value routeJson(Json::kObjectType);
+
+			// set static & dynamic
+			Json::Value& staticVal = routeJson.AddMember("static", Json::Value(Json::kObjectType), alloc);
+			Json::Value& dynamicVal = routeJson.AddMember("dynamic", Json::Value(Json::kArrayType), alloc);
+
+			// write static data			
+			WriteStaticToValue(route.staticInfo, staticVal, alloc);
+
+			// write dynamic data
+			WriteTrajectoryToValues(route.trajectory, dynamicVal, alloc);
+
+			// push to routes
+			doc["routes"].PushBack(routeJson, alloc);
+		}
+
+		// print to file (use pretty writer if the writePretty option is on)
+		ofstream ofs(outputFilepath);
+		Json::OStreamWrapper osw(ofs);
+		if (writePretty)
+		{
+			Json::PrettyWriter<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		else
+		{
+			Json::Writer<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		return doc;
+	}
+
+	template <>
+	Json::Document WriteFelineJsonFile(
+		const string outputFilepath, const vector<AisTrajectory<XYTList>>& routes, Json::MemoryPoolAllocator<>& alloc, bool writePretty)
+	{
+		Json::Document doc;
+
+		// make base structure for geojson "FeatureCollection"
+		doc.Parse(R"str(
+		{
+			"routes" : []
+		}
+		)str");
+
+		for (const auto& route : routes)
+		{
+			Json::Value routeJson(Json::kObjectType);
+
+			// set static & dynamic
+			Json::Value& staticVal = routeJson.AddMember("static", Json::Value(Json::kObjectType), alloc);
+			Json::Value& dynamicVal = routeJson.AddMember("dynamic", Json::Value(Json::kArrayType), alloc);
+
+			// write static data			
+			WriteStaticToValue(route.staticInfo, staticVal, alloc);
+
+			// write dynamic data
+			WriteTrajectoryToValues(route.trajectory, dynamicVal, alloc);
+
+			// push to routes
+			doc["routes"].PushBack(routeJson, alloc);
+		}
+
+		// print to file (use pretty writer if the writePretty option is on)
+		ofstream ofs(outputFilepath);
+		Json::OStreamWrapper osw(ofs);
+		if (writePretty)
+		{
+			Json::PrettyWriter<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		else
+		{
+			Json::Writer<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		return doc;
+	}
+
+	template <>
+	Json::Document WriteFelineJsonFile(
+		const string outputFilepath, const vector<AisTrajectory<XYVVaTList>>& routes, Json::MemoryPoolAllocator<>& alloc, bool writePretty)
+	{
+		Json::Document doc;
+
+		// make base structure for geojson "FeatureCollection"
+		doc.Parse(R"str(
+		{
+			"routes" : []
+		}
+		)str");
+
+		for (const auto& route : routes)
+		{
+			Json::Value routeJson(Json::kObjectType);
+
+			// set static & dynamic
+			Json::Value& staticVal = routeJson.AddMember("static", Json::Value(Json::kObjectType), alloc);
+			Json::Value& dynamicVal = routeJson.AddMember("dynamic", Json::Value(Json::kArrayType), alloc);
+
+			// write static data			
+			WriteStaticToValue(route.staticInfo, staticVal, alloc);
+
+			// write dynamic data
+			WriteTrajectoryToValues(route.trajectory, dynamicVal, alloc);
+
+			// push to routes
+			doc["routes"].PushBack(routeJson, alloc);
+		}
+
+		// print to file (use pretty writer if the writePretty option is on)
+		ofstream ofs(outputFilepath);
+		Json::OStreamWrapper osw(ofs);
+		if (writePretty)
+		{
+			Json::PrettyWriter<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		else
+		{
+			Json::Writer<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		return doc;
+	}
+
+	template <>
+	Json::Document WriteFelineJsonFile(
+		const string outputFilepath, const vector<AisTrajectory<XYVVaXtdTList>>& routes, Json::MemoryPoolAllocator<>& alloc, bool writePretty)
+	{
+		Json::Document doc;
+
+		// make base structure for geojson "FeatureCollection"
+		doc.Parse(R"str(
+		{
+			"routes" : []
+		}
+		)str");
+
+		for (const auto& route : routes)
+		{
+			Json::Value routeJson(Json::kObjectType);
+
+			// set static & dynamic
+			Json::Value& staticVal = routeJson.AddMember("static", Json::Value(Json::kObjectType), alloc);
+			Json::Value& dynamicVal = routeJson.AddMember("dynamic", Json::Value(Json::kArrayType), alloc);
+
+			// write static data			
+			WriteStaticToValue(route.staticInfo, staticVal, alloc);
+
+			// write dynamic data
+			WriteTrajectoryToValues(route.trajectory, dynamicVal, alloc);
+
+			// push to routes
+			doc["routes"].PushBack(routeJson, alloc);
+		}
+
+		// print to file (use pretty writer if the writePretty option is on)
+		ofstream ofs(outputFilepath);
+		Json::OStreamWrapper osw(ofs);
+		if (writePretty)
+		{
+			Json::PrettyWriter<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		else
+		{
+			Json::Writer<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		return doc;
+	}
+}
+
+// Write GeoJson files
+namespace HashColon::Feline::IO
+{
+	Json::Value& WriteTrajPointToGeoJsonCoord(const XYList& traj, Json::Value& val, Json::MemoryPoolAllocator<>& alloc)
+	{
+		assert(val.IsArray());
+		for (const auto& wp : traj)
+		{
+			Json::Value wpJson(Json::kArrayType);
+			wpJson.PushBack(Json::Value(wp.longitude), alloc);
+			wpJson.PushBack(Json::Value(wp.latitude), alloc);
+			val.PushBack(wpJson, alloc);
+		}
+		return val;
+	}
+
+	template <>
+	Json::Document WriteGeoJsonFile(
+		const string outputFilepath, const vector<AisTrajectory<XYList>>& routes, Json::MemoryPoolAllocator<>& alloc, bool writePretty)
+	{
+		Json::Document doc;
 
 		// make base structure for geojson "FeatureCollection"
 		doc.Parse(R"str(
@@ -367,39 +1123,27 @@ namespace HashColon::Feline::IO
 		}
 		)str");
 
-		for (size_t i = 0; i < routes.size(); i++)
+		for (const AisTrajectory<XYList>& route : routes)
 		{
 			// make base structure for geojson "Feature"
 			Json::Value feature;
 			feature.SetObject();
 			feature.AddMember("type", Json::Value("Feature"), alloc);
 			feature.AddMember("properties", Json::Value(Json::kObjectType), alloc);
-			feature["properties"].AddMember("XTDs", Json::Value(Json::kArrayType), alloc);
+			feature["properties"].AddMember("static", Json::Value(Json::kArrayType), alloc);
+			feature["properties"].AddMember("dynamic", Json::Value(Json::kArrayType), alloc);
 			feature.AddMember("geometry", Json::Value(Json::kObjectType), alloc);
 			feature["geometry"].AddMember("type", Json::Value("LineString"), alloc);
 			feature["geometry"].AddMember("coordinates", Json::Value(Json::kArrayType), alloc);
 
-			// fill out coordinates
-			Json::Value& coordinates = feature["geometry"]["coordinates"];
-			for (size_t j = 0; j < routes[i].size(); j++)
-			{
-				Json::Value apoint(Json::kArrayType);
-				apoint.PushBack(Json::Value(routes[i][j].Pos.longitude), alloc);
-				apoint.PushBack(Json::Value(routes[i][j].Pos.latitude), alloc);
-				coordinates.PushBack(apoint, alloc);
-			}
+			// add static/dynamic tags
+			WriteStaticToValue(route.staticInfo, feature["properties"]["static"], alloc);
+			WriteTrajectoryToValues(route.trajectory, feature["properties"]["dynamic"], alloc);
 
-			// fill out xtds
-			Json::Value& XTDs = feature["properties"]["XTDs"];
-			for (size_t j = 0; j < routes[i].size(); j++)
-			{
-				Json::Value apoint(Json::kArrayType);
-				apoint.PushBack(Json::Value(routes[i][j].Xtd.xtdPortside), alloc);
-				apoint.PushBack(Json::Value(routes[i][j].Xtd.xtdStarboard), alloc);
-				XTDs.PushBack(apoint, alloc);
-			}
+			// add coordinates
+			XYList xylist = route.trajectory;
+			WriteTrajPointToGeoJsonCoord(xylist, feature["geometry"]["coordinates"], alloc);
 
-			// push feature into feature collection
 			doc["features"].PushBack(feature, alloc);
 		}
 
@@ -420,41 +1164,41 @@ namespace HashColon::Feline::IO
 	}
 
 	template <>
-	Json::Document WriteFelineJsonFile<XYList>(
-		string outputFilepath, const vector<XYList>& routes, Json::MemoryPoolAllocator<>& alloc, bool writePretty)
+	Json::Document WriteGeoJsonFile(
+		const string outputFilepath, const vector<AisTrajectory<XYXtdList>>& routes, Json::MemoryPoolAllocator<>& alloc, bool writePretty)
 	{
-		Json::Document doc;		
+		Json::Document doc;
 
 		// make base structure for geojson "FeatureCollection"
 		doc.Parse(R"str(
 		{
-			"routes" : []
+			"type": "FeatureCollection",
+			"features" : []
 		}
 		)str");
 
-		for (const auto& route : routes)
+		for (const AisTrajectory<XYXtdList>& route : routes)
 		{
-			Json::Value routeJson(Json::kObjectType);
+			// make base structure for geojson "Feature"
+			Json::Value feature;
+			feature.SetObject();
+			feature.AddMember("type", Json::Value("Feature"), alloc);
+			feature.AddMember("properties", Json::Value(Json::kObjectType), alloc);
+			feature["properties"].AddMember("static", Json::Value(Json::kArrayType), alloc);
+			feature["properties"].AddMember("dynamic", Json::Value(Json::kArrayType), alloc);
+			feature.AddMember("geometry", Json::Value(Json::kObjectType), alloc);
+			feature["geometry"].AddMember("type", Json::Value("LineString"), alloc);
+			feature["geometry"].AddMember("coordinates", Json::Value(Json::kArrayType), alloc);
 
-			// set static & dynamic
-			routeJson.AddMember("static", Json::Value(Json::kObjectType), alloc);
-			routeJson.AddMember("dynamic", Json::Value(Json::kArrayType), alloc);
+			// add static/dynamic tags
+			WriteStaticToValue(route.staticInfo, feature["properties"]["static"], alloc);
+			WriteTrajectoryToValues(route.trajectory, feature["properties"]["dynamic"], alloc);
 
-			// no static data is given, ignore lol
+			// add coordinates
+			XYList xylist = route.trajectory;
+			WriteTrajPointToGeoJsonCoord(xylist, feature["geometry"]["coordinates"], alloc);
 
-			// add dynamic data
-			for (const auto& wp : route)
-			{
-				Json::Value wpJson(Json::kObjectType);
-
-				// add lat/lon
-				wpJson.AddMember("latitude", Json::Value(wp.latitude), alloc);
-				wpJson.AddMember("longitude", Json::Value(wp.longitude), alloc);
-								
-				routeJson["dynamic"].PushBack(wpJson, alloc);
-			}
-
-			doc["routes"].PushBack(routeJson, alloc);
+			doc["features"].PushBack(feature, alloc);
 		}
 
 		// print to file (use pretty writer if the writePretty option is on)
@@ -474,45 +1218,41 @@ namespace HashColon::Feline::IO
 	}
 
 	template <>
-	Json::Document WriteFelineJsonFile<XYXtdList>(
-		string outputFilepath, const vector<XYXtdList>& routes, Json::MemoryPoolAllocator<>& alloc, bool writePretty)
+	Json::Document WriteGeoJsonFile(
+		const string outputFilepath, const vector<AisTrajectory<XYTList>>& routes, Json::MemoryPoolAllocator<>& alloc, bool writePretty)
 	{
 		Json::Document doc;
 
 		// make base structure for geojson "FeatureCollection"
 		doc.Parse(R"str(
 		{
-			"routes" : []
+			"type": "FeatureCollection",
+			"features" : []
 		}
 		)str");
 
-		for (const auto& route : routes)
+		for (const AisTrajectory<XYTList>& route : routes)
 		{
-			Json::Value routeJson(Json::kObjectType);
+			// make base structure for geojson "Feature"
+			Json::Value feature;
+			feature.SetObject();
+			feature.AddMember("type", Json::Value("Feature"), alloc);
+			feature.AddMember("properties", Json::Value(Json::kObjectType), alloc);
+			feature["properties"].AddMember("static", Json::Value(Json::kArrayType), alloc);
+			feature["properties"].AddMember("dynamic", Json::Value(Json::kArrayType), alloc);
+			feature.AddMember("geometry", Json::Value(Json::kObjectType), alloc);
+			feature["geometry"].AddMember("type", Json::Value("LineString"), alloc);
+			feature["geometry"].AddMember("coordinates", Json::Value(Json::kArrayType), alloc);
 
-			// set static & dynamic
-			routeJson.AddMember("static", Json::Value(Json::kObjectType), alloc);
-			routeJson.AddMember("dynamic", Json::Value(Json::kArrayType), alloc);
+			// add static/dynamic tags
+			WriteStaticToValue(route.staticInfo, feature["properties"]["static"], alloc);
+			WriteTrajectoryToValues(route.trajectory, feature["properties"]["dynamic"], alloc);
 
-			// no static data is given, ignore lol
+			// add coordinates
+			XYList xylist = route.trajectory;
+			WriteTrajPointToGeoJsonCoord(xylist, feature["geometry"]["coordinates"], alloc);
 
-			// add dynamic data
-			for (const auto& wp : route)
-			{
-				Json::Value wpJson(Json::kObjectType);
-
-				// add lat/lon
-				wpJson.AddMember("latitude", Json::Value(wp.Pos.latitude), alloc);
-				wpJson.AddMember("longitude", Json::Value(wp.Pos.longitude), alloc);
-
-				// add xtds
-				wpJson.AddMember("xtd_p", Json::Value(wp.Xtd.xtdPortside), alloc);
-				wpJson.AddMember("xtd_s", Json::Value(wp.Xtd.xtdStarboard), alloc);
-
-				routeJson["dynamic"].PushBack(wpJson, alloc);
-			}
-
-			doc["routes"].PushBack(routeJson, alloc);
+			doc["features"].PushBack(feature, alloc);
 		}
 
 		// print to file (use pretty writer if the writePretty option is on)
@@ -532,50 +1272,41 @@ namespace HashColon::Feline::IO
 	}
 
 	template <>
-	Json::Document WriteFelineJsonFile<AisTrajectory<>>(
-		string outputFilepath, const vector<AisTrajectory<>>& routes, Json::MemoryPoolAllocator<>& alloc, bool writePretty)
+	Json::Document WriteGeoJsonFile(
+		const string outputFilepath, const vector<AisTrajectory<XYVVaTList>>& routes, Json::MemoryPoolAllocator<>& alloc, bool writePretty)
 	{
 		Json::Document doc;
 
 		// make base structure for geojson "FeatureCollection"
 		doc.Parse(R"str(
 		{
-			"routes" : []
+			"type": "FeatureCollection",
+			"features" : []
 		}
 		)str");
 
-		for (const auto& route : routes)
+		for (const AisTrajectory<XYVVaTList>& route : routes)
 		{
-			Json::Value routeJson(Json::kObjectType);
+			// make base structure for geojson "Feature"
+			Json::Value feature;
+			feature.SetObject();
+			feature.AddMember("type", Json::Value("Feature"), alloc);
+			feature.AddMember("properties", Json::Value(Json::kObjectType), alloc);
+			feature["properties"].AddMember("static", Json::Value(Json::kArrayType), alloc);
+			feature["properties"].AddMember("dynamic", Json::Value(Json::kArrayType), alloc);
+			feature.AddMember("geometry", Json::Value(Json::kObjectType), alloc);
+			feature["geometry"].AddMember("type", Json::Value("LineString"), alloc);
+			feature["geometry"].AddMember("coordinates", Json::Value(Json::kArrayType), alloc);
 
-			// set static & dynamic
-			routeJson.AddMember("static", Json::Value(Json::kObjectType), alloc);
-			routeJson.AddMember("dynamic", Json::Value(Json::kArrayType), alloc);
+			// add static/dynamic tags
+			WriteStaticToValue(route.staticInfo, feature["properties"]["static"], alloc);
+			WriteTrajectoryToValues(route.trajectory, feature["properties"]["dynamic"], alloc);
 
-			// add static data
-			routeJson["static"].AddMember("imo", Json::Value(route.staticInfo.imo), alloc);
-			routeJson["static"].AddMember("mmsi", Json::Value(route.staticInfo.mmsi), alloc);
-			routeJson["static"].AddMember("loa", Json::Value(route.staticInfo.Dim.L), alloc);
-			routeJson["static"].AddMember("beam", Json::Value(route.staticInfo.Dim.B), alloc);
-			routeJson["static"].AddMember("draught", Json::Value(route.staticInfo.Dim.T), alloc);
+			// add coordinates
+			XYList xylist = route.trajectory;
+			WriteTrajPointToGeoJsonCoord(xylist, feature["geometry"]["coordinates"], alloc);
 
-			// add dynamic data
-			for (const auto& wp : route.trajectory)
-			{
-				Json::Value wpJson(Json::kObjectType);
-
-				// add wp data
-				wpJson.AddMember("latitude", Json::Value(wp.Pos.latitude), alloc);
-				wpJson.AddMember("longitude", Json::Value(wp.Pos.longitude), alloc);
-				wpJson.AddMember("sog", Json::Value(wp.Vel.speed), alloc);
-				wpJson.AddMember("cog", Json::Value(wp.Vel.angle), alloc);
-				string timeStr = wp.TP.toString();				
-				wpJson.AddMember("timestamp", Json::Value(timeStr.c_str(), (unsigned int)timeStr.size(), alloc), alloc);
-
-				// 
-				routeJson["dynamic"].PushBack(wpJson, alloc);
-			}
-			doc["routes"].PushBack(routeJson, alloc);
+			doc["features"].PushBack(feature, alloc);
 		}
 
 		// print to file (use pretty writer if the writePretty option is on)
@@ -594,4 +1325,317 @@ namespace HashColon::Feline::IO
 		return doc;
 	}
 
+	template <>
+	Json::Document WriteGeoJsonFile(
+		const string outputFilepath, const vector<AisTrajectory<XYVVaXtdTList>>& routes, Json::MemoryPoolAllocator<>& alloc, bool writePretty)
+	{
+		Json::Document doc;
+
+		// make base structure for geojson "FeatureCollection"
+		doc.Parse(R"str(
+		{
+			"type": "FeatureCollection",
+			"features" : []
+		}
+		)str");
+
+		for (const AisTrajectory<XYVVaXtdTList>& route : routes)
+		{
+			// make base structure for geojson "Feature"
+			Json::Value feature;
+			feature.SetObject();
+			feature.AddMember("type", Json::Value("Feature"), alloc);
+			feature.AddMember("properties", Json::Value(Json::kObjectType), alloc);
+			feature["properties"].AddMember("static", Json::Value(Json::kArrayType), alloc);
+			feature["properties"].AddMember("dynamic", Json::Value(Json::kArrayType), alloc);
+			feature.AddMember("geometry", Json::Value(Json::kObjectType), alloc);
+			feature["geometry"].AddMember("type", Json::Value("LineString"), alloc);
+			feature["geometry"].AddMember("coordinates", Json::Value(Json::kArrayType), alloc);
+
+			// add static/dynamic tags
+			WriteStaticToValue(route.staticInfo, feature["properties"]["static"], alloc);
+			WriteTrajectoryToValues(route.trajectory, feature["properties"]["dynamic"], alloc);
+
+			// add coordinates
+			XYList xylist = route.trajectory;
+			WriteTrajPointToGeoJsonCoord(xylist, feature["geometry"]["coordinates"], alloc);
+
+			doc["features"].PushBack(feature, alloc);
+		}
+
+		// print to file (use pretty writer if the writePretty option is on)
+		ofstream ofs(outputFilepath);
+		Json::OStreamWrapper osw(ofs);
+		if (writePretty)
+		{
+			Json::PrettyWriter<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		else
+		{
+			Json::Writer<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		return doc;
+	}
+
+	template <>
+	Json::Document WriteGeoJsonFile(
+		const string outputFilepath, const vector<XYList>& routes, Json::MemoryPoolAllocator<>& alloc, bool writePretty)
+	{
+		Json::Document doc;
+
+		// make base structure for geojson "FeatureCollection"
+		doc.Parse(R"str(
+		{
+			"type": "FeatureCollection",
+			"features" : []
+		}
+		)str");
+
+		for (const XYList& route : routes)
+		{
+			// make base structure for geojson "Feature"
+			Json::Value feature;
+			feature.SetObject();
+			feature.AddMember("type", Json::Value("Feature"), alloc);
+			feature.AddMember("properties", Json::Value(Json::kObjectType), alloc);
+			feature["properties"].AddMember("dynamic", Json::Value(Json::kArrayType), alloc);
+			feature.AddMember("geometry", Json::Value(Json::kObjectType), alloc);
+			feature["geometry"].AddMember("type", Json::Value("LineString"), alloc);
+			feature["geometry"].AddMember("coordinates", Json::Value(Json::kArrayType), alloc);
+
+			// add tags
+			WriteTrajectoryToValues(route, feature["properties"]["dynamic"], alloc);
+
+			// add coordinates
+			XYList xylist = route;
+			WriteTrajPointToGeoJsonCoord(xylist, feature["geometry"]["coordinates"], alloc);
+
+			doc["features"].PushBack(feature, alloc);
+		}
+
+		// print to file (use pretty writer if the writePretty option is on)
+		ofstream ofs(outputFilepath);
+		Json::OStreamWrapper osw(ofs);
+		if (writePretty)
+		{
+			Json::PrettyWriter<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		else
+		{
+			Json::Writer<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		return doc;
+	}
+
+	template <>
+	Json::Document WriteGeoJsonFile(
+		const string outputFilepath, const vector<XYXtdList>& routes, Json::MemoryPoolAllocator<>& alloc, bool writePretty)
+	{
+		Json::Document doc;
+
+		// make base structure for geojson "FeatureCollection"
+		doc.Parse(R"str(
+		{
+			"type": "FeatureCollection",
+			"features" : []
+		}
+		)str");
+
+		for (const XYXtdList& route : routes)
+		{
+			// make base structure for geojson "Feature"
+			Json::Value feature;
+			feature.SetObject();
+			feature.AddMember("type", Json::Value("Feature"), alloc);
+			feature.AddMember("properties", Json::Value(Json::kObjectType), alloc);
+			feature["properties"].AddMember("dynamic", Json::Value(Json::kArrayType), alloc);
+			feature.AddMember("geometry", Json::Value(Json::kObjectType), alloc);
+			feature["geometry"].AddMember("type", Json::Value("LineString"), alloc);
+			feature["geometry"].AddMember("coordinates", Json::Value(Json::kArrayType), alloc);
+
+			// add tags
+			WriteTrajectoryToValues(route, feature["properties"]["dynamic"], alloc);
+
+			// add coordinates
+			XYList xylist = route;
+			WriteTrajPointToGeoJsonCoord(xylist, feature["geometry"]["coordinates"], alloc);
+
+			doc["features"].PushBack(feature, alloc);
+		}
+
+		// print to file (use pretty writer if the writePretty option is on)
+		ofstream ofs(outputFilepath);
+		Json::OStreamWrapper osw(ofs);
+		if (writePretty)
+		{
+			Json::PrettyWriter<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		else
+		{
+			Json::Writer<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		return doc;
+	}
+
+	template <>
+	Json::Document WriteGeoJsonFile(
+		const string outputFilepath, const vector<XYTList>& routes, Json::MemoryPoolAllocator<>& alloc, bool writePretty)
+	{
+		Json::Document doc;
+
+		// make base structure for geojson "FeatureCollection"
+		doc.Parse(R"str(
+		{
+			"type": "FeatureCollection",
+			"features" : []
+		}
+		)str");
+
+		for (const XYTList& route : routes)
+		{
+			// make base structure for geojson "Feature"
+			Json::Value feature;
+			feature.SetObject();
+			feature.AddMember("type", Json::Value("Feature"), alloc);
+			feature.AddMember("properties", Json::Value(Json::kObjectType), alloc);
+			feature["properties"].AddMember("dynamic", Json::Value(Json::kArrayType), alloc);
+			feature.AddMember("geometry", Json::Value(Json::kObjectType), alloc);
+			feature["geometry"].AddMember("type", Json::Value("LineString"), alloc);
+			feature["geometry"].AddMember("coordinates", Json::Value(Json::kArrayType), alloc);
+
+			// add tags
+			WriteTrajectoryToValues(route, feature["properties"]["dynamic"], alloc);
+
+			// add coordinates
+			XYList xylist = route;
+			WriteTrajPointToGeoJsonCoord(xylist, feature["geometry"]["coordinates"], alloc);
+
+			doc["features"].PushBack(feature, alloc);
+		}
+
+		// print to file (use pretty writer if the writePretty option is on)
+		ofstream ofs(outputFilepath);
+		Json::OStreamWrapper osw(ofs);
+		if (writePretty)
+		{
+			Json::PrettyWriter<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		else
+		{
+			Json::Writer<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		return doc;
+	}
+
+	template <>
+	Json::Document WriteGeoJsonFile(
+		const string outputFilepath, const vector<XYVVaTList>& routes, Json::MemoryPoolAllocator<>& alloc, bool writePretty)
+	{
+		Json::Document doc;
+
+		// make base structure for geojson "FeatureCollection"
+		doc.Parse(R"str(
+		{
+			"type": "FeatureCollection",
+			"features" : []
+		}
+		)str");
+
+		for (const XYVVaTList& route : routes)
+		{
+			// make base structure for geojson "Feature"
+			Json::Value feature;
+			feature.SetObject();
+			feature.AddMember("type", Json::Value("Feature"), alloc);
+			feature.AddMember("properties", Json::Value(Json::kObjectType), alloc);
+			feature["properties"].AddMember("dynamic", Json::Value(Json::kArrayType), alloc);
+			feature.AddMember("geometry", Json::Value(Json::kObjectType), alloc);
+			feature["geometry"].AddMember("type", Json::Value("LineString"), alloc);
+			feature["geometry"].AddMember("coordinates", Json::Value(Json::kArrayType), alloc);
+
+			// add tags
+			WriteTrajectoryToValues(route, feature["properties"]["dynamic"], alloc);
+
+			// add coordinates
+			XYList xylist = route;
+			WriteTrajPointToGeoJsonCoord(xylist, feature["geometry"]["coordinates"], alloc);
+
+			doc["features"].PushBack(feature, alloc);
+		}
+
+		// print to file (use pretty writer if the writePretty option is on)
+		ofstream ofs(outputFilepath);
+		Json::OStreamWrapper osw(ofs);
+		if (writePretty)
+		{
+			Json::PrettyWriter<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		else
+		{
+			Json::Writer<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		return doc;
+	}
+
+	template <>
+	Json::Document WriteGeoJsonFile(
+		const string outputFilepath, const vector<XYVVaXtdTList>& routes, Json::MemoryPoolAllocator<>& alloc, bool writePretty)
+	{
+		Json::Document doc;
+
+		// make base structure for geojson "FeatureCollection"
+		doc.Parse(R"str(
+		{
+			"type": "FeatureCollection",
+			"features" : []
+		}
+		)str");
+
+		for (const XYVVaXtdTList& route : routes)
+		{
+			// make base structure for geojson "Feature"
+			Json::Value feature;
+			feature.SetObject();
+			feature.AddMember("type", Json::Value("Feature"), alloc);
+			feature.AddMember("properties", Json::Value(Json::kObjectType), alloc);
+			feature["properties"].AddMember("dynamic", Json::Value(Json::kArrayType), alloc);
+			feature.AddMember("geometry", Json::Value(Json::kObjectType), alloc);
+			feature["geometry"].AddMember("type", Json::Value("LineString"), alloc);
+			feature["geometry"].AddMember("coordinates", Json::Value(Json::kArrayType), alloc);
+
+			// add tags
+			WriteTrajectoryToValues(route, feature["properties"]["dynamic"], alloc);
+
+			// add coordinates
+			XYList xylist = route;
+			WriteTrajPointToGeoJsonCoord(xylist, feature["geometry"]["coordinates"], alloc);
+
+			doc["features"].PushBack(feature, alloc);
+		}
+
+		// print to file (use pretty writer if the writePretty option is on)
+		ofstream ofs(outputFilepath);
+		Json::OStreamWrapper osw(ofs);
+		if (writePretty)
+		{
+			Json::PrettyWriter<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		else
+		{
+			Json::Writer<Json::OStreamWrapper> writer(osw);
+			doc.Accept(writer);
+		}
+		return doc;
+	}
 }
