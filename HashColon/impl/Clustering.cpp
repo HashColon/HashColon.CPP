@@ -187,19 +187,24 @@ namespace HashColon::Clustering
 		assert(neighbors[initP].size() >= _c.minPts);
 		assert(labels[initP] == unclassified);
 		queue<size_t> q; q.push(initP);
-
+		labels[initP] = clusterIdx;
 		do
 		{
 			// pop a point from queue, add it to current cluster
 			size_t p = q.front(); q.pop();
-			labels[p] = clusterIdx;
+			//labels[p] = clusterIdx;
 
 			// if current point has sufficient neighbors,
 			if (neighbors[p].size() >= _c.minPts)
 			{
 				// push neighbors to queue 
-				for (auto& n : neighbors[p]) {
-					q.push(n);
+				for (auto& n : neighbors[p]) 
+				{
+					if(labels[n] != clusterIdx)
+					{
+						q.push(n);
+						labels[n] = clusterIdx;
+					}					
 				}
 			}
 		} while (!q.empty());
