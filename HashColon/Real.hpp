@@ -98,7 +98,7 @@ namespace HashColon
 	{
 		struct hiddenAnchor
 		{
-			inline static Real _minDegree = 180.0;
+			inline static Real _minDegree = -180.0;
 			inline static Real _maxDegree = 180.0;
 			inline static Real _negativePI = -Constant::PI;
 			inline static Real _positivePI = Constant::PI;

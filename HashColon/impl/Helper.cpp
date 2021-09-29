@@ -70,12 +70,8 @@ namespace HashColon::Fs
 				}
 			}
 			// else, ignore current path
-			else
-			{
-				// TODO: add message("file/directory not found") here
+			else							
 				continue;
-			}
-
 		}
 		return re;
 	}

@@ -24,7 +24,7 @@
 #include <HashColon/SingletonCLI.hpp>
 #include <HashColon/Table.hpp>
 #include <HashColon/ThreadPool.hpp>
-#include <HashColon/Feline/ValueTypes.hpp>
+#include <HashColon/Feline/GeoValues.hpp>
 // header file for this source file
 #include <HashColon/Feline/AisPreprocess.hpp>
 
@@ -438,8 +438,8 @@ namespace HashColon::Feline
 			nextPos.longitude = table.at(rowNum + 1).at(_c.colName.lon).Get<Real>();
 			nextPos.latitude = table.at(rowNum + 1).at(_c.colName.lat).Get<Real>();
 
-			re.Vel.angle = Angle(re.Pos, nextPos);
-			re.Vel.speed = Distance(re.Pos, nextPos) / (Real)(nextTP - re.TP).count();
+			re.Vel.angle = GeoDistance::Angle(re.Pos, nextPos);
+			re.Vel.speed = GeoDistance::Distance(re.Pos, nextPos) / (Real)(nextTP - re.TP).count();
 		}
 
 		return re;

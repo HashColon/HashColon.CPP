@@ -3,7 +3,7 @@
 
 #include <HashColon/Feline/Feline_config.h>
 #include <memory>
-#include <HashColon/Feline/ValueTypes.hpp>
+#include <HashColon/Feline/GeoValues.hpp>
 #include <HashColon/Feline/Types/VPBase.hpp>
 
 namespace HashColon

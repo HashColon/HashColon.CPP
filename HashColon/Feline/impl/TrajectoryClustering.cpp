@@ -13,12 +13,13 @@
 // HashColon libraries
 #include <HashColon/Real.hpp>
 #include <HashColon/SingletonCLI.hpp>
-#include <HashColon/Feline/ValueTypes.hpp>
+#include <HashColon/Feline/GeoValues.hpp>
 // header file for this source file
 #include <HashColon/Feline/TrajectoryClustering.hpp>
 
 using namespace std;
 using namespace HashColon;
+using namespace HashColon::Clustering;
 using namespace HashColon::Feline;
 
 // shared functions
@@ -34,7 +35,7 @@ namespace HashColon::Feline::TrajectoryClustering
 		#pragma omp parallel for
 		for (size_t i = 0; i < trajlist.size(); i++)
 		{
-			re[i] = trajlist[i].GetNormalizedXYList(sampleNumber);
+			re[i] = trajlist[i].GetUniformLengthSampled(sampleNumber);
 		}
 		return re;
 	}
@@ -45,10 +46,10 @@ namespace HashColon::Feline::TrajectoryClustering
 	{
 		if (_c.Enable_ReversedSequence)
 		{
-			return min(
-				Measure_core(a, b),
-				Measure_core(a.GetReversed(), b)
-			);
+			if (DistanceMeasureBase<XYList>::_measureType == DistanceMeasureType::distance)			
+				return min(Measure_core(a, b), Measure_core(a.GetReversed(), b));			
+			else			
+				return max(Measure_core(a, b), Measure_core(a.GetReversed(), b));						
 		}
 		else
 		{
@@ -117,14 +118,14 @@ namespace HashColon::Feline::TrajectoryClustering
 			for (size_t j = 0; j < b.size(); j++)
 			{
 				if (i == 0)
-					A[i][j] = b.GetDistance(0, j) + a[0].DistanceTo(b[j]);
+					A[i][j] = b.GetLength(0, j) + a[0].DistanceTo(b[j]);
 				else
 					A[i][j] = min(
 						A[i - 1][j] + a[i - 1].DistanceTo(a[i]),
 						B[i - 1][j] + b[j].DistanceTo(a[i]));
 
 				if (j == 0)
-					B[i][j] = a.GetDistance(0, i) + b[0].DistanceTo(a[i]);
+					B[i][j] = a.GetLength(0, i) + b[0].DistanceTo(a[i]);
 				else
 					B[i][j] = min(
 						A[i][j - 1] + a[i].DistanceTo(b[j]),
@@ -134,7 +135,7 @@ namespace HashColon::Feline::TrajectoryClustering
 			}
 		}
 		return 2.0 * min(A[a.size() - 1][b.size() - 1], B[a.size() - 1][b.size() - 1])
-			/ (a.GetDistance() + b.GetDistance())
+			/ (a.GetLength() + b.GetLength())
 			- 1.0;
 	}
 
@@ -372,11 +373,14 @@ namespace HashColon::Feline::TrajectoryClustering
 				if (i == 0 && j == 0)
 					warp[i][j] = 0;
 				else
+				{
+					assert(!isnan(a[i].DistanceTo(b[j])));
 					warp[i][j] = a[i].DistanceTo(b[j]) + min({
 						(i >= 1 ? warp[i - 1][j] : numeric_limits<Real>::max()),
 						(j >= 1 ? warp[i][j - 1] : numeric_limits<Real>::max()),
 						((i >= 1 && j >= 1) ? warp[i - 1][j - 1] : numeric_limits<Real>::max())
 						});
+				}
 			}
 		}
 

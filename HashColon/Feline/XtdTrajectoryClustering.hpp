@@ -8,7 +8,7 @@
 // HashColon libraries
 #include <HashColon/Clustering.hpp>
 #include <HashColon/Real.hpp>
-#include <HashColon/Feline/ValueTypes.hpp>
+#include <HashColon/Feline/GeoValues.hpp>
 
 // XTD distance btwn waypoints
 namespace HashColon::Feline::XtdTrajectoryClustering

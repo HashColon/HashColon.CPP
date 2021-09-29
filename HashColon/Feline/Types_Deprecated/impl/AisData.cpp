@@ -1,5 +1,5 @@
 #include <unordered_map>
-#include <HashColon/Feline/ValueTypes.hpp>
+#include <HashColon/Feline/GeoValues.hpp>
 #include <HashColon/Feline/Types/AisData.hpp>
 
 

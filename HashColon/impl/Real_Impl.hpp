@@ -16,8 +16,7 @@ namespace HashColon
 	{
 		(minVal <= val && maxVal >= val)
 			? _val = val
-			: throw std::range_error(
-				"error"); // todo : logwriter : throw exception with log
+			: throw std::range_error("BoundedReal out-of-range error"); 
 	}
 	
 	template <const Real& minVal, const Real& maxVal>
@@ -25,8 +24,7 @@ namespace HashColon
 	{
 		(minVal <= val && maxVal >= val)
 			? _val = val
-			: throw std::range_error(
-				"error"); // todo : logwriter : throw exception with log
+			: throw std::range_error("BoundedReal out-of-range error");
 		return *this;
 	}
 

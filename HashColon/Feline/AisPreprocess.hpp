@@ -10,7 +10,7 @@
 #include <HashColon/Helper.hpp>
 #include <HashColon/Real.hpp>
 #include <HashColon/Table.hpp>
-#include <HashColon/Feline/ValueTypes.hpp>
+#include <HashColon/Feline/GeoValues.hpp>
 
 // AisCsvReader
 namespace HashColon::Feline

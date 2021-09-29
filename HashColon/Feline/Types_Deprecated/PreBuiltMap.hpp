@@ -2,7 +2,7 @@
 #define HASHCOLON_FELINE_TYPES_PREBUILTMAP_H
 
 #include <HashColon/Feline/Feline_config.h>
-#include <HashColon/Feline/ValueTypes.hpp>
+#include <HashColon/Feline/GeoValues.hpp>
 
 namespace HashColon::Feline
 {

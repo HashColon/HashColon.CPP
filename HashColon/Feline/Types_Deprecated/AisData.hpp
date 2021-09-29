@@ -5,7 +5,7 @@
 #include <vector>
 #include <map>
 #include <HashColon/Core/Exception.hpp>
-#include <HashColon/Feline/ValueTypes.hpp>
+#include <HashColon/Feline/GeoValues.hpp>
 
 namespace HashColon::Feline::Types
 {

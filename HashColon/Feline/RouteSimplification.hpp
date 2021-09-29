@@ -6,7 +6,7 @@
 #include <vector>
 // HashColon libraries
 #include <HashColon/Real.hpp>
-#include <HashColon/Feline/ValueTypes.hpp>
+#include <HashColon/Feline/GeoValues.hpp>
 
 namespace HashColon::Feline
 {

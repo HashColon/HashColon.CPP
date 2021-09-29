@@ -20,7 +20,7 @@
 #include <HashColon/Real.hpp>
 #include <HashColon/SingletonCLI.hpp>
 #include <HashColon/Statistics.hpp>
-#include <HashColon/Feline/ValueTypes.hpp>
+#include <HashColon/Feline/GeoValues.hpp>
 // header file for this source file
 #include <HashColon/Feline/XtdTrajectoryClustering.hpp>
 
@@ -107,11 +107,8 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 				{
 					Real x = i <= 0 ? sigmaP * stepSize * i : sigmaS * stepSize * i;
 					Real y = sigmaH * stepSize * j;
-					Position tmpPos = pos.MoveTo(x, aS).MoveTo(y, aH);
-					//SampleType tmp{ {{tmpPos.dat[0] * _LonUnitDist, tmpPos.dat[1] * _LatUnitDist}}, (*zBvn)[i + k][j + k] };
-					SampleType tmp;
-					/*tmp.Pos[0] = tmpPos.dat[0] * _LonUnitDist;
-					tmp.Pos[1] = tmpPos.dat[1] * _LatUnitDist;*/
+					Position tmpPos = pos.MoveTo(x, aS).MoveTo(y, aH);					
+					SampleType tmp;					
 					tmp.Pos[0] = tmpPos.dat[0];
 					tmp.Pos[1] = tmpPos.dat[1];
 					{
@@ -129,7 +126,7 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 		{
 			Position A = pos.Pos;
 			Position B = A.MoveTo(1000, dir);
-			Position P; P.dat = toPos;
+			Position P{ toPos[0], toPos[1] };
 
 			Real dist = P.CrossTrackDistanceTo(A, B);
 			if (dist > epsilon) return 1;
@@ -137,6 +134,37 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 			else return 0;
 		}
 	}
+
+	// geospatial particle for computing emd
+	struct GeospatialParticle
+	{
+		using Real_type = Real;		
+		using Coords = array<Real, 2>;
+		using Self = GeospatialParticle;
+
+		// constructor from weight and coord array
+		GeospatialParticle(Real weight, const Coords& xs) : weight_(weight), xs_(xs) {};
+		GeospatialParticle(Real weight, Real x, Real y) : weight_(weight), xs_({ x, y }) {};
+
+		Real weight() const { return weight_; };
+
+		const Real& operator[](ptrdiff_t i) const { return xs_[i]; };
+		Real& operator[](ptrdiff_t i) { return xs_[i]; };
+
+		static ptrdiff_t dimension() { return 2; };
+
+		static Real plain_distance(const Self& p0, const Self& p1) {
+			Position A{ p0[0], p0[1] }, B{ p1[0], p1[1] };
+			return A.DistanceTo(B);
+		};
+
+		static std::string name() { return "GeospatialParticle: [lon, lat]"; };
+		static std::string distance_name() { return "HaversineDistance"; };
+	protected:
+		// store particle info
+		Real weight_;
+		Coords xs_;
+	};
 
 	Real WassersteinDistance(
 		XYXtd a, Degree aDir,
@@ -161,8 +189,8 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 
 		for (int i = 0; i < N; i++)
 		{
-			EMDParticle tmpParticleA(SamplesA[i].ProbValue, SamplesA[i].Pos[0] * _LonUnitDist, SamplesA[i].Pos[1] * _LatUnitDist);
-			EMDParticle tmpParticleB(SamplesB[i].ProbValue, SamplesB[i].Pos[0] * _LonUnitDist, SamplesB[i].Pos[1] * _LatUnitDist);
+			EMDParticle tmpParticleA(SamplesA[i].ProbValue, SamplesA[i].Pos);
+			EMDParticle tmpParticleB(SamplesB[i].ProbValue, SamplesB[i].Pos);
 
 			ParticlesA.push_back(tmpParticleA);
 			ParticlesB.push_back(tmpParticleB);
@@ -197,30 +225,25 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 		int k = (int)floor(options.domainSize / options.domainUnit);
 		int N = (2 * k + 1) * (2 * k + 1);
 
-		// Build PDF
-		Vector2R muA; muA << a.Pos.longitude * _LonUnitDist, a.Pos.latitude* _LatUnitDist;
-		Vector2R muB; muB << b.Pos.longitude * _LonUnitDist, b.Pos.latitude* _LatUnitDist;
+		// JS divergence works in very small distance.
+		// Therefore, no matter the distance type is, we will use cartesian distance
+		// Base location for the cartesian distance is the mid-point of a and b
+		Position distbase{ (a.Pos.longitude + b.Pos.longitude) / 2, (a.Pos.latitude + b.Pos.latitude) / 2 };
+
+		// Build PDF		
 		Real sigmaAP = a.Xtd.xtdPortside / options.domainSize;
 		Real sigmaAS = a.Xtd.xtdStarboard / options.domainSize;
 		Real sigmaAH = (sigmaAP + sigmaAS) / 2.0;
 		Real sigmaBP = b.Xtd.xtdPortside / options.domainSize;
 		Real sigmaBS = b.Xtd.xtdStarboard / options.domainSize;
 		Real sigmaBH = (sigmaBP + sigmaBS) / 2.0;
-		Matrix2R SigmaAP; SigmaAP << sigmaAP * sigmaAP, 0, 0, sigmaAH* sigmaAH;
-		Matrix2R SigmaAS; SigmaAS << sigmaAS * sigmaAS, 0, 0, sigmaAH* sigmaAH;
-		Matrix2R SigmaBP; SigmaBP << sigmaBP * sigmaBP, 0, 0, sigmaBH* sigmaBH;
-		Matrix2R SigmaBS; SigmaBS << sigmaBS * sigmaBS, 0, 0, sigmaBH* sigmaBH;
-		BVN PdfAP(muA, SigmaAP);
-		BVN PdfAS(muA, SigmaAS);
-		BVN PdfBP(muB, SigmaBP);
-		BVN PdfBS(muB, SigmaBS);
-
+		
 		// sum( [PDF(A) * dA] * {log(PDF(A)) - log(PDF(M)) )
 		Real KL_AM = 0;
 		for (int i = 0; i < N; i++)
 		{
 			// [PDF(A) * dA]
-			Position PosA; PosA.dat = SamplesA[i].Pos;
+			Position PosA{ SamplesA[i].Pos[0], SamplesA[i].Pos[1] };
 			Position PosB = b.Pos;
 			Position PosBH = PosB.MoveTo(1000, bDir);
 			Position PosBS = PosB.MoveTo(1000, bDir - 90);
@@ -262,7 +285,7 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 
 			/* ver 2.0 */
 			Position PosA = a.Pos;
-			Position PosB; PosB.dat = SamplesB[i].Pos;
+			Position PosB{ SamplesB[i].Pos[0], SamplesB[i].Pos[1] };
 			Position PosAH = PosA.MoveTo(1000, aDir);
 			Position PosAS = PosA.MoveTo(1000, aDir - 90);
 			Real zAH = PosB.CrossTrackDistanceTo(PosA, PosAH);
@@ -305,20 +328,20 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 		if (a.Pos == b.Pos) return 0;
 		if (options.XtdSigmaRatio == 0) return 0;
 
-		Degree a_pf_ab = a.AngleTo(b.Pos) - aDir;
+		Degree a_pf_ab = a.Pos.AngleTo(b.Pos) - aDir;
 		Real a_sigma = sqrt(
 			pow(0.5 * (a.Xtd.xtdPortside + a.Xtd.xtdStarboard) * cos(a_pf_ab), 2) +
 			pow(((a_pf_ab < 0) ? a.Xtd.xtdStarboard : a.Xtd.xtdPortside) * sin(a_pf_ab), 2)
 		) * options.XtdSigmaRatio;
 
-		Degree b_pf_ba = b.AngleTo(a.Pos) - bDir;
+		Degree b_pf_ba = b.Pos.AngleTo(a.Pos) - bDir;
 		Real b_sigma = sqrt(
 			pow(0.5 * (b.Xtd.xtdPortside + b.Xtd.xtdStarboard) * cos(b_pf_ba), 2) +
 			pow(((b_pf_ba < 0) ? b.Xtd.xtdStarboard : b.Xtd.xtdPortside) * sin(b_pf_ba), 2)
 		) * options.XtdSigmaRatio;
 
 		if (a_sigma * b_sigma == 0) return 0;
-		return a.DistanceTo(b.Pos) * (a_sigma + b_sigma) / (2 * a_sigma * b_sigma);
+		return a.Pos.DistanceTo(b.Pos) * (a_sigma + b_sigma) / (2 * a_sigma * b_sigma);
 	}
 }
 
@@ -333,7 +356,7 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 		#pragma omp parallel for
 		for (size_t i = 0; i < trajlist.size(); i++)
 		{
-			re[i] = trajlist[i].GetNormalizedXYXtdList(sampleNumber);
+			re[i] = trajlist[i].GetUniformLengthSampled(sampleNumber);
 		}
 		return re;
 	}
@@ -389,7 +412,7 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 					warp[i][j] = 0;
 				else
 				{	
-					warp[i][j] = a[i].DistanceTo(b[j].Pos)
+					warp[i][j] = a[i].Pos.DistanceTo(b[j].Pos)
 						+ min({
 							(i >= 1 ? warp[i - 1][j] : numeric_limits<Real>::max()),
 							(j >= 1 ? warp[i][j - 1] : numeric_limits<Real>::max()),
@@ -444,8 +467,8 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 				else
 				{
 					Degree aDir, bDir;
-					aDir = (i == (a.size() - 1)) ? a[i - 1].AngleTo(a[i].Pos) : a[i].AngleTo(a[i + 1].Pos);
-					bDir = (j == (b.size() - 1)) ? b[j - 1].AngleTo(b[j].Pos) : b[j].AngleTo(b[j + 1].Pos);
+					aDir = (i == (a.size() - 1)) ? a[i - 1].Pos.AngleTo(a[i].Pos) : a[i].Pos.AngleTo(a[i + 1].Pos);
+					bDir = (j == (b.size() - 1)) ? b[j - 1].Pos.AngleTo(b[j].Pos) : b[j].Pos.AngleTo(b[j + 1].Pos);
 
 					warp[i][j] =
 						JSDivergenceDistance(a[i], aDir, b[j], bDir,
@@ -504,8 +527,8 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 				else
 				{
 					Degree aDir, bDir;
-					aDir = (i == (a.size() - 1)) ? a[i - 1].AngleTo(a[i].Pos) : a[i].AngleTo(a[i + 1].Pos);
-					bDir = (j == (b.size() - 1)) ? b[j - 1].AngleTo(b[j].Pos) : b[j].AngleTo(b[j + 1].Pos);
+					aDir = (i == (a.size() - 1)) ? a[i - 1].Pos.AngleTo(a[i].Pos) : a[i].Pos.AngleTo(a[i + 1].Pos);
+					bDir = (j == (b.size() - 1)) ? b[j - 1].Pos.AngleTo(b[j].Pos) : b[j].Pos.AngleTo(b[j + 1].Pos);
 
 					warp[i][j] =
 						WassersteinDistance(a[i], aDir, b[j], bDir,
@@ -578,8 +601,8 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 				else
 				{
 					Degree aDir, bDir;
-					aDir = (i == (a.size() - 1)) ? a[i - 1].AngleTo(a[i].Pos) : a[i].AngleTo(a[i + 1].Pos);
-					bDir = (j == (b.size() - 1)) ? b[j - 1].AngleTo(b[j].Pos) : b[j].AngleTo(b[j + 1].Pos);
+					aDir = (i == (a.size() - 1)) ? a[i - 1].Pos.AngleTo(a[i].Pos) : a[i].Pos.AngleTo(a[i + 1].Pos);
+					bDir = (j == (b.size() - 1)) ? b[j - 1].Pos.AngleTo(b[j].Pos) : b[j].Pos.AngleTo(b[j + 1].Pos);
 
 					// debug
 					/*Real D_Euclidean = a[i].DistanceTo(b[j].Pos);
@@ -590,7 +613,7 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 						{ _c.MonteCarloDomainUnit, _c.MonteCarloDomainSize, _c.MonteCarloErrorEpsilon });*/
 
 					warp[i][j] =
-						(_c.Coeff_Euclidean > 0 ? _c.Coeff_Euclidean * a[i].DistanceTo(b[j].Pos) : 0 ) +
+						(_c.Coeff_Euclidean > 0 ? _c.Coeff_Euclidean * a[i].Pos.DistanceTo(b[j].Pos) : 0 ) +
 						(_c.Coeff_JS > 0 ? _c.Coeff_JS * JSDivergenceDistance(a[i], aDir, b[j], bDir,
 							{ _c.MonteCarloDomainUnit, _c.MonteCarloDomainSize, _c.MonteCarloErrorEpsilon }) : 0) +
 						(_c.Coeff_PF > 0 ? _c.Coeff_PF * PFDistance(a[i], aDir, b[j], bDir, { _c.Pf_XtdSigmaRatio }): 0) +

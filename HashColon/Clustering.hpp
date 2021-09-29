@@ -377,7 +377,7 @@ namespace HashColon::Clustering
 		// erase trained model.
 		void cleanup() override final
 		{
-			throw NotImplementedException;
+			_numOfClusters = 0;
 		}
 
 		// get clustering method name in string
@@ -387,11 +387,9 @@ namespace HashColon::Clustering
 		constexpr static size_t unclassified = 0;
 		constexpr static size_t noise = 1;
 
-		Eigen::MatrixXR ConvertSimilarity2Distance(const Eigen::MatrixXR& D) const
-		{
-			throw NotImplementedException;
-		}
-
+		HashColon::Real ConvertSimilarity2Distance(const HashColon::Real& s) const;
+		Eigen::MatrixXR ConvertSimilarity2Distance(const Eigen::MatrixXR& S) const;
+		
 		std::vector<std::vector<size_t>> GetNeighbors(const Eigen::MatrixXR& DistMatrix) const;
 		void DbscanBfs(size_t initP, size_t clusterIdx,
 			std::vector<std::vector<size_t>>& neighbors, std::vector<size_t>& labels) const;

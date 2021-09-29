@@ -14,7 +14,7 @@
 #include <rapidjson/writer.h>
 // HashColon libraries
 #include <HashColon/Helper.hpp>
-#include <HashColon/Feline/ValueTypes.hpp>
+#include <HashColon/Feline/GeoValues.hpp>
 // header file for this source file
 #include <HashColon/Feline/FelineJsonIO.hpp>
 
@@ -1091,6 +1091,8 @@ namespace HashColon::Feline::IO
 		}
 		return doc;
 	}
+
+
 }
 
 // Write GeoJson files

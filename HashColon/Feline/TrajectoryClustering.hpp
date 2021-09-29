@@ -9,7 +9,7 @@
 // HashColon libraries
 #include <HashColon/Clustering.hpp>
 #include <HashColon/Real.hpp>
-#include <HashColon/Feline/ValueTypes.hpp>
+#include <HashColon/Feline/GeoValues.hpp>
 
 namespace HashColon::Feline::TrajectoryClustering
 {
@@ -144,13 +144,13 @@ namespace HashColon::Feline::TrajectoryClustering
 		static void Initialize(const std::string configFilePath = "");
 
 		LCSS() : TrajectoryDistanceMeasureBase(
-			HashColon::Clustering::DistanceMeasureType::distance),
+			HashColon::Clustering::DistanceMeasureType::similarity),
 			_c({ TrajectoryDistanceMeasureBase::_cDefault, _cDefault.Epsilon, _cDefault.Delta })
 		{};
 
 		LCSS(_Params params)
 			: TrajectoryDistanceMeasureBase(
-				HashColon::Clustering::DistanceMeasureType::distance, params),
+				HashColon::Clustering::DistanceMeasureType::similarity, params),
 			_c(params)
 		{};
 

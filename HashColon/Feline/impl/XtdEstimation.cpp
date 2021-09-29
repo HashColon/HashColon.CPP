@@ -11,7 +11,7 @@
 #include <HashColon/Real.hpp>
 #include <HashColon/SingletonCLI.hpp>
 #include <HashColon/Feline/GeoData.hpp>
-#include <HashColon/Feline/ValueTypes.hpp>
+#include <HashColon/Feline/GeoValues.hpp>
 // header file for this source file
 #include <HashColon/Feline/XtdEstimation.hpp>
 
@@ -102,14 +102,12 @@ namespace HashColon::Feline
 				return { A.DistanceTo(P), A.DistanceTo(P) };
 			}
 
-			Real xtd_val = CrossTrackDistance(P, A, B);
+			Real xtd_val = GeoDistance::CrossTrackDistance(P, A, B);
+			Real otd_ratio = GeoDistance::OnTrackDistance(P, A, B) / A.DistanceTo(B);	// on-track distance from A to P_stem in ratio of distance btwn AB
 			
-			Real projlength = ((B.dat[0] - A.dat[0]) * (P.dat[0] - A.dat[0]) + (B.dat[1] - A.dat[1]) * (P.dat[1] - A.dat[1]))
-				/ A.DistanceTo(B);
-
-			if (projlength < 0)
+			if (otd_ratio < 0)
 				return xtd_val > 0 ? XTD{ A.DistanceTo(P), 0.0 } : XTD{ 0.0, A.DistanceTo(P) };
-			else if (projlength > 1)
+			else if (otd_ratio > 1)
 				return xtd_val > 0 ? XTD{ B.DistanceTo(P), 0.0 } : XTD{ 0.0, B.DistanceTo(P) };
 			else
 				return xtd_val > 0 ? XTD{ xtd_val, 0 } : XTD{ 0, -xtd_val };
@@ -269,7 +267,7 @@ namespace HashColon::Feline
 				EstimateXTD(waypoints[i], waypoints[i], loa, beam, draught, turnangle):
 				EstimateXTD(waypoints[i], waypoints[i + 1], loa, beam, draught, turnangle);
 				
-			XYXtd tmpXyxtd(waypoints[i], tmpXtd);
+			XYXtd tmpXyxtd{ waypoints[i], tmpXtd };
 			re.push_back(tmpXyxtd);
 		}
 		return re;

@@ -117,11 +117,11 @@
     <ClInclude Include="HashColon\Feline\TrajectoryClustering.hpp" />
     <ClInclude Include="HashColon\Feline\XtdTrajectoryClustering.hpp" />
     <ClInclude Include="HashColon\Feline\XtdEstimation.hpp" />
-    <ClInclude Include="HashColon\Feline\ValueTypes.hpp" />
     <ClInclude Include="HashColon\Feline\RouteSimplification.hpp" />
     <ClInclude Include="HashColon\HashColon_config.h" />
     <ClInclude Include="HashColon\impl\CAGD_Impl.hpp" />
     <ClInclude Include="HashColon\impl\Clustering_Impl.hpp" />
+    <ClInclude Include="HashColon\Feline\GeoValues.hpp" />
     <ClInclude Include="HashColon\impl\Log_Impl.hpp" />
     <ClInclude Include="HashColon\impl\Real_Impl.hpp" />
     <ClInclude Include="HashColon\impl\Table_Impl.hpp" />
@@ -136,6 +136,7 @@
     <ClInclude Include="HashColon\Helper.hpp" />
     <ClInclude Include="HashColon\ThreadPool.hpp" />
     <ClCompile Include="HashColon\Feline\impl\AisPreprocess.cpp" />
+    <ClCompile Include="HashColon\Feline\impl\GeoValues.cpp" />
     <ClCompile Include="HashColon\impl\CAGD.cpp" />
     <ClCompile Include="HashColon\impl\Clustering.cpp" />
     <ClCompile Include="HashColon\impl\Helper.cpp" />
@@ -145,6 +146,7 @@
     <ClCompile Include="HashColon\impl\Table.cpp" />
     <ClCompile Include="HashColon\impl\ThreadPool.cpp" />
     <ClInclude Include="HashColon\Statistics.hpp" />
+    <ClInclude Include="HashColon\working\Clustering_HierarchicalClustering.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="HashColon\Feline\impl\GeoData.cpp" />
@@ -152,7 +154,6 @@
     <ClCompile Include="HashColon\Feline\impl\TrajectoryClustering.cpp" />
     <ClCompile Include="HashColon\Feline\impl\XtdTrajectoryClustering.cpp" />
     <ClCompile Include="HashColon\Feline\impl\XtdEstimation.cpp" />
-    <ClCompile Include="HashColon\Feline\impl\ValueTypes.cpp" />
     <ClCompile Include="HashColon\impl\Statistics.cpp" />
   </ItemGroup>
   <ItemGroup>

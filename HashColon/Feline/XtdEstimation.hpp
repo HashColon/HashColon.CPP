@@ -7,7 +7,7 @@
 #include <HashColon/Exception.hpp>
 #include <HashColon/Real.hpp>
 #include <HashColon/Feline/GeoData.hpp>
-#include <HashColon/Feline/ValueTypes.hpp>
+#include <HashColon/Feline/GeoValues.hpp>
 
 namespace HashColon::Feline
 {		

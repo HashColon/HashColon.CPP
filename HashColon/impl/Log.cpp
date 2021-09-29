@@ -184,6 +184,13 @@ namespace HashColon
 				bool re = CLI::detail::lexical_cast(res[0], ErrDir);
 				if (re)
 				{
+					// if directory is given as '-': no error file is created
+					if (ErrDir == "-")
+					{
+						_cDefault.ErrorFile = nullptr;
+						return true;
+					}
+
 					if (!BuildDirectoryStructure(ErrDir))
 						throw CommonLogger::Exception("Cannot find/create errorLogDir", __CODEINFO__);
 
@@ -204,8 +211,8 @@ namespace HashColon
 				}
 				else return false;
 			},
-			"Directory for errorlog files. Error/Debug messages are written as [dir]/errorlog_yymmddHHMMSS.log"
-				);//->check(CLI::ExistingDirectory);
+			"Directory for errorlog files. Use \"-\" to prevent errorlog file creation. Error/Debug messages are written as [dir]/errorlog_yymmddHHMMSS.log"
+		);//->check(CLI::ExistingDirectory);
 
 		string logDir;
 		cli->add_option(
@@ -216,6 +223,13 @@ namespace HashColon
 				bool re = CLI::detail::lexical_cast(res[0], logDir);
 				if (re)
 				{
+					// if directory is given as '-': no error file is created
+					if (logDir == "-")
+					{
+						_cDefault.LogFile = nullptr;
+						return true;
+					}
+
 					if (!BuildDirectoryStructure(logDir))
 						throw CommonLogger::Exception("Cannot find/create errorLogDir", __CODEINFO__);
 
@@ -235,8 +249,8 @@ namespace HashColon
 				}
 				else return false;
 			},
-			"Directory for log files. Log/Error/Debug messages are written as [dir]/log_yymmddHHMMSS.log"
-				);//->check(CLI::ExistingDirectory);
+			"Directory for log files. Use \"-\" to prevent log file creation. Log/Error/Debug messages are written as [dir]/log_yymmddHHMMSS.log"
+		);//->check(CLI::ExistingDirectory);
 
 		cli->add_option(
 			"--verboseLvl",

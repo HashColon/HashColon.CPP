@@ -74,6 +74,8 @@ namespace HashColon::Clustering
 				//logger.Message << tempss.str() << endl;
 			}
 		}
+		if (verbose)
+			logger.Message << Flashl("") << flush;
 		return re;
 	}
 
@@ -500,7 +502,7 @@ namespace HashColon::Clustering
 		vector<vector<size_t>> neighbors = GetNeighbors(B);
 		{
 			lock_guard<mutex> _lg(CommonLogger::_mutex);
-			logger.Log({ { Tag::lvl, 3 } }) << this->GetMethodName() << ": Neighgor computation is finished." << endl;
+			logger.Log({ { Tag::lvl, 3 } }) << this->GetMethodName() << ": Neighbor computation is finished." << endl;
 
 			stringstream ss;
 			for (const auto& debugout1 : neighbors)
@@ -583,6 +585,21 @@ namespace HashColon::Clustering
 			}
 			logger.Log({ {Tag::lvl, 3} }) << "\n" << ss.str() << flush;
 		}
+	}
+
+	template <typename T>
+	HashColon::Real DistanceBasedDBSCAN<T>::ConvertSimilarity2Distance(const HashColon::Real& s) const
+	{
+		return s <= 0 ? std::numeric_limits<HashColon::Real>::max() : std::sqrt(-std::log(s));
+	}
+
+	template <typename T>
+	Eigen::MatrixXR DistanceBasedDBSCAN<T>::ConvertSimilarity2Distance(const Eigen::MatrixXR& S) const
+	{
+		return S.unaryExpr(
+			[this](HashColon::Real s) {
+				return ConvertSimilarity2Distance(s);
+			});
 	}
 
 	template <typename T>

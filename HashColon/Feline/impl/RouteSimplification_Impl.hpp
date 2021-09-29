@@ -37,7 +37,7 @@ namespace HashColon::Feline
 			Position tmps = (Position)s;
 			Position tmpe = (Position)e;
 			Position tmpm = (Position)m;
-			Real dist = abs(CrossTrackDistance(tmpm, tmps, tmpe));
+			Real dist = abs(GeoDistance::CrossTrackDistance(tmpm, tmps, tmpe));
 
 			if (maxdist < dist)
 			{
@@ -78,7 +78,7 @@ namespace HashColon::Feline
 				Position tmps = (Position)waypoints[s];
 				Position tmpe = (Position)waypoints[e];
 				Position tmpp = (Position)waypoints[i];
-				Real dist = abs((double)CrossTrackDistance(tmpp, tmps, tmpe));
+				Real dist = abs(GeoDistance::CrossTrackDistance(tmpp, tmps, tmpe));
 
 				if (maxdist < dist)
 				{
@@ -154,7 +154,7 @@ namespace HashColon::Feline
 		Position tmps = (Position)waypoints[s];
 		Position tmpe = (Position)waypoints[e];
 		Position tmpp = (Position)waypoints[p];
-		Real dist = abs(CrossTrackDistance(tmpp, tmps, tmpe));
+		Real dist = abs(GeoDistance::CrossTrackDistance(tmpp, tmps, tmpe));
 		return (dist > Epsilon);
 	}
 
