@@ -24,6 +24,8 @@
 // header file for this source file
 #include <HashColon/Feline/XtdTrajectoryClustering.hpp>
 
+#include <iostream>
+
 using namespace std;
 using namespace Eigen;
 using namespace HashColon;
@@ -100,7 +102,7 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 			}
 
 			vector<SampleType> re; re.reserve(N);
-
+			Real totProbVal = 0.0;
 			for (int i = -k; i <= k; i++)
 			{
 				for (int j = -k; j <= k; j++)
@@ -114,11 +116,14 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 					{
 						lock_guard<mutex> _lg(_XtdDistance_cpp_mutex);
 						tmp.ProbValue = (*zBvn)[i + k][j + k];
+						totProbVal += (*zBvn)[i + k][j + k];
 					}
 					//cout << i << ", " << j << endl;
 					re.push_back(tmp);
 				}
 			}
+			
+			for (auto& item : re) item.ProbValue /= totProbVal;
 			return re;
 		}
 
@@ -136,35 +141,47 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 	}
 
 	// geospatial particle for computing emd
+	template <typename Value = Real>
 	struct GeospatialParticle
 	{
-		using Real_type = Real;		
-		using Coords = array<Real, 2>;
+		using value_type = Value;		
+		using Coords = array<Value, 2>;
 		using Self = GeospatialParticle;
 
 		// constructor from weight and coord array
-		GeospatialParticle(Real weight, const Coords& xs) : weight_(weight), xs_(xs) {};
-		GeospatialParticle(Real weight, Real x, Real y) : weight_(weight), xs_({ x, y }) {};
+		GeospatialParticle(Value weight, const Coords& xs) : weight_(weight), xs_(xs) {};
+		GeospatialParticle(Value weight, Value x, Value y) : weight_(weight), xs_({ x, y }) {};
 
-		Real weight() const { return weight_; };
+		Value weight() const { return weight_; };
 
-		const Real& operator[](ptrdiff_t i) const { return xs_[i]; };
-		Real& operator[](ptrdiff_t i) { return xs_[i]; };
+		const Value& operator[](ptrdiff_t i) const { return xs_[i]; };
+		Value& operator[](ptrdiff_t i) { return xs_[i]; };
 
 		static ptrdiff_t dimension() { return 2; };
 
-		static Real plain_distance(const Self& p0, const Self& p1) {
-			Position A{ p0[0], p0[1] }, B{ p1[0], p1[1] };
-			return A.DistanceTo(B);
+		static Value plain_distance(const Self& p0, const Self& p1) {
+			Position A{ p0[0], p0[1] }, B{ p1[0], p1[1] };			
+			Value dist = A.DistanceTo(B);			
+			return dist * dist;
 		};
 
 		static std::string name() { return "GeospatialParticle: [lon, lat]"; };
 		static std::string distance_name() { return "HaversineDistance"; };
 	protected:
 		// store particle info
-		Real weight_;
+		Value weight_;
 		Coords xs_;
 	};
+
+	using GeoParticle = GeospatialParticle<>;
+	template <typename Value = Real>
+	using GeoEvent = emd::EuclideanParticleEvent<GeospatialParticle<Value>>;
+	template <typename Value = Real>
+	using GeoDistance = emd::EuclideanParticleDistance<GeospatialParticle<Value>>;
+	template<
+		template<typename> class Event = GeoEvent,
+		template<typename> class Distance = GeoDistance>
+	using GeoEMD = emd::EMD<Real, Event, Distance>;
 
 	Real WassersteinDistance(
 		XYXtd a, Degree aDir,
@@ -177,20 +194,26 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 		// Alias of Wasserstein library (EMD: Earth-Mover Distance)
 		using EMDParticle = emd::EuclideanParticle2D<>;
 		using EMD = EMDFloat64<EuclideanEvent2D, EuclideanDistance2D>;
+		
+		//using GeoEMD = EMDReal<GeoEvent, GeoDistance>;
+		
+		/*using FelineEMD = EMD<Real,
+			EuclideanParticleEvent<GeospatialParticle>, EuclideanParticleDistance<GeospatialParticle>
+		>;*/
 		int k = (int)floor(options.domainSize / options.domainUnit);
 		int N = (2 * k + 1) * (2 * k + 1);
 
 		auto SamplesA = GetBVNSamples(a, aDir, options.domainUnit, options.domainSize);
 		auto SamplesB = GetBVNSamples(b, bDir, options.domainUnit, options.domainSize);
 
-		vector<EMDParticle> ParticlesA;
-		vector<EMDParticle> ParticlesB;
+		vector<GeoParticle> ParticlesA;
+		vector<GeoParticle> ParticlesB;
 		Real testA = 0, testB = 0;
 
 		for (int i = 0; i < N; i++)
 		{
-			EMDParticle tmpParticleA(SamplesA[i].ProbValue, SamplesA[i].Pos);
-			EMDParticle tmpParticleB(SamplesB[i].ProbValue, SamplesB[i].Pos);
+			GeoParticle tmpParticleA(SamplesA[i].ProbValue, SamplesA[i].Pos);
+			GeoParticle tmpParticleB(SamplesB[i].ProbValue, SamplesB[i].Pos);
 
 			ParticlesA.push_back(tmpParticleA);
 			ParticlesB.push_back(tmpParticleB);
@@ -200,14 +223,18 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 		}
 
 		// build PDF as emd::Event form	
-		EuclideanParticleEvent eventA(ParticlesA);
-		EuclideanParticleEvent eventB(ParticlesB);
+		EuclideanParticleEvent<GeospatialParticle<>> eventA(ParticlesA);
+		EuclideanParticleEvent<GeospatialParticle<>> eventB(ParticlesB);
 
 		// EMD computing obj (Wasserstein library)
-		EMD EmdComputer = EMD();
+		GeoEMD<> EmdComputer = GeoEMD<>();		
 		auto reCheck = EmdComputer.compute(eventA, eventB);
 		if (reCheck == emd::EMDStatus::Success)
-			return EmdComputer.emd();
+		{
+			Real aaa = EmdComputer.emd();
+			Real bbb = a.Pos.DistanceTo(b.Pos);
+			return aaa;
+		}			
 		else
 			return numeric_limits<Real>::min();
 	}
