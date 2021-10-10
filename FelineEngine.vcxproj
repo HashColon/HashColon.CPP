@@ -137,6 +137,8 @@
     <ClInclude Include="HashColon\ThreadPool.hpp" />
     <ClCompile Include="HashColon\Feline\impl\AisPreprocess.cpp" />
     <ClCompile Include="HashColon\Feline\impl\GeoValues.cpp" />
+    <ClCompile Include="HashColon\Feline\impl\XtdTrajectoryClustering.cpp" />
+    <ClCompile Include="HashColon\Feline\impl\TrajectoryClustering.cpp" />
     <ClCompile Include="HashColon\impl\CAGD.cpp" />
     <ClCompile Include="HashColon\impl\Clustering.cpp" />
     <ClCompile Include="HashColon\impl\Helper.cpp" />
@@ -151,8 +153,6 @@
   <ItemGroup>
     <ClCompile Include="HashColon\Feline\impl\GeoData.cpp" />
     <ClCompile Include="HashColon\Feline\impl\FelineJsonIO.cpp" />
-    <ClCompile Include="HashColon\Feline\impl\TrajectoryClustering.cpp" />
-    <ClCompile Include="HashColon\Feline\impl\XtdTrajectoryClustering.cpp" />
     <ClCompile Include="HashColon\Feline\impl\XtdEstimation.cpp" />
     <ClCompile Include="HashColon\impl\Statistics.cpp" />
   </ItemGroup>

@@ -68,9 +68,10 @@ namespace HashColon::Feline
 		inline void Validify();
 
 		HashColon::Real DistanceTo(const Position toPoint, GeoDistanceType type = DefaultDistance) const;
-		Position MoveTo(const HashColon::Real distanceMeter, const HashColon::Degree a, GeoDistanceType type = DefaultDistance) const;		
+		Position MoveTo(const HashColon::Real distanceMeter, const HashColon::Degree a, GeoDistanceType type = DefaultDistance) const;				
 		HashColon::Degree AngleTo(const Position toPoint, GeoDistanceType type = DefaultDistance) const;
 		HashColon::Real CrossTrackDistanceTo(const Position path_s, const Position path_e, GeoDistanceType type = DefaultDistance) const;
+		HashColon::Real OnTrackDistanceTo(const Position path_s, const Position path_e, GeoDistanceType type = DefaultDistance) const;
 	};
 	inline bool operator==(const Position& lhs, const Position& rhs) { return lhs.dat[0] == rhs.dat[0] && lhs.dat[1] == rhs.dat[1]; };
 	inline bool operator!=(const Position& lhs, const Position& rhs) { return !(lhs == rhs); };

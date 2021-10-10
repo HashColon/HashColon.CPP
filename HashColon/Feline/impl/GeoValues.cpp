@@ -54,6 +54,11 @@ namespace HashColon::Feline
 		return GeoDistance::CrossTrackDistance((*this), path_s, path_e, type);
 	}
 
+	Real Position::OnTrackDistanceTo(const Position path_s, const Position path_e, GeoDistanceType type) const
+	{
+		return GeoDistance::OnTrackDistance((*this), path_s, path_e, type);
+	}
+
 	//{ TimePoint functions
 	void TimePoint::fromString(string datetimeStr, const string formatStr)
 	{
@@ -182,7 +187,8 @@ namespace HashColon::Feline::CoordSys
 		array<Real, 2> _P{ { lonUnit() * P.longitude, latUnit() * P.latitude} };
 		array<Real, 2> _S{ { lonUnit() * path_S.longitude, latUnit() * path_S.latitude} };
 		array<Real, 2> _E{ { lonUnit() * path_E.longitude, latUnit() * path_E.latitude} };
-		return (_E[0] - _S[0]) * (_P[0] - _S[0]) + (_E[1] - _S[1]) * (_P[1] - _S[1]);
+
+		return dot(minus(_P, _S), minus(_E, _S)) / abs(minus(_E, _S));
 	}
 
 	HashColon::Real Cartesian::Speed(const XYT A, const XYT B)
@@ -283,10 +289,10 @@ namespace HashColon::Feline::CoordSys
 		// compute grand route using haversine formula 
 		using namespace std;
 		using namespace HashColon;
-		const Radian A_lat = (Degree)(A.latitude);
-		const Radian B_lat = (Degree)(B.latitude);
-		const Radian delta_lonhalf = (Degree)((B.longitude - A.longitude) / 2.0);
-		const Radian delta_lathalf = (Degree)((B.latitude - A.latitude) / 2.0);
+		const Radian A_lat = A.latitude * PI180;
+		const Radian B_lat = B.latitude * PI180;
+		const Radian delta_lonhalf = ((B.longitude - A.longitude) / 2.0) * PI180;
+		const Radian delta_lathalf = ((B.latitude - A.latitude) / 2.0) * PI180;
 		const Real sinlat = sin(delta_lathalf);
 		const Real sinlon = sin(delta_lonhalf);
 		const Real a = sinlat * sinlat + cos(A_lat) * cos(B_lat) * sinlon * sinlon;
@@ -295,10 +301,10 @@ namespace HashColon::Feline::CoordSys
 
 	HashColon::Degree Haversine::Angle(const Position A, const Position B)
 	{
-		const Radian Alat = (Degree)A.latitude;
-		const Radian Alon = (Degree)A.longitude;
-		const Radian Blat = (Degree)B.latitude;
-		const Radian Blon = (Degree)B.longitude;
+		const Radian Alat = A.latitude * PI180;
+		const Radian Alon = A.longitude * PI180;
+		const Radian Blat = B.latitude * PI180;
+		const Radian Blon = B.longitude * PI180;
 		const Real y = sin(Blon - Alon) * cos(Blat);
 		const Real x = cos(Alat) * sin(Blat) - sin(Alat) * cos(Blat) * cos(Blon - Alon);
 		const Radian bearing = atan2(y, x);
@@ -315,20 +321,30 @@ namespace HashColon::Feline::CoordSys
 
 	Position Haversine::MovePoint(const Position A, const HashColon::Real d, const HashColon::Degree alpha)
 	{
-		Position re = A;
-		// compute latitude
-		const Radian deltaLat = d / EarthRadius::Val() * cos((Radian)alpha);
-		const Real reLat = re.latitude * PI180 + deltaLat;
-		if (abs(reLat) > (Constant::PI / 2.0))
-			re[1] = (reLat > 0 ? Constant::PI - reLat : -Constant::PI - reLat) / PI180;
-		else
-			re[1] = reLat / PI180;
-		// compute longitude
-		const Real deltaPsi = log(tan(re.latitude * PI180 / 2 + Constant::PI / 4) / tan(A.latitude * PI180 / 2 + Constant::PI / 4));
-		const Real q = abs(deltaPsi) > 1e-12 ? deltaLat / deltaPsi : cos(A.latitude * PI180);
-		re[0] += (d / EarthRadius::Val() * sin((Radian)alpha) / q) / PI180;
+		const Radian delta = d / EarthRadius::Val();
+		const Radian reLat = asin(sin(A.latitude * PI180) * cos(delta) 
+			+ cos(A.latitude * PI180) * sin(delta) * cos(alpha * PI180));
+		const Radian reLon = A.longitude * PI180
+			+ std::atan2(sin(alpha * PI180) * sin(delta) * cos(A.latitude * PI180),
+				cos(delta) - sin(A.latitude * PI180) * sin(reLat));
 
-		return re;
+		return { reLon / PI180, reLat / PI180 };
+
+
+		//Position re = A;
+		//// compute latitude
+		//const Radian deltaLat = d / EarthRadius::Val() * cos((Radian)alpha);
+		//const Real reLat = re.latitude * PI180 + deltaLat;
+		//if (abs(reLat) > (Constant::PI / 2.0))
+		//	re[1] = (reLat > 0 ? Constant::PI - reLat : -Constant::PI - reLat) / PI180;
+		//else
+		//	re[1] = reLat / PI180;
+		//// compute longitude
+		//const Real deltaPsi = log(tan(re.latitude * PI180 / 2 + Constant::PI / 4) / tan(A.latitude * PI180 / 2 + Constant::PI / 4));
+		//const Real q = abs(deltaPsi) > 1e-12 ? deltaLat / deltaPsi : cos(A.latitude * PI180);
+		//re[0] += (d / EarthRadius::Val() * sin((Radian)alpha) / q) / PI180;
+
+		//return re;
 	}
 
 	Position Haversine::MovePoint(const Position A, const Velocity vel, const Duration t)

@@ -38,8 +38,9 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 
 	namespace _hidden
 	{
-		static unique_ptr<vector<vector<Real>>> zBvn;
-		static int zk;
+		static unique_ptr<vector<vector<Real>>> zBvn;		
+		static Real zUnit;
+		static Real zDomain;
 
 		struct SampleType
 		{
@@ -47,8 +48,9 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 			Real ProbValue;
 		};
 
-		vector<vector<Real>> PreComputeZNormals(int k)
+		vector<vector<Real>> PreComputeZNormals(Real stepSize, Real domainSize)
 		{
+			int k = (int)floor(domainSize / stepSize);
 			Statistics::BVN bvn;
 			vector<vector<Real>> re(2 * k + 1, vector<Real>(2 * k + 1));
 
@@ -56,7 +58,7 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 				for (int j = -k; j <= k; j++)
 				{
 					Eigen::Vector2R tmp;
-					tmp << (Real)i, (Real)j;
+					tmp << (Real)i * stepSize, (Real)j * stepSize;
 					re[i + k][j + k] = bvn.PDF(tmp);
 				}
 			return re;
@@ -79,7 +81,8 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 		vector<SampleType> GetBVNSamples(
 			XYXtd point, Degree direction,
 			Real stepSize,		// sample rate in unit of sigma
-			Real domainSize)	// size of the domain box in unit of sigma			
+			Real domainSize,	// size of the domain box in unit of sigma			
+			shared_ptr<Real> pdfTotVal = nullptr)	// nomalize Pdf so that the sum of pdf satisfies sum-to-one property
 		{
 			assert(domainSize > 0);
 			assert(stepSize > 0);
@@ -94,11 +97,12 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 			int k = (int)floor(domainSize / stepSize);
 			size_t N = (2 * k + 1) * (2 * k + 1);
 
-			if (k != zk || !zBvn)
+			if (zDomain != domainSize || zUnit != stepSize || !zBvn)
 			{
 				lock_guard<mutex> _lg(_XtdDistance_cpp_mutex);
-				zk = k;
-				zBvn = make_unique<vector<vector<Real>>>(PreComputeZNormals(k));
+				zDomain = domainSize;
+				zUnit = stepSize;
+				zBvn = make_unique<vector<vector<Real>>>(PreComputeZNormals(zUnit, zDomain));
 			}
 
 			vector<SampleType> re; re.reserve(N);
@@ -115,15 +119,17 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 					tmp.Pos[1] = tmpPos.dat[1];
 					{
 						lock_guard<mutex> _lg(_XtdDistance_cpp_mutex);
-						tmp.ProbValue = (*zBvn)[i + k][j + k];
+						tmp.ProbValue = (*zBvn)[i + k][j + k];						
 						totProbVal += (*zBvn)[i + k][j + k];
 					}
 					//cout << i << ", " << j << endl;
 					re.push_back(tmp);
 				}
 			}
-			
+						
 			for (auto& item : re) item.ProbValue /= totProbVal;
+			if(pdfTotVal)
+				(*pdfTotVal) = totProbVal;
 			return re;
 		}
 
@@ -202,13 +208,12 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 		>;*/
 		int k = (int)floor(options.domainSize / options.domainUnit);
 		int N = (2 * k + 1) * (2 * k + 1);
-
+				
 		auto SamplesA = GetBVNSamples(a, aDir, options.domainUnit, options.domainSize);
 		auto SamplesB = GetBVNSamples(b, bDir, options.domainUnit, options.domainSize);
 
 		vector<GeoParticle> ParticlesA;
-		vector<GeoParticle> ParticlesB;
-		Real testA = 0, testB = 0;
+		vector<GeoParticle> ParticlesB;		
 
 		for (int i = 0; i < N; i++)
 		{
@@ -217,9 +222,6 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 
 			ParticlesA.push_back(tmpParticleA);
 			ParticlesB.push_back(tmpParticleB);
-
-			testA += SamplesA[i].ProbValue;
-			testB += SamplesB[i].ProbValue;
 		}
 
 		// build PDF as emd::Event form	
@@ -230,11 +232,7 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 		GeoEMD<> EmdComputer = GeoEMD<>();		
 		auto reCheck = EmdComputer.compute(eventA, eventB);
 		if (reCheck == emd::EMDStatus::Success)
-		{
-			Real aaa = EmdComputer.emd();
-			Real bbb = a.Pos.DistanceTo(b.Pos);
-			return aaa;
-		}			
+			return EmdComputer.emd();
 		else
 			return numeric_limits<Real>::min();
 	}
@@ -247,8 +245,10 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 		using namespace _hidden;
 		using namespace HashColon::Statistics;
 
-		auto SamplesA = GetBVNSamples(a, aDir, options.domainUnit, options.domainSize);
-		auto SamplesB = GetBVNSamples(b, bDir, options.domainUnit, options.domainSize);
+		shared_ptr<Real> aPdfTot = make_shared<Real>(0);
+		shared_ptr<Real> bPdfTot = make_shared<Real>(0);
+		auto SamplesA = GetBVNSamples(a, aDir, options.domainUnit, options.domainSize, aPdfTot);
+		auto SamplesB = GetBVNSamples(b, bDir, options.domainUnit, options.domainSize, bPdfTot);
 		int k = (int)floor(options.domainSize / options.domainUnit);
 		int N = (2 * k + 1) * (2 * k + 1);
 
@@ -257,90 +257,121 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 		// Base location for the cartesian distance is the mid-point of a and b
 		Position distbase{ (a.Pos.longitude + b.Pos.longitude) / 2, (a.Pos.latitude + b.Pos.latitude) / 2 };
 
-		// Build PDF		
+		// Compute sigma in each direction
 		Real sigmaAP = a.Xtd.xtdPortside / options.domainSize;
 		Real sigmaAS = a.Xtd.xtdStarboard / options.domainSize;
 		Real sigmaAH = (sigmaAP + sigmaAS) / 2.0;
 		Real sigmaBP = b.Xtd.xtdPortside / options.domainSize;
 		Real sigmaBS = b.Xtd.xtdStarboard / options.domainSize;
 		Real sigmaBH = (sigmaBP + sigmaBS) / 2.0;
-		
-		// sum( [PDF(A) * dA] * {log(PDF(A)) - log(PDF(M)) )
+
+		// Define directional points in H/S direciton
+		const Real D = 10000; // 10km
+		const Position AH = a.Pos.MoveTo(D, aDir);
+		const Position AS = a.Pos.MoveTo(D, aDir + 90);
+		const Position BH = b.Pos.MoveTo(D, bDir);
+		const Position BS = b.Pos.MoveTo(D, bDir + 90);
+
+		// Define BVN for z reference 
+		BVN zPDF;
+
+		// sum( [PDF(A) * dA] * {log(PDF(A)) - log(PDF(M))} )
 		Real KL_AM = 0;
-		for (int i = 0; i < N; i++)
+		for (const auto& sample_ : SamplesA)
 		{
-			// [PDF(A) * dA]
-			Position PosA{ SamplesA[i].Pos[0], SamplesA[i].Pos[1] };
-			Position PosB = b.Pos;
-			Position PosBH = PosB.MoveTo(1000, bDir);
-			Position PosBS = PosB.MoveTo(1000, bDir - 90);
-			Real zBH = PosA.CrossTrackDistanceTo(PosB, PosBH);
-			Real zBS = PosA.CrossTrackDistanceTo(PosB, PosBS);
-			BVN zPDF;
-			Real PdfA, PdfB, PdfM;
-			Real PdfA_dArea = SamplesA[i].ProbValue;
-			PdfA = SamplesA[i].ProbValue;
+			// define sample values
+			const Position sample{ sample_.Pos[0], sample_.Pos[1] };			
 
-			if (zBS < options.errorEpsilon)
-			{
-				Vector2R z; z << zBH / sigmaBH, zBS / sigmaBP;
-				PdfB = zPDF.PDF(z);
-			}
-			else if (zBS > options.errorEpsilon)
-			{
-				Vector2R z; z << zBH / sigmaBH, zBS / sigmaBS;
-				PdfB = zPDF.PDF(z);
-			}
-			else
-			{
-				Vector2R z; z << zBH / sigmaBH, 0;
-				PdfB = zPDF.PDF(z);
-			}
-			PdfM = (PdfA + PdfB) / 2.0;
+			// compute distance in AH/AS/BH/BS to a & b from the sample			
+			Real zAH = sample.OnTrackDistanceTo(a.Pos, AH);
+			Real zAS = sample.OnTrackDistanceTo(a.Pos, AS);
+			Real zBH = sample.OnTrackDistanceTo(b.Pos, BH);
+			Real zBS = sample.OnTrackDistanceTo(b.Pos, BS);
 
-			Real logPdfA = log(PdfA);
-			Real logPdfM = log(PdfM);
-			KL_AM += PdfA_dArea * (logPdfA - logPdfM);
+			// compute z-values 
+			zAH /= sigmaAH;
+			zAS = zAS < options.errorEpsilon ? zAS / sigmaAP
+				: zAS > options.errorEpsilon ? zAS / sigmaAS
+				: 0;
+			zBH /= sigmaBH;
+			zBS = zBS < options.errorEpsilon ? zBS / sigmaBP
+				: zBS > options.errorEpsilon ? zBS / sigmaBS
+				: 0;
+
+			// comput Pdf witth area
+			Vector2R z; z << zBH , zBS;
+			const Real PdfA_dArea = sample_.ProbValue;
+			const Real PdfB_dArea = zPDF.PDF(z) / (*bPdfTot);
+ 
+			// {log(PDF(A)) - log(PDF(M))}
+			// = log(PDF(A) / PDF(M))
+			// = log( PDF(A) * dAreaA / PDF(M) * dAreaA )
+			// = log( PDF(A) * dAreaA ) - log( PDF(M) * dAreaA )
+			// = log(PdfA_dArea) - log( .5 * (PDF(A) + PDF(B)) * dAreaA )
+			// = log(PdfA_dArea) - log( .5 * PDF(A) * dAreaA + .5 * PDF(B)) * dAreaA )
+			// = log(PdfA_dArea) - log( .5 * PdfA_dArea + .5 * PDF(B) * dAreaB * dAreaA / dAreaB )
+			// = log(PdfA_dArea) - log( .5 * PdfA_dArea + .5 * PdfB_dArea * dAreaA / dAreaB )
+			// = log(PdfA_dArea) - log( .5 * PdfA_dArea + .5 * PdfB_dArea * dAreaA / dAreaB )
+			// = log(PdfA_dArea) - log( .5 * (PdfA_dA + PdfB_dArea * dAreaA / dAreaB ) )			
+			// dAreaA / dAreaB = sigmaAH * [sigmaAP|sigmaAS|.5*(sigmaAP+sigmaAS)) / sigmaBH * [sigmaBP|sigmaBS|.5*(sigmaBP+sigmaBS))
+
+			// compute dAreaA / dAreaB 
+			Real dAreaA =
+				zAS < options.errorEpsilon ? sigmaAH * sigmaAP
+				: zAS > options.errorEpsilon ? sigmaAH * sigmaAS
+				: sigmaAH * sigmaAH;
+			Real dAreaB =
+				zBS < options.errorEpsilon ? sigmaBH * sigmaBP
+				: zBS > options.errorEpsilon ? sigmaBH * sigmaBS
+				: sigmaBH * sigmaBH;
+			
+			// cummulate KL divergence AM
+			KL_AM += PdfA_dArea * (log(PdfA_dArea) - log((PdfA_dArea + PdfB_dArea * dAreaA / dAreaB)/2));
 		}
+		KL_AM = KL_AM > 0 ? KL_AM : 0;
 
 		// sum( [PDF(B) * dB] * {log(PDF(B)) - log(PDF(M)) )
 		Real KL_BM = 0;
-		for (int i = 0; i < N; i++)
+		for (const auto& sample_ : SamplesB)
 		{
-			// [PDF(A) * dA]
-			Real PdfB_dArea = SamplesB[i].ProbValue;
+			// define sample values
+			const Position sample{ sample_.Pos[0], sample_.Pos[1] };
 
-			/* ver 2.0 */
-			Position PosA = a.Pos;
-			Position PosB{ SamplesB[i].Pos[0], SamplesB[i].Pos[1] };
-			Position PosAH = PosA.MoveTo(1000, aDir);
-			Position PosAS = PosA.MoveTo(1000, aDir - 90);
-			Real zAH = PosB.CrossTrackDistanceTo(PosA, PosAH);
-			Real zAS = PosB.CrossTrackDistanceTo(PosA, PosAS);
-			BVN zPDF;
-			Real PdfA, PdfB, PdfM;
-			PdfB = SamplesB[i].ProbValue;
-			if (zAS < options.errorEpsilon)
-			{
-				Vector2R z; z << zAH / sigmaAH, zAS / sigmaAP;
-				PdfA = zPDF.PDF(z);
-			}
-			else if (zAS > options.errorEpsilon)
-			{
-				Vector2R z; z << zAH / sigmaAH, zAS / sigmaAS;
-				PdfA = zPDF.PDF(z);
-			}
-			else
-			{
-				Vector2R z; z << zAH / sigmaAH, 0;
-				PdfA = zPDF.PDF(z);
-			}
-			PdfM = (PdfA + PdfB) / 2.0;
+			// compute distance in AH/AS/BH/BS to a & b from the sample			
+			Real zAH = sample.OnTrackDistanceTo(a.Pos, AH);
+			Real zAS = sample.OnTrackDistanceTo(a.Pos, AS);
+			Real zBH = sample.OnTrackDistanceTo(b.Pos, BH);
+			Real zBS = sample.OnTrackDistanceTo(b.Pos, BS);
 
-			Real logPdfB = log(PdfB);
-			Real logPdfM = log(PdfM);
-			KL_BM += PdfB_dArea * (logPdfB - logPdfM);
+			// compute z-values 
+			zAH /= sigmaAH;
+			zAS = zAS < options.errorEpsilon ? zAS / sigmaAP
+				: zAS > options.errorEpsilon ? zAS / sigmaAS
+				: 0;
+			zBH /= sigmaBH;
+			zBS = zBS < options.errorEpsilon ? zBS / sigmaBP
+				: zBS > options.errorEpsilon ? zBS / sigmaBS
+				: 0;
+
+			// comput Pdf witth area
+			Vector2R z; z << zAH, zAS;
+			const Real PdfA_dArea = zPDF.PDF(z) / (*aPdfTot);
+			const Real PdfB_dArea = sample_.ProbValue; 
+
+			// compute dAreaA / dAreaB 
+			Real dAreaA =
+				zAS < options.errorEpsilon ? sigmaAH * sigmaAP
+				: zAS > options.errorEpsilon ? sigmaAH * sigmaAS
+				: sigmaAH * sigmaAH;
+			Real dAreaB =
+				zBS < options.errorEpsilon ? sigmaBH * sigmaBP
+				: zBS > options.errorEpsilon ? sigmaBH * sigmaBS
+				: sigmaBH * sigmaBH;
+
+			// cummulate KL divergence AM
+			KL_BM += PdfB_dArea * (log(PdfB_dArea) - log((PdfB_dArea + PdfA_dArea * dAreaB / dAreaA) / 2));
 		}
+		KL_BM = KL_BM > 0 ? KL_BM : 0;
 
 		//return 0.5 * (KL_AM + KL_BM);
 		return 0.5 * (KL_AM + KL_BM);
@@ -632,12 +663,12 @@ namespace HashColon::Feline::XtdTrajectoryClustering
 					bDir = (j == (b.size() - 1)) ? b[j - 1].Pos.AngleTo(b[j].Pos) : b[j].Pos.AngleTo(b[j + 1].Pos);
 
 					// debug
-					/*Real D_Euclidean = a[i].DistanceTo(b[j].Pos);
+					Real D_Euclidean = a[i].Pos.DistanceTo(b[j].Pos);
 					Real D_JS = JSDivergenceDistance(a[i], aDir, b[j], bDir,
 						{ _c.MonteCarloDomainUnit, _c.MonteCarloDomainSize, _c.MonteCarloErrorEpsilon });
 					Real D_PF = PFDistance(a[i], aDir, b[j], bDir, { _c.Pf_XtdSigmaRatio });
 					Real D_WS = WassersteinDistance(a[i], aDir, b[j], bDir,
-						{ _c.MonteCarloDomainUnit, _c.MonteCarloDomainSize, _c.MonteCarloErrorEpsilon });*/
+						{ _c.MonteCarloDomainUnit, _c.MonteCarloDomainSize, _c.MonteCarloErrorEpsilon });
 
 					warp[i][j] =
 						(_c.Coeff_Euclidean > 0 ? _c.Coeff_Euclidean * a[i].Pos.DistanceTo(b[j].Pos) : 0 ) +
