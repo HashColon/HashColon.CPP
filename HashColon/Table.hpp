@@ -1,5 +1,5 @@
-#ifndef HASHCOLON_TABLE_HPP
-#define HASHCOLON_TABLE_HPP
+#ifndef HASHCOLON_TABLE
+#define HASHCOLON_TABLE
 
 // std libraries
 #include <functional>
@@ -18,19 +18,19 @@ namespace HashColon
 	{
 	public:
 		CSVValue() = default;
-		CSVValue(const bool& rhs);
-		CSVValue(const long long& rhs);
-		CSVValue(const long double& rhs);
-		CSVValue(const std::string& rhs);
-		CSVValue(const char* rhs);
-		CSVValue(const CSVValue& rhs) = default;
+		CSVValue(const bool &rhs);
+		CSVValue(const long long &rhs);
+		CSVValue(const long double &rhs);
+		CSVValue(const std::string &rhs);
+		CSVValue(const char *rhs);
+		CSVValue(const CSVValue &rhs) = default;
 
-		CSVValue& operator=(const bool& rhs);
-		CSVValue& operator=(const long long& rhs);
-		CSVValue& operator=(const long double& rhs);
-		CSVValue& operator=(const std::string& rhs);
-		CSVValue& operator=(const char* rhs);
-		CSVValue& operator=(const CSVValue& rhs) = default;
+		CSVValue &operator=(const bool &rhs);
+		CSVValue &operator=(const long long &rhs);
+		CSVValue &operator=(const long double &rhs);
+		CSVValue &operator=(const std::string &rhs);
+		CSVValue &operator=(const char *rhs);
+		CSVValue &operator=(const CSVValue &rhs) = default;
 
 		HASHCOLON_CLASS_EXCEPTION_DEFINITION(CSVValue);
 
@@ -42,7 +42,7 @@ namespace HashColon
 	};
 
 	class CSVRow : public std::unordered_map<std::string, CSVValue>
-	{			
+	{
 	};
 
 	class HashColonCSV : public std::vector<CSVRow>
@@ -52,19 +52,19 @@ namespace HashColon
 
 	protected:
 		std::vector<std::string> ColumnNames;
-		
+
 	public:
 		HashColonCSV() = default;
-		HashColonCSV(const HashColonCSV& rhs) : std::vector<CSVRow>(rhs), ColumnNames(rhs.ColumnNames) {};
+		HashColonCSV(const HashColonCSV &rhs) : std::vector<CSVRow>(rhs), ColumnNames(rhs.ColumnNames){};
 		HashColonCSV(std::string filepath, std::vector<std::string> columnDefinition = {}, bool ignoreErrorRows = true)
 		{
 			ReadFromFile(filepath, columnDefinition, ignoreErrorRows);
-		}		
-		HashColonCSV(std::vector<std::string> colnames) : std::vector<CSVRow>(), ColumnNames(colnames) {};
+		}
+		HashColonCSV(std::vector<std::string> colnames) : std::vector<CSVRow>(), ColumnNames(colnames){};
 
 		bool HasColumnName(std::string name) const;
 		std::vector<std::string> GetColumnNames() const;
-		bool HasSameHeaderWith(const HashColonCSV& table) const;
+		bool HasSameHeaderWith(const HashColonCSV &table) const;
 
 		void ReadFromFile(std::string filepath, std::vector<std::string> columnDefinition = {}, bool ignoreErrorRows = true);
 		void WriteToFile(std::string filepath, bool writeCsvHeader = true) const;
@@ -89,11 +89,11 @@ namespace HashColon
 		bool ConvertColumnType(const std::string columnName);
 
 		void ChangeColumnName(const std::string targetColName, const std::string newColName);
-		void ChangeColumnName(const std::vector<std::string>& targetColNames, const std::vector<std::string>& newColNames);
+		void ChangeColumnName(const std::vector<std::string> &targetColNames, const std::vector<std::string> &newColNames);
 		HashColonCSV GetChangeColumnName(const std::string targetColName, const std::string newColName);
-		HashColonCSV GetChangeColumnName(const std::vector<std::string>& targetColNames, const std::vector<std::string>& newColNames);
+		HashColonCSV GetChangeColumnName(const std::vector<std::string> &targetColNames, const std::vector<std::string> &newColNames);
 
-		friend HashColonCSV operator+(const HashColonCSV& a, const HashColonCSV& b);
+		friend HashColonCSV operator+(const HashColonCSV &a, const HashColonCSV &b);
 	};
 }
 
@@ -105,8 +105,8 @@ namespace HashColon
 	using Table = HashColon::HashColonCSV;
 
 	Table InnerJoin(
-		const Table& table1, const Table& table2,
-		std::function<bool(const Row&, const Row&)> condition);
+		const Table &table1, const Table &table2,
+		std::function<bool(const Row &, const Row &)> condition);
 }
 
 #endif

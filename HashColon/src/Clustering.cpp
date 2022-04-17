@@ -11,7 +11,8 @@
 #include <Eigen/Eigen>
 #include <flann/flann.hpp>
 // modified external libraries
-#include <CLI11_modified/CLI11_extended.hpp>
+#include <HashColon/CLI11.hpp>
+#include <HashColon/CLI11_JsonSupport.hpp>
 #include <dkm_modified/dkm_parallel.hpp>
 // HashColon libraries
 #include <HashColon/Exception.hpp>
@@ -35,7 +36,7 @@ namespace HashColon::Clustering
 {
 	void DBSCAN::Initialize(const string configFilePath)
 	{
-		CLI::App* cli = SingletonCLI::GetInstance().GetCLI("Clustering.DBSCAN");
+		CLI::App *cli = SingletonCLI::GetInstance().GetCLI("Clustering.DBSCAN");
 
 		if (!configFilePath.empty())
 		{
@@ -47,43 +48,46 @@ namespace HashColon::Clustering
 	}
 
 	void DBSCAN::TrainModel(
-		const typename ClusteringBase<PointType>::DataListType& iTrainingData,
+		const typename ClusteringBase<PointType>::DataListType &iTrainingData,
 		typename ClusteringBase<PointType>::LabelsPtr oLabels,
 		typename ClusteringBase<PointType>::ProbListPtr oProbabilities)
 	{
 		CommonLogger logger;
 		{
 			lock_guard<mutex> _lg(CommonLogger::_mutex);
-			logger.Log({ { Tag::lvl, 3} }) << "DBSCAN: Started. " << endl;
+			logger.Log({{Tag::lvl, 3}}) << "DBSCAN: Started. " << endl;
 		}
 
-		// Assertion	
+		// Assertion
 		// assert at least 1 data is given for clustering
 		assert(_c.minPts > 0);
 		assert(iTrainingData.size() >= _c.minPts);
 		assert(!ClusteringBase<PointType>::isTrained);
 		assert(oLabels != nullptr);
-		if (ClusteringBase<PointType>::isTrained) throw Exception("Already trained.");
-		if (oLabels == nullptr) throw Exception("DBSCAN needs cluster label output for input.");
+		if (ClusteringBase<PointType>::isTrained)
+			throw Exception("Already trained.");
+		if (oLabels == nullptr)
+			throw Exception("DBSCAN needs cluster label output for input.");
 
 		// compute distance matrix & neighbors
 		vector<vector<size_t>> neighbors = GetNeighbors(iTrainingData);
 
 		{
 			lock_guard<mutex> _lg(CommonLogger::_mutex);
-			logger.Log({ { Tag::lvl, 3 } }) << "DBSCAN: Neighbor computation finished. " << endl;
+			logger.Log({{Tag::lvl, 3}}) << "DBSCAN: Neighbor computation finished. " << endl;
 
 			stringstream ss;
-			for (const auto& debugout1 : neighbors)
+			for (const auto &debugout1 : neighbors)
 			{
-				for (const auto& debugout2 : debugout1)
+				for (const auto &debugout2 : debugout1)
 				{
 					ss << debugout2 << "\t";
 				}
 				ss << "\n";
 			}
-			logger.Debug({ {__CODEINFO_TAGS__} }) << "\n" <<
-				"Neighbor lists:\n" << ss.str() << endl;
+			logger.Debug({{__CODEINFO_TAGS__}}) << "\n"
+												<< "Neighbor lists:\n"
+												<< ss.str() << endl;
 		}
 
 		// Initialize cluster state
@@ -91,13 +95,14 @@ namespace HashColon::Clustering
 		oLabels->resize(iTrainingData.size());
 
 		// set meanings for the cluster idx
-		// unclassified: 0, noise: 1, clustered: 2~		
+		// unclassified: 0, noise: 1, clustered: 2~
 		size_t clusterIdx = 2;
 
 		for (size_t i = 0; i < iTrainingData.size(); i++)
 		{
 			// if the point is classfied already, continue;
-			if (oLabels->at(i) != unclassified) continue;
+			if (oLabels->at(i) != unclassified)
+				continue;
 
 			// if the point is core point: has more then minPts in radius epsilon,
 			// run bfs
@@ -114,7 +119,7 @@ namespace HashColon::Clustering
 		}
 
 		// as all classification is finished,
-			// remove unclassified flags 
+		// remove unclassified flags
 		for (size_t i = 0; i < iTrainingData.size(); i++)
 		{
 			assert(oLabels->at(i) > 0);
@@ -123,25 +128,26 @@ namespace HashColon::Clustering
 
 		{
 			lock_guard<mutex> _lg(CommonLogger::_mutex);
-			logger.Log({ { Tag::lvl, 3} }) << "DBSCAN: Finished. " << endl;
+			logger.Log({{Tag::lvl, 3}}) << "DBSCAN: Finished. " << endl;
 		}
 		_numOfClusters = clusterIdx;
 		ClusteringBase<PointType>::isTrained = true;
 	}
 
 	vector<vector<size_t>> DBSCAN::GetNeighbors(
-		const typename ClusteringBase<vector<Real>>::DataListType& iTrainingData) const
+		const typename ClusteringBase<vector<Real>>::DataListType &iTrainingData) const
 	{
 		vector<vector<size_t>> re;
 
 		// use flann to build neighbor information
 		size_t dataN = iTrainingData.size();
 		size_t dataD = iTrainingData[0].size();
-		vector<Real> flannDataset_; flannDataset_.resize(dataN * dataD);
+		vector<Real> flannDataset_;
+		flannDataset_.resize(dataN * dataD);
 		flann::Matrix<Real> flannDataset(flannDataset_.data(), dataN, dataD);
 
-		// copy sample data to flann Matrix
-		#pragma omp parallel for
+// copy sample data to flann Matrix
+#pragma omp parallel for
 		for (size_t i = 0; i < dataN; i++)
 		{
 			for (size_t j = 0; j < dataD; j++)
@@ -159,15 +165,14 @@ namespace HashColon::Clustering
 			flannDataset,
 			idxs, dists,
 			(float)_c.DbscanEpsilon,
-			flann::SearchParams()
-		);
+			flann::SearchParams());
 
-		// we don't need distance info 
+		// we don't need distance info
 		dists.clear();
 
 		// convert vectr<vector<int>> to vectr<vector<size_t>>
 		re.resize(idxs.size());
-		#pragma omp parallel for
+#pragma omp parallel for
 		for (size_t i = 0; i < idxs.size(); i++)
 		{
 			re[i].resize(idxs[i].size());
@@ -181,30 +186,32 @@ namespace HashColon::Clustering
 	}
 
 	void DBSCAN::DbscanBfs(size_t initP, size_t clusterIdx,
-		vector<vector<size_t>>& neighbors, vector<size_t>& labels) const
+						   vector<vector<size_t>> &neighbors, vector<size_t> &labels) const
 	{
 		using namespace std;
 		assert(neighbors[initP].size() >= _c.minPts);
 		assert(labels[initP] == unclassified);
-		queue<size_t> q; q.push(initP);
+		queue<size_t> q;
+		q.push(initP);
 		labels[initP] = clusterIdx;
 		do
 		{
 			// pop a point from queue, add it to current cluster
-			size_t p = q.front(); q.pop();
-			//labels[p] = clusterIdx;
+			size_t p = q.front();
+			q.pop();
+			// labels[p] = clusterIdx;
 
 			// if current point has sufficient neighbors,
 			if (neighbors[p].size() >= _c.minPts)
 			{
-				// push neighbors to queue 
-				for (auto& n : neighbors[p]) 
+				// push neighbors to queue
+				for (auto &n : neighbors[p])
 				{
-					if(labels[n] != clusterIdx)
+					if (labels[n] != clusterIdx)
 					{
 						q.push(n);
 						labels[n] = clusterIdx;
-					}					
+					}
 				}
 			}
 		} while (!q.empty());
@@ -216,7 +223,7 @@ namespace HashColon::Clustering
 {
 	void Kmeans::Initialize(const string configFilePath)
 	{
-		CLI::App* cli = SingletonCLI::GetInstance().GetCLI("Clustering.Kmeans");
+		CLI::App *cli = SingletonCLI::GetInstance().GetCLI("Clustering.Kmeans");
 
 		if (!configFilePath.empty())
 		{
@@ -229,12 +236,12 @@ namespace HashColon::Clustering
 	}
 
 	void Kmeans::TrainModel(
-		const typename ClusteringBase<PointType>::DataListType& iTrainingData,
+		const typename ClusteringBase<PointType>::DataListType &iTrainingData,
 		typename ClusteringBase<PointType>::LabelsPtr oLabels,
 		typename ClusteringBase<PointType>::ProbListPtr oProbabilities)
 	{
 		CommonLogger logger;
-		logger.Log({ {Tag::lvl, 3} }) << "Kmeans: Started. " << endl;
+		logger.Log({{Tag::lvl, 3}}) << "Kmeans: Started. " << endl;
 
 		// K-means clustering using dkm
 		dkm::clustering_parameters<Real> dkm_params((unsigned int)_c.k);
@@ -243,29 +250,28 @@ namespace HashColon::Clustering
 
 		vector<vector<Real>> means;
 		auto [dkm_means, dkm_labels] = dkm::kmeans_lloyd_parallel(iTrainingData, dkm_params);
-		//auto [dkm_means, dkm_labels] = dkm::kmeans_lloyd(samples, dkm_params);
-		logger.Log({ {Tag::lvl, 3} }) << "Kmeans: K-means clustering finished." << endl;
+		// auto [dkm_means, dkm_labels] = dkm::kmeans_lloyd(samples, dkm_params);
+		logger.Log({{Tag::lvl, 3}}) << "Kmeans: K-means clustering finished." << endl;
 
 		// save clustering results in oLabels
 		oLabels->clear();
-		for (auto& label : dkm_labels)
+		for (auto &label : dkm_labels)
 			oLabels->push_back(label);
 
 		// compute likelihood: Not Implemented
 
-		logger.Log({ {Tag::lvl, 3} }) << "Kmeans: Finished." << endl;
+		logger.Log({{Tag::lvl, 3}}) << "Kmeans: Finished." << endl;
 
 		// Training finished.
 		ClusteringBase<PointType>::isTrained = true;
 	}
 
 	size_t Kmeans::GetClusterOf(
-		const PointType& iTestValue,
+		const PointType &iTestValue,
 		typename ClusteringBase<PointType>::ProbPtr oProbabilities)
 	{
 		throw NotImplementedException;
 	}
-
 
 }
 
@@ -273,7 +279,7 @@ namespace HashColon::Clustering
 namespace HashColon::Clustering
 {
 	// Get Min/Max/Mean/Median/Standard deviation from a given cluster
-	SimpleStatisticsAnalysisResults DistanceAnalysis(const vector<Real>& DistancesInCluster)
+	SimpleStatisticsAnalysisResults DistanceAnalysis(const vector<Real> &DistancesInCluster)
 	{
 		SimpleStatisticsAnalysisResults re;
 		re.NewAll();
@@ -287,7 +293,7 @@ namespace HashColon::Clustering
 		return re;
 	}
 
-	DistancesAnalysisResults DistanceAnalysis(const vector<vector<Real>>& DistancesInClusters)
+	DistancesAnalysisResults DistanceAnalysis(const vector<vector<Real>> &DistancesInClusters)
 	{
 		DistancesAnalysisResults re;
 		vector<Real> wholeDist;
@@ -302,7 +308,7 @@ namespace HashColon::Clustering
 	}
 
 	vector<vector<Real>> SortedDistanceGraph(
-		const vector<size_t>& clusterResult, const MatrixXR& DistanceMatrix)
+		const vector<size_t> &clusterResult, const MatrixXR &DistanceMatrix)
 	{
 		// DistanceMatrix should be square matrix & size of cluster result should be equal to size of distance matrix
 		assert((long int)clusterResult.size() == DistanceMatrix.rows());
@@ -327,7 +333,7 @@ namespace HashColon::Clustering
 		}
 
 		// sort results
-		for (auto& distances : DistancesInClusters)
+		for (auto &distances : DistancesInClusters)
 		{
 			sort(distances.begin(), distances.end());
 		}
@@ -336,8 +342,8 @@ namespace HashColon::Clustering
 	}
 
 	vector<vector<Real>> SortedDistanceGraph(
-		const vector<size_t>& clusterResult, const MatrixXR& DistanceMatrix,
-		DistancesAnalysisResults& additionals)
+		const vector<size_t> &clusterResult, const MatrixXR &DistanceMatrix,
+		DistancesAnalysisResults &additionals)
 	{
 		// DistanceMatrix should be square matrix & size of cluster result should be equal to size of distance matrix
 		assert((long int)clusterResult.size() == DistanceMatrix.rows());
@@ -362,7 +368,7 @@ namespace HashColon::Clustering
 		}
 
 		// sort results
-		for (auto& distances : DistancesInClusters)
+		for (auto &distances : DistancesInClusters)
 		{
 			sort(distances.begin(), distances.end());
 		}
@@ -374,7 +380,7 @@ namespace HashColon::Clustering
 	}
 
 	vector<size_t> PseudoMedian(
-		const std::vector<size_t>& clusterResult, const Eigen::MatrixXR& DistanceMatrix)
+		const std::vector<size_t> &clusterResult, const Eigen::MatrixXR &DistanceMatrix)
 	{
 		// DistanceMatrix should be square matrix & size of cluster result should be equal to size of distance matrix
 		assert((long int)clusterResult.size() == DistanceMatrix.rows());
@@ -390,7 +396,8 @@ namespace HashColon::Clustering
 			Real tmpsum = 0;
 			for (size_t j = 0; j < N; j++)
 			{
-				if (i == j) continue;
+				if (i == j)
+					continue;
 				else if (clusterResult[i] == clusterResult[j])
 				{
 					tmpsum += DistanceMatrix((int)i, (int)j);
@@ -407,8 +414,8 @@ namespace HashColon::Clustering
 	}
 
 	std::vector<HashColon::Real> PseudoDaviesBouldin(
-		const std::vector<size_t>& clusterResult, const Eigen::MatrixXR& DistanceMatrix,
-		std::vector<size_t>& pseudoMedian)
+		const std::vector<size_t> &clusterResult, const Eigen::MatrixXR &DistanceMatrix,
+		std::vector<size_t> &pseudoMedian)
 	{
 		// DistanceMatrix should be square matrix & size of cluster result should be equal to size of distance matrix
 		assert((long int)clusterResult.size() == DistanceMatrix.rows());
@@ -440,13 +447,13 @@ namespace HashColon::Clustering
 	}
 
 	vector<Real> PseudoDaviesBouldin(
-		const vector<size_t>& clusterResult, const Eigen::MatrixXR& DistanceMatrix)
+		const vector<size_t> &clusterResult, const Eigen::MatrixXR &DistanceMatrix)
 	{
 		vector<size_t> pseudoMedian;
 		return PseudoDaviesBouldin(clusterResult, DistanceMatrix, pseudoMedian);
 	}
 
-	Real Silhouette(size_t itemIdx, const vector<size_t>& clusterResult, const Eigen::MatrixXR& DistanceMatrix)
+	Real Silhouette(size_t itemIdx, const vector<size_t> &clusterResult, const Eigen::MatrixXR &DistanceMatrix)
 	{
 		// DistanceMatrix should be square matrix & size of cluster result should be equal to size of distance matrix
 		assert((long int)clusterResult.size() == DistanceMatrix.rows());
@@ -459,13 +466,15 @@ namespace HashColon::Clustering
 		vector<Real> cnt(clusterNo, 0.0);
 		for (size_t i = 0; i < N; i++)
 		{
-			if (i == itemIdx) continue;
+			if (i == itemIdx)
+				continue;
 			A[clusterResult[i]] += DistanceMatrix(itemIdx, i);
 			cnt[clusterResult[i]] += 1.0;
 		}
 
 		// if cnt of the cluster including itemIdx is equal or lesser than 1.0, return 0.0;
-		if (cnt[clusterResult[itemIdx]] <= 1.0) return 0.0;
+		if (cnt[clusterResult[itemIdx]] <= 1.0)
+			return 0.0;
 
 		// compute a(itemIdx) && b(itemIdx)
 		Real a_item = 0.0;
@@ -487,7 +496,7 @@ namespace HashColon::Clustering
 		return (b_item - a_item) / div;
 	}
 
-	vector<Real> Silhouette(const vector<size_t>& clusterResult, const Eigen::MatrixXR& DistanceMatrix)
+	vector<Real> Silhouette(const vector<size_t> &clusterResult, const Eigen::MatrixXR &DistanceMatrix)
 	{
 		// DistanceMatrix should be square matrix & size of cluster result should be equal to size of distance matrix
 		assert((long int)clusterResult.size() == DistanceMatrix.rows());

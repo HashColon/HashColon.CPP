@@ -1,5 +1,5 @@
-#ifndef HASHCOLON_FELINE_FELINEJSONIO_HPP
-#define HASHCOLON_FELINE_FELINEJSONIO_HPP
+#ifndef HASHCOLON_FELINE_FELINEJSONIO
+#define HASHCOLON_FELINE_FELINEJSONIO
 
 // std libraries
 #include <string>
@@ -15,14 +15,14 @@ namespace HashColon::Feline::IO
 	template <typename TList>
 	rapidjson::Document WriteFelineJsonFile(
 		const std::string outputFilepath,
-		const std::vector<TList>& routes,
-		rapidjson::MemoryPoolAllocator<>& alloc,
+		const std::vector<TList> &routes,
+		rapidjson::MemoryPoolAllocator<> &alloc,
 		bool writePretty = false);
-		
+
 	template <typename TList>
 	void WriteFelineJsonFile(
 		const std::string outputFilepath,
-		const std::vector<TList>& routes,
+		const std::vector<TList> &routes,
 		bool writePretty = false)
 	{
 		rapidjson::MemoryPoolAllocator<> alloc;
@@ -32,20 +32,19 @@ namespace HashColon::Feline::IO
 	template <typename TList>
 	rapidjson::Document WriteGeoJsonFile(
 		const std::string outputFilepath,
-		const std::vector<TList>& routes,
-		rapidjson::MemoryPoolAllocator<>& alloc,
-		bool writePretty = false);		
+		const std::vector<TList> &routes,
+		rapidjson::MemoryPoolAllocator<> &alloc,
+		bool writePretty = false);
 
 	template <typename TList>
 	void WriteGeoJsonFile(
 		const std::string outputFilepath,
-		const std::vector<TList>& routes,
+		const std::vector<TList> &routes,
 		bool writePretty = false)
 	{
 		rapidjson::MemoryPoolAllocator<> alloc;
 		WriteGeoJsonFile(outputFilepath, routes, alloc, writePretty);
-	}		
+	}
 }
-
 
 #endif

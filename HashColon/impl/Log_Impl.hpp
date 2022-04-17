@@ -1,15 +1,13 @@
 #ifndef HASHCOLON_LOG_IMPL
 #define HASHCOLON_LOG_IMPL
 
-// HashColon config
-#include <HashColon/HashColon_config.h>
+// header file for this source file
+#include <HashColon/Log.hpp>
 // std libraries
 #include <ios>
 #include <sstream>
 #include <streambuf>
 #include <string>
-// header file for this source file
-#include <HashColon/Log.hpp>
 
 namespace HashColon
 {

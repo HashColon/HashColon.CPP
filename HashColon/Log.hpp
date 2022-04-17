@@ -1,5 +1,5 @@
-#ifndef HASHCOLON_LOG_HPP
-#define HASHCOLON_LOG_HPP
+#ifndef HASHCOLON_LOG
+#define HASHCOLON_LOG
 
 // std libraries
 #include <functional>
@@ -30,12 +30,12 @@ namespace HashColon
 		using FilterType = std::function<bool(ArgListType)>;
 
 	protected:
-		virtual std::streamsize xsputn(const char* s, std::streamsize n) final override;
+		virtual std::streamsize xsputn(const char *s, std::streamsize n) final override;
 
 		virtual int_type overflow(int_type c = traits_type::eof()) final override;
-		
+
 		virtual int sync() final override;
-				
+
 	protected:
 		ArgListType _args;
 		FormatterType _formatter;
@@ -45,38 +45,36 @@ namespace HashColon
 		std::mutex _mutex;
 
 	public:
-		ArgListType& Arguments() { return _args; };
-		FormatterType& Formatter() { return _formatter; };
-		FilterType& Filter() { return _filter; };
-		std::vector<std::shared_ptr<std::ostream>>& StreamList() { return _streams; };
+		ArgListType &Arguments() { return _args; };
+		FormatterType &Formatter() { return _formatter; };
+		FilterType &Filter() { return _filter; };
+		std::vector<std::shared_ptr<std::ostream>> &StreamList() { return _streams; };
 
 		LogStreamBuf<tagtype> withArgs(const ArgListType args) const;
 		LogStreamBuf<tagtype> withFormatter(const FormatterType formatter) const;
 		LogStreamBuf<tagtype> withFilter(const FormatterType filter) const;
 
-		LogStreamBuf<tagtype> operator() () const;
-		LogStreamBuf<tagtype> operator() (const ArgListType args) const;
-		LogStreamBuf<tagtype> operator() (const FormatterType formatter) const;
-		LogStreamBuf<tagtype> operator() (const FilterType filter) const;
+		LogStreamBuf<tagtype> operator()() const;
+		LogStreamBuf<tagtype> operator()(const ArgListType args) const;
+		LogStreamBuf<tagtype> operator()(const FormatterType formatter) const;
+		LogStreamBuf<tagtype> operator()(const FilterType filter) const;
 
-		LogStreamBuf<tagtype> operator() (const FormatterType formatter, const ArgListType args) const;
-		LogStreamBuf<tagtype> operator() (const FilterType filter, const ArgListType args) const;
-		LogStreamBuf<tagtype> operator() (const FormatterType formatter, const FilterType filter) const;
-		LogStreamBuf<tagtype> operator() (const FormatterType formatter, const FilterType filter, const ArgListType args) const;
+		LogStreamBuf<tagtype> operator()(const FormatterType formatter, const ArgListType args) const;
+		LogStreamBuf<tagtype> operator()(const FilterType filter, const ArgListType args) const;
+		LogStreamBuf<tagtype> operator()(const FormatterType formatter, const FilterType filter) const;
+		LogStreamBuf<tagtype> operator()(const FormatterType formatter, const FilterType filter, const ArgListType args) const;
 
 	public:
-		LogStreamBuf(const LogStreamBuf<tagtype>& rhs)
+		LogStreamBuf(const LogStreamBuf<tagtype> &rhs)
 			: _args(rhs._args), _formatter(rhs._formatter), _filter(rhs._filter),
-			_ss(), _streams(rhs._streams)
-		{};
+			  _ss(), _streams(rhs._streams){};
 		LogStreamBuf(
 			std::vector<std::shared_ptr<std::ostream>> iStreams = {},
 			FormatterType iFormattter = nullptr,
 			FilterType iFilter = nullptr,
 			ArgListType iArglist = {})
 			: _args(iArglist), _formatter(iFormattter), _filter(iFilter),
-			 _ss(), _streams(iStreams)
-		{};
+			  _ss(), _streams(iStreams){};
 	};
 }
 
@@ -84,21 +82,21 @@ namespace HashColon
 namespace HashColon
 {
 	/*
-		This is the base class for logging. 
+		This is the base class for logging.
 		To use this class, tag type(enum)/filter function/format function needs to be defined.
-		Do not use this class for direct logging. use CommonLogger instead 
+		Do not use this class for direct logging. use CommonLogger instead
 
 		<Logger ingredients descriptions>
 		tagtype: enum for argument tags. all arguments will be passed as {tag, value} pairs
 		Formatter: formatting function in form: string [func](string, { {tag, value}, ... } )
-				   example) 
-				       string TimestampedMessages(string msg, { { tag::time, timevalue} } )
+				   example)
+					   string TimestampedMessages(string msg, { { tag::time, timevalue} } )
 					   this formatter gets msg as original message, timevalue as given argument name time.
-					   this formatter may give output as "[timevalue] msg"				       
+					   this formatter may give output as "[timevalue] msg"
 		Filter: filter function in form: bool [func]( { {tag, value}, ... } )
 				this function determines wheter the logging message should be shown or not.
 				example)
-				       bool levelFilter( { { tag::lvl, level } } )
+					   bool levelFilter( { { tag::lvl, level } } )
 					   If the given level is over certain value, the function will return false.
 					   Which will suppress the message.
 	*/
@@ -116,13 +114,11 @@ namespace HashColon
 		LogStreamBuf<tagtype> _internalStream;
 
 	public:
-		Logger(const Logger<tagtype>& logger)
-			: std::ostream(&_internalStream), _internalStream(logger._internalStream)
-		{};
+		Logger(const Logger<tagtype> &logger)
+			: std::ostream(&_internalStream), _internalStream(logger._internalStream){};
 
-		Logger(const LogStreamBuf<tagtype>* logstream)
-			: std::ostream(&_internalStream), _internalStream(*logstream)
-		{};
+		Logger(const LogStreamBuf<tagtype> *logstream)
+			: std::ostream(&_internalStream), _internalStream(*logstream){};
 
 		Logger(
 			std::vector<std::shared_ptr<std::ostream>> iStreams = {},
@@ -130,26 +126,24 @@ namespace HashColon
 			FilterType iFilter = nullptr,
 			ArgListType iArglist = {})
 			: std::ostream(&_internalStream),
-			_internalStream(iStreams, iFormatter, iFilter, iArglist)			
-		{};
+			  _internalStream(iStreams, iFormatter, iFilter, iArglist){};
 
 	public:
-		LogStreamBuf<tagtype>& Stream() { return _internalStream; };
+		LogStreamBuf<tagtype> &Stream() { return _internalStream; };
 
-		Logger<tagtype> withArgs(const ArgListType arg) const;		
+		Logger<tagtype> withArgs(const ArgListType arg) const;
 		Logger<tagtype> withFormatter(const FormatterType formatter) const;
 		Logger<tagtype> withFilter(const FilterType filter) const;
 
-		Logger<tagtype> operator() () const;
-		Logger<tagtype> operator() (const ArgListType arg) const;
-		Logger<tagtype> operator() (const FormatterType formatter) const;
-		Logger<tagtype> operator() (const FilterType filter) const;
+		Logger<tagtype> operator()() const;
+		Logger<tagtype> operator()(const ArgListType arg) const;
+		Logger<tagtype> operator()(const FormatterType formatter) const;
+		Logger<tagtype> operator()(const FilterType filter) const;
 
-		Logger<tagtype> operator() (const FormatterType formatter, const ArgListType arg) const;		
-		Logger<tagtype> operator() (const FilterType filter, const ArgListType arg) const;
-		Logger<tagtype> operator() (const FormatterType formatter, const FilterType filter) const;		
-		Logger<tagtype> operator() (const FormatterType formatter, const FilterType filter, const ArgListType arg) const;
-				
+		Logger<tagtype> operator()(const FormatterType formatter, const ArgListType arg) const;
+		Logger<tagtype> operator()(const FilterType filter, const ArgListType arg) const;
+		Logger<tagtype> operator()(const FormatterType formatter, const FilterType filter) const;
+		Logger<tagtype> operator()(const FormatterType formatter, const FilterType filter, const ArgListType arg) const;
 	};
 }
 
@@ -250,10 +244,18 @@ namespace HashColon::LogUtils
 
 	/*static const shared_ptr<ostream> Stdout;
 	static const shared_ptr<ostream> Stderr;*/
-	const std::shared_ptr<std::ostream> Stdout = std::shared_ptr<std::ostream>(&std::cout, [](std::ostream*) {});
-	const std::shared_ptr<std::ostream> Stderr = std::shared_ptr<std::ostream>(&std::cerr, [](std::ostream*) {});
+	const std::shared_ptr<std::ostream> Stdout = std::shared_ptr<std::ostream>(&std::cout, [](std::ostream *) {});
+	const std::shared_ptr<std::ostream> Stderr = std::shared_ptr<std::ostream>(&std::cerr, [](std::ostream *) {});
 
-	enum class Tag { type, file, line, func, lvl, maxlvl };
+	enum class Tag
+	{
+		type,
+		file,
+		line,
+		func,
+		lvl,
+		maxlvl
+	};
 
 	std::string LogFormat(std::string msg, std::unordered_map<Tag, ArgValue> args);
 	std::string ErrFormat(std::string msg, std::unordered_map<Tag, ArgValue> args);
@@ -268,42 +270,50 @@ namespace HashColon::LogUtils
 	{
 	private:
 		std::string _msg;
-		struct Ignitor {};
-		struct Terminator {};
+		struct Ignitor
+		{
+		};
+		struct Terminator
+		{
+		};
+
 	public:
-		Flashl(std::string msg) : _msg(msg) {};
-		friend std::ostream& operator<< (std::ostream& lhs, Flashl rhs);
+		Flashl(std::string msg) : _msg(msg){};
+		friend std::ostream &operator<<(std::ostream &lhs, Flashl rhs);
 	};
-	std::ostream& operator<< (std::ostream& lhs, Flashl rhs);
+	std::ostream &operator<<(std::ostream &lhs, Flashl rhs);
 
 	class Percentage
 	{
 	private:
 		double _percentage;
+
 	public:
 		Percentage(int item_done, int item_total);
 		Percentage(double percentage);
-		friend std::ostream& operator<< (std::ostream& lhs, Percentage rhs);
+		friend std::ostream &operator<<(std::ostream &lhs, Percentage rhs);
 	};
-	std::ostream& operator<< (std::ostream& lhs, Percentage rhs);
+	std::ostream &operator<<(std::ostream &lhs, Percentage rhs);
 
 	class TimeStamp
 	{
 	public:
-		TimeStamp() {};
-		friend std::ostream& operator<< (std::ostream& lhs, TimeStamp rhs);
+		TimeStamp(){};
+		friend std::ostream &operator<<(std::ostream &lhs, TimeStamp rhs);
 	};
-	std::ostream& operator<< (std::ostream& lhs, TimeStamp rhs);
+	std::ostream &operator<<(std::ostream &lhs, TimeStamp rhs);
 }
 
 // Macros for logging
 namespace HashColon
 {
 #ifndef __CODEINFO_TAGS__
-#define __CODEINFO_TAGS__ \
-		{ HashColon::LogUtils::Tag::file, __FILE__ }, \
-		{ HashColon::LogUtils::Tag::line, __LINE__ }, \
-		{ HashColon::LogUtils::Tag::func, __FUNC__ } 
+#define __CODEINFO_TAGS__                           \
+	{HashColon::LogUtils::Tag::file, __FILE__},     \
+		{HashColon::LogUtils::Tag::line, __LINE__}, \
+	{                                               \
+		HashColon::LogUtils::Tag::func, __FUNC__    \
+	}
 #endif // !__CODEINFO_TAGS__
 }
 
@@ -354,13 +364,11 @@ namespace HashColon
 	public:
 		struct _Params
 		{
-			std::shared_ptr<std::ostream> ErrorFile;
-			std::shared_ptr<std::ostream> LogFile;
+			std::vector<std::shared_ptr<std::ostream>> logStreams;
+			std::vector<std::shared_ptr<std::ostream>> errorStreams;
+			std::vector<std::shared_ptr<std::ostream>> debugStreams;
+			std::vector<std::shared_ptr<std::ostream>> messageStreams;
 
-			struct { bool Screen; bool File; } enableLog;
-			struct { bool Screen; bool File; } enableError;
-			struct { bool Screen; bool File; } enableDebug;
-			bool enableMessage;
 			int verbose_level;
 		};
 
@@ -368,11 +376,9 @@ namespace HashColon
 
 	private:
 		inline static _Params _cDefault;
-		_Params _c;
+
 	public:
-		static _Params& GetDefaultParams() { return _cDefault; };
-		_Params GetParams() { return _c; };
-		//static void Initialize();
+		static _Params &GetDefaultParams() { return _cDefault; };
 		static void Initialize(const std::string configFilePath = "");
 		CommonLogger(_Params params = _cDefault);
 
@@ -393,7 +399,11 @@ namespace HashColon
 	class ResultPrinter final : public Logger<LogUtils::Tag>
 	{
 	public:
-		struct _Params { bool Screen; bool File; };
+		struct _Params
+		{
+			bool Screen;
+			bool File;
+		};
 
 		HASHCOLON_CLASS_EXCEPTION_DEFINITION(ResultPrinter);
 
@@ -406,8 +416,7 @@ namespace HashColon
 		_Params GetParams() { return _c; };
 		static void Initialize();
 		ResultPrinter(std::string filepath, _Params params = _cDefault);
-		ResultPrinter(const ResultPrinter& rhs);
-
+		ResultPrinter(const ResultPrinter &rhs);
 	};
 }
 

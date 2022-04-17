@@ -1,5 +1,5 @@
-#ifndef HASHCOLON_ARRAY_HPP
-#define HASHCOLON_ARRAY_HPP
+#ifndef HASHCOLON_ARRAY
+#define HASHCOLON_ARRAY
 
 // std libraries
 #include <array>
@@ -35,11 +35,12 @@ namespace HashColon::Vec2D
 	/// <param name="a">a.</param>
 	/// <param name="b">The b.</param>
 	/// <returns>std.array&lt;_Ty, _Size&gt;.</returns>
-	template<typename T>
+	template <typename T>
 	inline std::array<T, 2> plus(std::array<T, 2> a, std::array<T, 2> b)
 	{
 		std::array<T, 2> re;
-		re[0] = a[0] + b[0]; re[1] = a[1] + b[1];
+		re[0] = a[0] + b[0];
+		re[1] = a[1] + b[1];
 		return re;
 	}
 
@@ -49,11 +50,12 @@ namespace HashColon::Vec2D
 	/// <param name="a">a.</param>
 	/// <param name="b">The b.</param>
 	/// <returns>std.array&lt;_Ty, _Size&gt;.</returns>
-	template<typename T>
+	template <typename T>
 	inline std::array<T, 2> minus(std::array<T, 2> a, std::array<T, 2> b)
 	{
 		std::array<T, 2> re;
-		re[0] = a[0] - b[0]; re[1] = a[1] - b[1];
+		re[0] = a[0] - b[0];
+		re[1] = a[1] - b[1];
 		return re;
 	}
 
@@ -63,7 +65,7 @@ namespace HashColon::Vec2D
 	/// <param name="a">a.</param>
 	/// <param name="b">The b.</param>
 	/// <returns>T.</returns>
-	template<typename T>
+	template <typename T>
 	inline T dot(std::array<T, 2> a, std::array<T, 2> b)
 	{
 		return a[0] * b[0] + a[1] * b[1];
@@ -75,12 +77,12 @@ namespace HashColon::Vec2D
 	/// <param name="a">a.</param>
 	/// <param name="b">The b.</param>
 	/// <returns>T.</returns>
-	template<typename T>
+	template <typename T>
 	inline T cross(std::array<T, 2> a, std::array<T, 2> b)
 	{
 		return a[0] * b[1] - a[1] * b[0];
 	}
-	template<typename T>
+	template <typename T>
 	inline bool equal(std::array<T, 2> a, std::array<T, 2> b)
 	{
 		return (a[0] == b[0]) && (a[1] == b[1]);
@@ -91,7 +93,7 @@ namespace HashColon::Vec2D
 	/// </summary>
 	/// <param name="a">a.</param>
 	/// <returns>T.</returns>
-	template<typename T>
+	template <typename T>
 	inline T abs(std::array<T, 2> a)
 	{
 		return std::sqrt(a[0] * a[0] + a[1] * a[1]);
@@ -103,17 +105,18 @@ namespace HashColon::Vec2D
 	/// <param name="a">a.</param>
 	/// <param name="b">The b.</param>
 	/// <returns>std.array&lt;_Ty, _Size&gt;.</returns>
-	template<typename T>
+	template <typename T>
 	inline std::array<T, 2> multiply(T a, std::array<T, 2> b)
 	{
 		std::array<T, 2> re;
-		re[0] = a * b[0]; re[1] = a * b[1];
+		re[0] = a * b[0];
+		re[1] = a * b[1];
 		return re;
 	}
 
 	/// <summary>
 	/// Check if the query point (queryP) is left or right side of given line(A->B)
-	/// </summary>			
+	/// </summary>
 	/// <param name="lineA">Start point of given line</param>
 	/// <param name="lineB">End point of given line</param>
 	/// <param name="queryP">Query point</param>
@@ -121,14 +124,14 @@ namespace HashColon::Vec2D
 	template <typename T>
 	inline T RelativeSideOfLine(std::array<T, 2> A, std::array<T, 2> B, std::array<T, 2> P)
 	{
-		// A != B 
+		// A != B
 		assert(!equal(A, B));
 		return (B[0] - A[0]) * (P[1] - A[1]) - (B[1] - A[1]) * (P[0] - A[0]);
 	}
 
 	/// <summary>
 	/// Check if the query point (queryP) is left or right side of given line(A->B)
-	/// </summary>			
+	/// </summary>
 	/// <param name="lineA">Start point of given line</param>
 	/// <param name="lineB">End point of given line</param>
 	/// <param name="queryP">Query point</param>
@@ -150,10 +153,10 @@ namespace HashColon::Vec2D
 
 		// Length of AB-projected line PA
 		T projLength = ((B[0] - A[0]) * (P[0] - A[0]) + (B[1] - A[1]) * (P[1] - A[1])) / abs(minus(B, A));
-		//if projected(dist(PA)) < 0 : outside point A: dist(P, A)
+		// if projected(dist(PA)) < 0 : outside point A: dist(P, A)
 		if (projLength < 0)
 			return abs(minus(P, A));
-		//if projected(dist(PA)) > 1 : outside point B: dist(P, B)
+		// if projected(dist(PA)) > 1 : outside point B: dist(P, B)
 		else if (projLength > 1)
 			return abs(minus(P, B));
 		// else P btwn A,B

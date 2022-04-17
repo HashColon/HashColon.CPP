@@ -1,5 +1,5 @@
-#ifndef HASHCOLON_CLUSTERING_HPP
-#define HASHCOLON_CLUSTERING_HPP
+#ifndef HASHCOLON_CLUSTERING
+#define HASHCOLON_CLUSTERING
 
 // std libraries
 #include <array>
@@ -18,7 +18,7 @@
 // ClusteringBase
 namespace HashColon::Clustering
 {
-	template<typename DataType>
+	template <typename DataType>
 	class ClusteringBase
 	{
 		// class built-in types definition
@@ -28,25 +28,23 @@ namespace HashColon::Clustering
 		using LabelsType = std::vector<size_t>;
 		using LabelsPtr = std::shared_ptr<std::vector<size_t>>;
 		using ProbType = std::vector<HashColon::Real>;
-		using ProbPtr = std::shared_ptr< std::vector<HashColon::Real>>;
+		using ProbPtr = std::shared_ptr<std::vector<HashColon::Real>>;
 		using ProbListType = std::vector<std::vector<HashColon::Real>>;
 		using ProbListPtr = std::shared_ptr<std::vector<std::vector<HashColon::Real>>>;
 
-		// trains clustering model with given training data		
+		// trains clustering model with given training data
 		virtual void TrainModel(
-			const DataListType& iTrainingData,
+			const DataListType &iTrainingData,
 			LabelsPtr oLabels = nullptr,
-			ProbListPtr oProbabilities = nullptr)
-			= 0;
+			ProbListPtr oProbabilities = nullptr) = 0;
 
 		// get cluster label for a given data sample.
 		// training most be done before using this function.
 		virtual size_t GetClusterOf(
-			const DataType& iTestValue,
-			ProbPtr oProbabilities = nullptr)
-			= 0;
+			const DataType &iTestValue,
+			ProbPtr oProbabilities = nullptr) = 0;
 
-		// get number of cluster of the trained model.		
+		// get number of cluster of the trained model.
 		virtual size_t GetNumOfClusters() = 0;
 
 		// erase trained model.
@@ -55,40 +53,45 @@ namespace HashColon::Clustering
 		// get clustering method name in string
 		virtual const std::string GetMethodName() const = 0;
 
-		// check if this clustering model is done. 
+		// check if this clustering model is done.
 		// if TrainModel is done, this value is true. else, false.
 		bool IsTrained() const { return isTrained; };
 
 	protected:
 		bool isTrained = false;
-		ClusteringBase() : isTrained(false) {};
+		ClusteringBase() : isTrained(false){};
 	};
 }
 
 // DistanceBasedClustering
 namespace HashColon::Clustering
 {
-	enum DistanceMeasureType { distance, similarity };
+	enum DistanceMeasureType
+	{
+		distance,
+		similarity
+	};
 
-	template<typename DataType>
+	template <typename DataType>
 	class DistanceMeasureBase
 	{
 	public:
 		using Ptr = std::shared_ptr<DistanceMeasureBase<DataType>>;
-		virtual HashColon::Real Measure(const DataType& a, const DataType& b) const = 0;
+		virtual HashColon::Real Measure(const DataType &a, const DataType &b) const = 0;
 		const DistanceMeasureType _measureType;
 		const DistanceMeasureType GetMeasureType() const { return _measureType; };
 		virtual const std::string GetMethodName() const = 0;
+
 	protected:
-		DistanceMeasureBase(DistanceMeasureType type) : _measureType(type) {};
+		DistanceMeasureBase(DistanceMeasureType type) : _measureType(type){};
 	};
 
-
-	template<typename DataType>
+	template <typename DataType>
 	class DistanceBasedClustering : public ClusteringBase<DataType>
-	{	
+	{
 	protected:
 		typename DistanceMeasureBase<DataType>::Ptr MeasureFunc;
+
 	public:
 		HASHCOLON_CLASS_EXCEPTION_DEFINITION(DistanceBasedClustering);
 		using Ptr = std::shared_ptr<DistanceBasedClustering<DataType>>;
@@ -96,42 +99,40 @@ namespace HashColon::Clustering
 		typename DistanceMeasureBase<DataType>::Ptr GetSimilarityFunc() { return MeasureFunc; };
 
 		virtual void TrainModel(
-			const typename ClusteringBase<DataType>::DataListType& iTrainingData,
+			const typename ClusteringBase<DataType>::DataListType &iTrainingData,
 			typename ClusteringBase<DataType>::LabelsPtr oLabels = nullptr,
 			typename ClusteringBase<DataType>::ProbListPtr oProbabilities = nullptr) override;
 
 		virtual void TrainModel(
-			const Eigen::MatrixXR& iRawDistanceMatrix,	bool isDistance,
+			const Eigen::MatrixXR &iRawDistanceMatrix, bool isDistance,
 			typename ClusteringBase<DataType>::LabelsPtr oLabels = nullptr,
 			typename ClusteringBase<DataType>::ProbListPtr oProbabilities = nullptr) = 0;
 
 		Eigen::MatrixXR ComputeDistanceMatrix(
-			const typename ClusteringBase<DataType>::DataListType& iTrainingData, bool verbose = false) const;
-			
+			const typename ClusteringBase<DataType>::DataListType &iTrainingData, bool verbose = false) const;
+
 	protected:
 		DistanceBasedClustering(typename DistanceMeasureBase<DataType>::Ptr func)
-			: MeasureFunc(func) {};
+			: MeasureFunc(func){};
 	};
 
 	template <typename DataType>
 	using SimilarityBasedClustering = DistanceBasedClustering<DataType>;
 
-	
-
 }
 
 // PointBasedClustering
 namespace HashColon::Clustering
-{	
+{
 	class PointBasedClustering : public ClusteringBase<std::vector<HashColon::Real>>
-	{	
+	{
 	};
 }
 
 // NJW
 namespace HashColon::Clustering
 {
-	template<typename DataType>
+	template <typename DataType>
 	class NJW : public DistanceBasedClustering<DataType>
 	{
 	public:
@@ -153,8 +154,7 @@ namespace HashColon::Clustering
 		NJW(
 			typename DistanceMeasureBase<DataType>::Ptr distanceFunction,
 			_Params params = _cDefault)
-			: DistanceBasedClustering<DataType>(distanceFunction), _c(params)
-		{};
+			: DistanceBasedClustering<DataType>(distanceFunction), _c(params){};
 
 		static void Initialize(
 			const std::string identifierPostfix = "",
@@ -164,13 +164,13 @@ namespace HashColon::Clustering
 		_Params GetParams() { return _c; };
 
 	private:
-		HashColon::Real ConvertDistance2Similarity(const HashColon::Real& d) const;
-		Eigen::MatrixXR ConvertDistance2Similarity(const Eigen::MatrixXR& D) const;
+		HashColon::Real ConvertDistance2Similarity(const HashColon::Real &d) const;
+		Eigen::MatrixXR ConvertDistance2Similarity(const Eigen::MatrixXR &D) const;
 		Eigen::MatrixXR SpectralDomain;
 
 	public:
 		void TrainModel(
-			const Eigen::MatrixXR& iRawDistanceMatrix, bool isDistance,
+			const Eigen::MatrixXR &iRawDistanceMatrix, bool isDistance,
 			typename ClusteringBase<DataType>::LabelsPtr oLabels = nullptr,
 			typename ClusteringBase<DataType>::ProbListPtr oProbabilities = nullptr)
 			override final;
@@ -178,15 +178,19 @@ namespace HashColon::Clustering
 		// get cluster label for a given data sample.
 		// training most be done before using this function.
 		size_t GetClusterOf(
-			const DataType& iTestValue,
+			const DataType &iTestValue,
 			typename ClusteringBase<DataType>::ProbPtr oProbabilities = nullptr)
 			override final;
 
-		// get number of cluster of the trained model.		
+		// get number of cluster of the trained model.
 		size_t GetNumOfClusters() override final { return _c.k; };
 
 		// erase trained model.
-		void cleanup() override final { SpectralDomain.resize(0, 0); ClusteringBase<DataType>::isTrained = false; };
+		void cleanup() override final
+		{
+			SpectralDomain.resize(0, 0);
+			ClusteringBase<DataType>::isTrained = false;
+		};
 
 		// get clustering method name in string
 		const std::string GetMethodName() const final { return "NJW"; };
@@ -213,7 +217,7 @@ namespace HashColon::Clustering
 		_Params _c;
 
 	public:
-		Kmeans(_Params params = _cDefault) : _c(params) {};
+		Kmeans(_Params params = _cDefault) : _c(params){};
 
 		static void Initialize(const std::string configFilePath = "");
 
@@ -222,7 +226,7 @@ namespace HashColon::Clustering
 
 	public:
 		void TrainModel(
-			const typename ClusteringBase<std::vector<HashColon::Real>>::DataListType& iTrainingData,
+			const typename ClusteringBase<std::vector<HashColon::Real>>::DataListType &iTrainingData,
 			typename ClusteringBase<std::vector<HashColon::Real>>::LabelsPtr oLabels = nullptr,
 			typename ClusteringBase<std::vector<HashColon::Real>>::ProbListPtr oProbabilities = nullptr)
 			override final;
@@ -230,11 +234,11 @@ namespace HashColon::Clustering
 		// get cluster label for a given data sample.
 		// training most be done before using this function.
 		size_t GetClusterOf(
-			const std::vector<HashColon::Real>& iTestValue,
+			const std::vector<HashColon::Real> &iTestValue,
 			typename ClusteringBase<std::vector<HashColon::Real>>::ProbPtr oProbabilities = nullptr)
 			override final;
 
-		// get number of cluster of the trained model.		
+		// get number of cluster of the trained model.
 		size_t GetNumOfClusters() override final { return _c.k; };
 
 		// erase trained model.
@@ -265,7 +269,7 @@ namespace HashColon::Clustering
 		size_t _numOfClusters;
 
 	public:
-		DBSCAN(_Params params = _cDefault) : _c(params) {};
+		DBSCAN(_Params params = _cDefault) : _c(params){};
 
 		static void Initialize(const std::string configFilePath = "");
 
@@ -274,7 +278,7 @@ namespace HashColon::Clustering
 
 	public:
 		void TrainModel(
-			const typename ClusteringBase<std::vector<HashColon::Real>>::DataListType& iTrainingData,
+			const typename ClusteringBase<std::vector<HashColon::Real>>::DataListType &iTrainingData,
 			typename ClusteringBase<std::vector<HashColon::Real>>::LabelsPtr oLabels = nullptr,
 			typename ClusteringBase<std::vector<HashColon::Real>>::ProbListPtr oProbabilities = nullptr)
 			override final;
@@ -282,14 +286,14 @@ namespace HashColon::Clustering
 		// get cluster label for a given data sample.
 		// training most be done before using this function.
 		size_t GetClusterOf(
-			const std::vector<HashColon::Real>& iTestValue,
+			const std::vector<HashColon::Real> &iTestValue,
 			typename ClusteringBase<std::vector<HashColon::Real>>::ProbPtr oProbabilities = nullptr)
 			override final
 		{
 			throw NotImplementedException;
 		}
 
-		// get number of cluster of the trained model.		
+		// get number of cluster of the trained model.
 		size_t GetNumOfClusters() override final
 		{
 			return _numOfClusters;
@@ -309,10 +313,9 @@ namespace HashColon::Clustering
 		constexpr static size_t noise = 1;
 
 		std::vector<std::vector<size_t>> GetNeighbors(
-			const typename ClusteringBase<std::vector<HashColon::Real>>::DataListType& iTrainingData) const;
+			const typename ClusteringBase<std::vector<HashColon::Real>>::DataListType &iTrainingData) const;
 		void DbscanBfs(size_t initP, size_t clusterIdx,
-			std::vector<std::vector<size_t>>& neighbors, std::vector<size_t>& labels) const;
-
+					   std::vector<std::vector<size_t>> &neighbors, std::vector<size_t> &labels) const;
 	};
 }
 
@@ -341,8 +344,7 @@ namespace HashColon::Clustering
 		DistanceBasedDBSCAN(
 			typename DistanceMeasureBase<DataType>::Ptr distanceFunction,
 			_Params params = _cDefault)
-			: DistanceBasedClustering<DataType>(distanceFunction), _c(params)
-		{};
+			: DistanceBasedClustering<DataType>(distanceFunction), _c(params){};
 
 		static void Initialize(
 			const std::string identifierPostfix = "",
@@ -353,7 +355,7 @@ namespace HashColon::Clustering
 
 	public:
 		void TrainModel(
-			const Eigen::MatrixXR& iRawDistanceMatrix, bool isDistance,
+			const Eigen::MatrixXR &iRawDistanceMatrix, bool isDistance,
 			typename ClusteringBase<DataType>::LabelsPtr oLabels = nullptr,
 			typename ClusteringBase<DataType>::ProbListPtr oProbabilities = nullptr)
 			override final;
@@ -361,14 +363,14 @@ namespace HashColon::Clustering
 		// get cluster label for a given data sample.
 		// training most be done before using this function.
 		size_t GetClusterOf(
-			const DataType& iTestValue,
+			const DataType &iTestValue,
 			typename ClusteringBase<std::vector<HashColon::Real>>::ProbPtr oProbabilities = nullptr)
 			override final
 		{
 			throw NotImplementedException;
 		}
 
-		// get number of cluster of the trained model.		
+		// get number of cluster of the trained model.
 		size_t GetNumOfClusters() override final
 		{
 			return _numOfClusters;
@@ -387,20 +389,19 @@ namespace HashColon::Clustering
 		constexpr static size_t unclassified = 0;
 		constexpr static size_t noise = 1;
 
-		HashColon::Real ConvertSimilarity2Distance(const HashColon::Real& s) const;
-		Eigen::MatrixXR ConvertSimilarity2Distance(const Eigen::MatrixXR& S) const;
-		
-		std::vector<std::vector<size_t>> GetNeighbors(const Eigen::MatrixXR& DistMatrix) const;
-		void DbscanBfs(size_t initP, size_t clusterIdx,
-			std::vector<std::vector<size_t>>& neighbors, std::vector<size_t>& labels) const;
+		HashColon::Real ConvertSimilarity2Distance(const HashColon::Real &s) const;
+		Eigen::MatrixXR ConvertSimilarity2Distance(const Eigen::MatrixXR &S) const;
 
+		std::vector<std::vector<size_t>> GetNeighbors(const Eigen::MatrixXR &DistMatrix) const;
+		void DbscanBfs(size_t initP, size_t clusterIdx,
+					   std::vector<std::vector<size_t>> &neighbors, std::vector<size_t> &labels) const;
 	};
 }
 
 // SpectralClustering
 namespace HashColon::Clustering
 {
-	template<typename DataType>
+	template <typename DataType>
 	class SpectralClustering : public DistanceBasedClustering<DataType>
 	{
 	public:
@@ -423,9 +424,8 @@ namespace HashColon::Clustering
 			typename ClusteringBase<std::vector<HashColon::Real>>::Ptr internalClusteringMethod,
 			_Params params = _cDefault)
 			: DistanceBasedClustering<DataType>(distanceFunction),
-			_internalClustering(internalClusteringMethod),
-			_c(params)
-		{};
+			  _internalClustering(internalClusteringMethod),
+			  _c(params){};
 
 		static void Initialize(const std::string configFilePath = "");
 
@@ -433,13 +433,13 @@ namespace HashColon::Clustering
 		_Params GetParams() { return _c; };
 
 	private:
-		HashColon::Real ConvertDistance2Similarity(const HashColon::Real& d) const;
+		HashColon::Real ConvertDistance2Similarity(const HashColon::Real &d) const;
 		Eigen::MatrixXR ConvertDistance2Similarity(const Eigen::MatrixXR D) const;
 		Eigen::MatrixXR SpectralDomain;
 
 	public:
 		void TrainModel(
-			const typename ClusteringBase<DataType>::DataListType& iTrainingData,
+			const typename ClusteringBase<DataType>::DataListType &iTrainingData,
 			typename ClusteringBase<DataType>::LabelsPtr oLabels = nullptr,
 			typename ClusteringBase<DataType>::ProbListPtr oProbabilities = nullptr)
 			override final;
@@ -447,15 +447,19 @@ namespace HashColon::Clustering
 		// get cluster label for a given data sample.
 		// training most be done before using this function.
 		size_t GetClusterOf(
-			const DataType& iTestValue,
+			const DataType &iTestValue,
 			typename ClusteringBase<DataType>::ProbPtr oProbabilities = nullptr)
 			override final;
 
-		// get number of cluster of the trained model.		
+		// get number of cluster of the trained model.
 		int GetNumOfClusters() override final { return _c.spaceSize; };
 
 		// erase trained model.
-		void cleanup() override final { SpectralDomain.resize(0, 0); ClusteringBase<DataType>::isTrained = false; };
+		void cleanup() override final
+		{
+			SpectralDomain.resize(0, 0);
+			ClusteringBase<DataType>::isTrained = false;
+		};
 
 		// get clustering method name in string
 		const std::string GetMethodName() const final { return "SpectralClustering"; };
@@ -463,7 +467,7 @@ namespace HashColon::Clustering
 }
 
 // Evaluation functions for clustering
-namespace  HashColon::Clustering
+namespace HashColon::Clustering
 {
 	struct DistancesAnalysisResults
 	{
@@ -471,40 +475,40 @@ namespace  HashColon::Clustering
 		HashColon::Statistics::SimpleStatisticsAnalysisResults TotalResults;
 	};
 
-	HashColon::Statistics::SimpleStatisticsAnalysisResults DistanceAnalysis(const std::vector<HashColon::Real>& DistancesInCluster);
+	HashColon::Statistics::SimpleStatisticsAnalysisResults DistanceAnalysis(const std::vector<HashColon::Real> &DistancesInCluster);
 
 	DistancesAnalysisResults DistanceAnalysis(
-		const std::vector<size_t>& clusterResult, const Eigen::MatrixXR& DistanceMatrix);
+		const std::vector<size_t> &clusterResult, const Eigen::MatrixXR &DistanceMatrix);
 
 	std::vector<std::vector<HashColon::Real>> SortedDistanceGraph(
-		const std::vector<size_t>& clusterResult, const Eigen::MatrixXR& DistanceMatrix);
+		const std::vector<size_t> &clusterResult, const Eigen::MatrixXR &DistanceMatrix);
 
 	std::vector<std::vector<HashColon::Real>> SortedDistanceGraph(
-		const std::vector<size_t>& clusterResult, const Eigen::MatrixXR& DistanceMatrix,
-		DistancesAnalysisResults& additionals);
+		const std::vector<size_t> &clusterResult, const Eigen::MatrixXR &DistanceMatrix,
+		DistancesAnalysisResults &additionals);
 
 	std::vector<size_t> PseudoMedian(
-		const std::vector<size_t>& clusterResult, const Eigen::MatrixXR& DistanceMatrix);
+		const std::vector<size_t> &clusterResult, const Eigen::MatrixXR &DistanceMatrix);
 
 	/*
-	* The Original definition of Davies-Bouldin index of a cluster is vary similar to standard deviation of a clsuter
-	*
-	* DBI_i = sqrt ( 1/N_i ( sum( ( X_k - C_i ) ^ 2 ) )
-	*/
+	 * The Original definition of Davies-Bouldin index of a cluster is vary similar to standard deviation of a clsuter
+	 *
+	 * DBI_i = sqrt ( 1/N_i ( sum( ( X_k - C_i ) ^ 2 ) )
+	 */
 	std::vector<HashColon::Real> PseudoDaviesBouldin(
-		const std::vector<size_t>& clusterResult, const Eigen::MatrixXR& DistanceMatrix);
+		const std::vector<size_t> &clusterResult, const Eigen::MatrixXR &DistanceMatrix);
 
 	std::vector<HashColon::Real> PseudoDaviesBouldin(
-		const std::vector<size_t>& clusterResult, const Eigen::MatrixXR& DistanceMatrix,
-		std::vector<size_t>& pseudoMedian);
+		const std::vector<size_t> &clusterResult, const Eigen::MatrixXR &DistanceMatrix,
+		std::vector<size_t> &pseudoMedian);
 
 	// silhouette for single data
-	HashColon::Real Silhouette(size_t itemIdx, const std::vector<size_t>& clusterResult, const Eigen::MatrixXR& DistanceMatrix);
+	HashColon::Real Silhouette(size_t itemIdx, const std::vector<size_t> &clusterResult, const Eigen::MatrixXR &DistanceMatrix);
 
 	// silhouette for all data
-	std::vector<HashColon::Real> Silhouette(const std::vector<size_t>& clusterResult, const Eigen::MatrixXR& DistanceMatrix);
-	//HashColon::Real ClassificationError(const std::vector<size_t>& clusterResult, const std::vector<size_t>& givenLabel);
-	//HashColon::Real VariationOfInfomration(const std::vector<size_t>& clusterResult, const std::vector<size_t>& givenLabel);
+	std::vector<HashColon::Real> Silhouette(const std::vector<size_t> &clusterResult, const Eigen::MatrixXR &DistanceMatrix);
+	// HashColon::Real ClassificationError(const std::vector<size_t>& clusterResult, const std::vector<size_t>& givenLabel);
+	// HashColon::Real VariationOfInfomration(const std::vector<size_t>& clusterResult, const std::vector<size_t>& givenLabel);
 }
 
 #endif

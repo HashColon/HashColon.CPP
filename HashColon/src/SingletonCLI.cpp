@@ -1,16 +1,13 @@
-// HashColon config
-#include <HashColon/HashColon_config.h>
+// header file for this source file
+#include <HashColon/SingletonCLI.hpp>
 // std libraries
-#include <filesystem>
 #include <memory>
 #include <mutex>
 #include <sstream>
 #include <string>
-// dependant external libraries
-#include <CLI11_modified/CLI11.hpp>
-#include <CLI11_modified/CLI11_extended.hpp>
-// header file for this source file
-#include <HashColon/SingletonCLI.hpp>
+// HashColon libraries
+#include <HashColon/CLI11.hpp>
+#include <HashColon/CLI11_JsonSupport.hpp>
 
 using namespace std;
 namespace HashColon
@@ -66,19 +63,24 @@ namespace HashColon
 	}
 
 	SingletonCLI& SingletonCLI::Initialize(
-		ConfigurationFileType configtype)
+		ConfigurationFileType configtype, string appDescription)
 	{
+		// set app description
+		_appDescription = appDescription;
+
 		// Instatiate singleton
 		GetInstance();
 
 		// set config formatter by config file type
 		switch (configtype)
 		{
-		case ConfigurationFileType::json:
-			GetInstance().GetCLI()->config_formatter(std::make_shared<CLI::ConfigJson>());
-			break;
-		default:
-			break;
+			case ConfigurationFileType::json:
+				GetInstance().GetCLI()->config_formatter(std::make_shared<CLI::ConfigJson>());
+				break;
+			case ConfigurationFileType::toml:
+			case ConfigurationFileType::ini:
+			default:
+				break;
 		}
 
 		return GetInstance();
@@ -103,7 +105,7 @@ namespace HashColon
 	}
 
 
-	void SingletonCLI::Parse(int argc, char** argv, vector<string> configFiles)
+	void SingletonCLI::Parse(int argc, char** argv, vector<string> configFiles = {})
 	{
 		// set number of config files
 		// set config

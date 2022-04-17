@@ -1,5 +1,5 @@
-#ifndef HASHCOLON_THREADPOOL_HPP
-#define HASHCOLON_THREADPOOL_HPP
+#ifndef HASHCOLON_THREADPOOL
+#define HASHCOLON_THREADPOOL
 
 // std libraries
 #include <atomic>
@@ -18,50 +18,50 @@
 // * vit-vit/CTPL: Cpp Thread Pool Library : https://github.com/vit-vit/CTPL
 
 namespace HashColon::_hidden
-{	
-	class TSQueue 
-	{
-	protected:
-		using FuncT = std::function<void(int id)>*;
-		std::queue<FuncT> q;
-		std::mutex m;
+{
+    class TSQueue
+    {
+    protected:
+        using FuncT = std::function<void(int id)> *;
+        std::queue<FuncT> q;
+        std::mutex m;
 
-	public:
-		bool Push(FuncT const& v);
-		bool Pop(FuncT& v);
-		bool Empty();
-	};
+    public:
+        bool Push(FuncT const &v);
+        bool Pop(FuncT &v);
+        bool Empty();
+    };
 
-	class TSPriorityQueue
-	{
-	protected:
-		using FuncT = std::function<void(int id)>*;
-		struct ItemT
-		{
-			FuncT f;
-			size_t priority;
-		};
-		struct ItemTCmp
-		{
-			bool operator()(ItemT& a, ItemT& b) { return a.priority < b.priority; };
-		};
-		
-		std::priority_queue<ItemT, std::vector<ItemT>, ItemTCmp> q;
-		std::mutex m;
+    class TSPriorityQueue
+    {
+    protected:
+        using FuncT = std::function<void(int id)> *;
+        struct ItemT
+        {
+            FuncT f;
+            size_t priority;
+        };
+        struct ItemTCmp
+        {
+            bool operator()(ItemT &a, ItemT &b) { return a.priority < b.priority; };
+        };
 
-	public:
-		bool Push(FuncT const& v, size_t priority);
-		bool Pop(FuncT& v);
-		bool Empty();		
-	};
+        std::priority_queue<ItemT, std::vector<ItemT>, ItemTCmp> q;
+        std::mutex m;
+
+    public:
+        bool Push(FuncT const &v, size_t priority);
+        bool Pop(FuncT &v);
+        bool Empty();
+    };
 }
 
 namespace HashColon
 {
-    class ThreadPool {
+    class ThreadPool
+    {
 
     public:
-
         ThreadPool();
         ThreadPool(int nThreads);
 
@@ -73,7 +73,7 @@ namespace HashColon
 
         // number of idle threads
         int IdleThreadCount();
-        std::thread& GetThread(int i);
+        std::thread &GetThread(int i);
 
         // change the number of threads in the pool
         // should be called from one thread, otherwise be careful to not interleave, also with this->stop()
@@ -92,15 +92,13 @@ namespace HashColon
         void Stop(bool isWait = false);
         void Wait();
 
-
-        template<typename F, typename... Rest>
-        auto Push(F&& f, Rest&&... rest) ->std::future<decltype(f(0, rest...))> {
+        template <typename F, typename... Rest>
+        auto Push(F &&f, Rest &&...rest) -> std::future<decltype(f(0, rest...))>
+        {
             auto pck = std::make_shared<std::packaged_task<decltype(f(0, rest...))(int)>>(
-                std::bind(std::forward<F>(f), std::placeholders::_1, std::forward<Rest>(rest)...)
-                );
-            auto _f = new std::function<void(int id)>([pck](int id) {
-                (*pck)(id);
-                });
+                std::bind(std::forward<F>(f), std::placeholders::_1, std::forward<Rest>(rest)...));
+            auto _f = new std::function<void(int id)>([pck](int id)
+                                                      { (*pck)(id); });
             this->q.Push(_f);
             std::unique_lock<std::mutex> lock(this->mutex);
             this->cv.notify_one();
@@ -109,26 +107,24 @@ namespace HashColon
 
         // run the user's function that excepts argument int - id of the running thread. returned value is templatized
         // operator returns std::future, where the user can get the result and rethrow the catched exceptins
-        template<typename F>
-        auto Push(F&& f) ->std::future<decltype(f(0))> {
+        template <typename F>
+        auto Push(F &&f) -> std::future<decltype(f(0))>
+        {
             auto pck = std::make_shared<std::packaged_task<decltype(f(0))(int)>>(std::forward<F>(f));
-            auto _f = new std::function<void(int id)>([pck](int id) {
-                (*pck)(id);
-                });
+            auto _f = new std::function<void(int id)>([pck](int id)
+                                                      { (*pck)(id); });
             this->q.Push(_f);
             std::unique_lock<std::mutex> lock(this->mutex);
             this->cv.notify_one();
             return pck->get_future();
         }
 
-
     private:
-
         // deleted
-        ThreadPool(const ThreadPool&);// = delete;
-        ThreadPool(ThreadPool&&);// = delete;
-        ThreadPool& operator=(const ThreadPool&);// = delete;
-        ThreadPool& operator=(ThreadPool&&);// = delete;
+        ThreadPool(const ThreadPool &);            // = delete;
+        ThreadPool(ThreadPool &&);                 // = delete;
+        ThreadPool &operator=(const ThreadPool &); // = delete;
+        ThreadPool &operator=(ThreadPool &&);      // = delete;
 
         void SetThread(int i);
         void Init();
@@ -138,16 +134,15 @@ namespace HashColon
         _hidden::TSQueue q;
         std::atomic<bool> isDone;
         std::atomic<bool> isStop;
-        std::atomic<int> nWaiting;  // how many threads are waiting
+        std::atomic<int> nWaiting; // how many threads are waiting
 
         std::mutex mutex;
         std::condition_variable cv;
     };
 
-    class PriorityThreadPool 
+    class PriorityThreadPool
     {
     public:
-
         PriorityThreadPool();
         PriorityThreadPool(int nThreads);
 
@@ -159,7 +154,7 @@ namespace HashColon
 
         // number of idle threads
         int IdleThreadCount();
-        std::thread& GetThread(int i);
+        std::thread &GetThread(int i);
 
         // change the number of threads in the pool
         // should be called from one thread, otherwise be careful to not interleave, also with this->stop()
@@ -178,15 +173,13 @@ namespace HashColon
         void Stop(bool isWait = false);
         void Wait();
 
-
-        template<typename F, typename... Rest>
-        auto Push(size_t priority, F&& f, Rest&&... rest) ->std::future<decltype(f(0, rest...))> {
+        template <typename F, typename... Rest>
+        auto Push(size_t priority, F &&f, Rest &&...rest) -> std::future<decltype(f(0, rest...))>
+        {
             auto pck = std::make_shared<std::packaged_task<decltype(f(0, rest...))(int)>>(
-                std::bind(std::forward<F>(f), std::placeholders::_1, std::forward<Rest>(rest)...)
-                );
-            auto _f = new std::function<void(int id)>([pck](int id) {
-                (*pck)(id);
-                });
+                std::bind(std::forward<F>(f), std::placeholders::_1, std::forward<Rest>(rest)...));
+            auto _f = new std::function<void(int id)>([pck](int id)
+                                                      { (*pck)(id); });
             this->q.Push(_f, priority);
             std::unique_lock<std::mutex> lock(this->mutex);
             this->cv.notify_one();
@@ -195,12 +188,12 @@ namespace HashColon
 
         // run the user's function that excepts argument int - id of the running thread. returned value is templatized
         // operator returns std::future, where the user can get the result and rethrow the catched exceptins
-        template<typename F>
-        auto Push(size_t priority, F&& f) ->std::future<decltype(f(0))> {
+        template <typename F>
+        auto Push(size_t priority, F &&f) -> std::future<decltype(f(0))>
+        {
             auto pck = std::make_shared<std::packaged_task<decltype(f(0))(int)>>(std::forward<F>(f));
-            auto _f = new std::function<void(int id)>([pck](int id) {
-                (*pck)(id);
-                });
+            auto _f = new std::function<void(int id)>([pck](int id)
+                                                      { (*pck)(id); });
             this->q.Push(_f, priority);
             std::unique_lock<std::mutex> lock(this->mutex);
             this->cv.notify_one();
@@ -208,12 +201,11 @@ namespace HashColon
         }
 
     private:
-
         // deleted
-        PriorityThreadPool(const PriorityThreadPool&);// = delete;
-        PriorityThreadPool(PriorityThreadPool&&);// = delete;
-        PriorityThreadPool& operator=(const PriorityThreadPool&);// = delete;
-        PriorityThreadPool& operator=(PriorityThreadPool&&);// = delete;
+        PriorityThreadPool(const PriorityThreadPool &);            // = delete;
+        PriorityThreadPool(PriorityThreadPool &&);                 // = delete;
+        PriorityThreadPool &operator=(const PriorityThreadPool &); // = delete;
+        PriorityThreadPool &operator=(PriorityThreadPool &&);      // = delete;
 
         void SetThread(int i);
         void Init();
@@ -223,7 +215,7 @@ namespace HashColon
         _hidden::TSPriorityQueue q;
         std::atomic<bool> isDone;
         std::atomic<bool> isStop;
-        std::atomic<int> nWaiting;  // how many threads are waiting
+        std::atomic<int> nWaiting; // how many threads are waiting
 
         std::mutex mutex;
         std::condition_variable cv;

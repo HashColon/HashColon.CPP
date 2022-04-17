@@ -1,5 +1,5 @@
-#ifndef HASHCOLON_FELINE_TRAJECTORYXTDESTIMATION_HPP
-#define HASHCOLON_FELINE_TRAJECTORYXTDESTIMATION_HPP
+#ifndef HASHCOLON_FELINE_TRAJECTORYXTDESTIMATION
+#define HASHCOLON_FELINE_TRAJECTORYXTDESTIMATION
 
 // std libraries
 #include <vector>
@@ -10,13 +10,17 @@
 #include <HashColon/Feline/GeoValues.hpp>
 
 namespace HashColon::Feline
-{		
-	class CATZOC 
+{
+	class CATZOC
 	{
 	public:
-		enum CATZOC_CLASS 
+		enum CATZOC_CLASS
 		{
-			CATZOC_A1, CATZOC_A2, CATZOC_B, CATZOC_C, CATZOC_D
+			CATZOC_A1,
+			CATZOC_A2,
+			CATZOC_B,
+			CATZOC_C,
+			CATZOC_D
 		};
 		static CATZOC_CLASS GetValue(HashColon::Feline::Position p);
 	};
@@ -28,7 +32,9 @@ namespace HashColon::Feline
 
 		enum NavArea_CLASS
 		{
-			NavArea_HarborNConfinedWaters, NavArea_Coastal, NavArea_OpenSea
+			NavArea_HarborNConfinedWaters,
+			NavArea_Coastal,
+			NavArea_OpenSea
 		};
 		static NavArea_CLASS GetValue(HashColon::Feline::Position p);
 	};
@@ -59,7 +65,7 @@ namespace HashColon::Feline
 		HashColon::Feline::XTD _Get_d_nsa(HashColon::Feline::Position pos) const;
 		HashColon::Feline::XTD _Get_d_vsa(HashColon::Real loa, HashColon::Degree turnAngle) const;
 		HashColon::Feline::XTD _Get_d_coast(
-			HashColon::Feline::Position pos, HashColon::Feline::Position legEnd, 
+			HashColon::Feline::Position pos, HashColon::Feline::Position legEnd,
 			HashColon::Feline::XTD searchLimit, HashColon::Real beam, HashColon::Real draught) const;
 
 	public:
@@ -68,8 +74,8 @@ namespace HashColon::Feline
 		_Params GetParams() { return _c; };
 
 		XTDEstimation(size_t threadidx = 0, _Params params = _cDefault)
-			: _c(_cDefault), _threadIdx(threadidx) {};
-		
+			: _c(_cDefault), _threadIdx(threadidx){};
+
 		XTD EstimateXTD(
 			HashColon::Feline::Position pos, HashColon::Feline::Position legEnd,
 			HashColon::Real loa, HashColon::Real beam, HashColon::Real draught,
@@ -78,7 +84,6 @@ namespace HashColon::Feline
 		HashColon::Feline::XYXtdList EstimateXTD(
 			HashColon::Feline::XYList waypoints,
 			HashColon::Real loa, HashColon::Real beam, HashColon::Real draught) const;
-	
 	};
 }
 

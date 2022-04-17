@@ -1,5 +1,5 @@
-#ifndef HASHCOLON_FELINE_GEODISTANCES_HPP
-#define HASHCOLON_FELINE_GEODISTANCES_HPP
+#ifndef HASHCOLON_FELINE_GEODISTANCES
+#define HASHCOLON_FELINE_GEODISTANCES
 
 // std libraries
 #include <array>
@@ -20,8 +20,8 @@ namespace HashColon::Feline
 	// declare GeoDistanceType in use
 	enum GeoDistanceType : size_t
 	{
-		DefaultDistance, 
-		CartesianDistance, 
+		DefaultDistance,
+		CartesianDistance,
 		HaversineDistance
 	};
 
@@ -38,19 +38,20 @@ namespace HashColon::Feline
 		constexpr HashColon::Real S = 90.0;
 		constexpr HashColon::Real E = 180.0;
 		constexpr HashColon::Real W = -180.0;
-	}	
+	}
 
 	// helper functions
 	namespace _helper
-	{		
-		inline bool IsNonNegative(const HashColon::Real& x) { return x >= 0.0; };
-		inline bool IsAngle(const HashColon::Real& x) { return x >= -180.0 && x <= 180.0; };
+	{
+		inline bool IsNonNegative(const HashColon::Real &x) { return x >= 0.0; };
+		inline bool IsAngle(const HashColon::Real &x) { return x >= -180.0 && x <= 180.0; };
 	}
 
 	// position definition
 	struct Position
-	{		
-		union {
+	{
+		union
+		{
 			struct
 			{
 				// do not use boundedReal for lon/lat to use aggregate form
@@ -63,39 +64,40 @@ namespace HashColon::Feline
 		// No user-declared constructors for aggregate initialization
 		Position() = default;
 
-		inline HashColon::Real& operator[](std::size_t i) { return dat[i]; }
+		inline HashColon::Real &operator[](std::size_t i) { return dat[i]; }
 		inline bool IsValid() const;
 		inline void Validify();
 
 		HashColon::Real DistanceTo(const Position toPoint, GeoDistanceType type = DefaultDistance) const;
-		Position MoveTo(const HashColon::Real distanceMeter, const HashColon::Degree a, GeoDistanceType type = DefaultDistance) const;				
+		Position MoveTo(const HashColon::Real distanceMeter, const HashColon::Degree a, GeoDistanceType type = DefaultDistance) const;
 		HashColon::Degree AngleTo(const Position toPoint, GeoDistanceType type = DefaultDistance) const;
 		HashColon::Real CrossTrackDistanceTo(const Position path_s, const Position path_e, GeoDistanceType type = DefaultDistance) const;
 		HashColon::Real OnTrackDistanceTo(const Position path_s, const Position path_e, GeoDistanceType type = DefaultDistance) const;
 	};
-	inline bool operator==(const Position& lhs, const Position& rhs) { return lhs.dat[0] == rhs.dat[0] && lhs.dat[1] == rhs.dat[1]; };
-	inline bool operator!=(const Position& lhs, const Position& rhs) { return !(lhs == rhs); };
+	inline bool operator==(const Position &lhs, const Position &rhs) { return lhs.dat[0] == rhs.dat[0] && lhs.dat[1] == rhs.dat[1]; };
+	inline bool operator!=(const Position &lhs, const Position &rhs) { return !(lhs == rhs); };
 	inline bool IsLonValid(const HashColon::Real lon) { return lon >= PositionBounds::W && lon <= PositionBounds::E; };
 	inline bool IsLatValid(const HashColon::Real lat) { return lat >= PositionBounds::S && lat <= PositionBounds::N; };
 	inline bool IsLonLatValid(const HashColon::Real lon, const HashColon::Real lat) { return IsLonValid && IsLatValid; };
-	inline bool IsValid(const Position& pos) { return IsLonLatValid(pos.dat[0], pos.dat[1]); };
-	inline bool Position::IsValid() const { return  HashColon::Feline::IsValid(*this); };
+	inline bool IsValid(const Position &pos) { return IsLonLatValid(pos.dat[0], pos.dat[1]); };
+	inline bool Position::IsValid() const { return HashColon::Feline::IsValid(*this); };
 	inline void Position::Validify()
-	{		
-		if (!IsLonValid(longitude))		
+	{
+		if (!IsLonValid(longitude))
 			longitude = std::remainder(longitude - 180.0, 360.0) + 180.0;
 
 		if (!IsLatValid(latitude))
 			latitude = ((int)std::round(latitude / 180.0) % 2 == 0)
-				? std::remainder(latitude - 180.0, 360.0) + 180.0
-				: -std::remainder(latitude - 180.0, 360.0);		
+						   ? std::remainder(latitude - 180.0, 360.0) + 180.0
+						   : -std::remainder(latitude - 180.0, 360.0);
 	};
 	using XY = Position;
 
 	// velocity definition
 	struct Velocity
 	{
-		union {
+		union
+		{
 			struct
 			{
 				HashColon::Real speed;
@@ -107,23 +109,23 @@ namespace HashColon::Feline
 		// No user-declared constructors for aggregate initialization
 		Velocity() = default;
 
-		inline HashColon::Real& operator[](std::size_t i) { return dat[i]; }
+		inline HashColon::Real &operator[](std::size_t i) { return dat[i]; }
 		inline bool IsValid() const;
 		inline void Validify();
 	};
-	inline bool operator==(const Velocity& lhs, const Velocity& rhs) { return lhs.dat[0] == rhs.dat[0] && lhs.dat[1] == rhs.dat[1]; };
-	inline bool operator!=(const Velocity& lhs, const Velocity& rhs) { return !(lhs == rhs); };
+	inline bool operator==(const Velocity &lhs, const Velocity &rhs) { return lhs.dat[0] == rhs.dat[0] && lhs.dat[1] == rhs.dat[1]; };
+	inline bool operator!=(const Velocity &lhs, const Velocity &rhs) { return !(lhs == rhs); };
 	inline bool IsSpeedValid(const HashColon::Real s) { return _helper::IsNonNegative(s); };
 	inline bool IsAngleValid(const HashColon::Real a) { return _helper::IsAngle(a); };
-	inline bool IsValid(const Velocity& v) { return IsSpeedValid(v.dat[0]) && IsAngleValid(v.dat[1]); };
+	inline bool IsValid(const Velocity &v) { return IsSpeedValid(v.dat[0]) && IsAngleValid(v.dat[1]); };
 	inline bool Velocity::IsValid() const { return HashColon::Feline::IsValid(*this); };
 	inline void Velocity::Validify()
 	{
 		if (!IsSpeedValid(speed))
 			speed = std::abs(speed);
-		
+
 		if (!IsAngleValid(angle))
-			angle = std::remainder(angle - 180.0, 360) + 180.0;		
+			angle = std::remainder(angle - 180.0, 360) + 180.0;
 	}
 	using VVa = Velocity;
 
@@ -137,25 +139,29 @@ namespace HashColon::Feline
 		inline static const std::string defaultFormat = "yy-mm-dd HH:MM:SS";
 
 		constexpr TimePoint()
-			: std::chrono::system_clock::time_point() {};
+			: std::chrono::system_clock::time_point(){};
 
-		constexpr explicit TimePoint(const Duration& d)
-			: std::chrono::system_clock::time_point(d) {};
+		constexpr explicit TimePoint(const Duration &d)
+			: std::chrono::system_clock::time_point(d){};
 
 		template <class Duration2>
-		constexpr TimePoint(const time_point<std::chrono::system_clock, Duration2>& t)
-			: std::chrono::system_clock::time_point(t) {};
+		constexpr TimePoint(const time_point<std::chrono::system_clock, Duration2> &t)
+			: std::chrono::system_clock::time_point(t){};
 
 		inline TimePoint(std::string datetimeStr) { fromString(datetimeStr); };
 		inline TimePoint(std::pair<std::string, std::string> timedef) { fromString(timedef.first, timedef.second); };
 
 	public:
-		inline TimePoint& operator=(std::string datetimeStr) { fromString(datetimeStr); return (*this); };
-		inline TimePoint& operator=(std::pair<std::string, std::string> timedef) 
-		{ 
-			fromString(timedef.first, timedef.second); 
-			return (*this); }
-		;
+		inline TimePoint &operator=(std::string datetimeStr)
+		{
+			fromString(datetimeStr);
+			return (*this);
+		};
+		inline TimePoint &operator=(std::pair<std::string, std::string> timedef)
+		{
+			fromString(timedef.first, timedef.second);
+			return (*this);
+		};
 		void fromString(std::string datetimeStr, const std::string formatStr = defaultFormat);
 		std::string toString(const std::string formatStr = defaultFormat) const;
 	};
@@ -163,7 +169,8 @@ namespace HashColon::Feline
 	// XTD definition
 	struct XTD
 	{
-		union {
+		union
+		{
 			struct
 			{
 				HashColon::Real xtdPortside;
@@ -175,20 +182,20 @@ namespace HashColon::Feline
 		// No user-declared constructors for aggregate initialization
 		XTD() = default;
 
-		inline HashColon::Real& operator[](std::size_t i) { return dat[i]; }
+		inline HashColon::Real &operator[](std::size_t i) { return dat[i]; }
 		inline bool IsValid() const;
 		inline void Validify();
 	};
-	inline bool operator==(const XTD& lhs, const XTD& rhs) { return lhs.dat[0] == rhs.dat[0] && lhs.dat[1] == rhs.dat[1]; };
-	inline bool operator!=(const XTD& lhs, const XTD& rhs) { return !(lhs == rhs); };
+	inline bool operator==(const XTD &lhs, const XTD &rhs) { return lhs.dat[0] == rhs.dat[0] && lhs.dat[1] == rhs.dat[1]; };
+	inline bool operator!=(const XTD &lhs, const XTD &rhs) { return !(lhs == rhs); };
 	inline bool IsXtdValid(const HashColon::Real x) { return _helper::IsNonNegative(x); };
-	inline bool IsValid(const XTD& xtd) { return IsXtdValid(xtd.dat[0]) && IsXtdValid(xtd.dat[1]); };
-	inline bool XTD::IsValid() const { return  HashColon::Feline::IsValid(*this); };
+	inline bool IsValid(const XTD &xtd) { return IsXtdValid(xtd.dat[0]) && IsXtdValid(xtd.dat[1]); };
+	inline bool XTD::IsValid() const { return HashColon::Feline::IsValid(*this); };
 	inline void XTD::Validify()
 	{
 		if (!IsXtdValid(xtdPortside))
 			xtdPortside = std::abs(xtdPortside);
-		
+
 		if (!IsXtdValid(xtdStarboard))
 			xtdStarboard = std::abs(xtdStarboard);
 	}
@@ -202,7 +209,7 @@ namespace HashColon::Feline
 		// No user-declared constructors for aggregate initialization
 		XYT() = default;
 
-		inline HashColon::Real& operator[](std::size_t i) { return Pos.dat[i]; };
+		inline HashColon::Real &operator[](std::size_t i) { return Pos.dat[i]; };
 
 		XYT MoveTo(const Velocity vel, const Duration t, GeoDistanceType type = DefaultDistance) const;
 		HashColon::Real SpeedTo(const XYT xyt, GeoDistanceType type = DefaultDistance) const;
@@ -212,9 +219,9 @@ namespace HashColon::Feline
 		inline bool IsValid() const;
 		inline void Validify();
 	};
-	inline bool operator==(const XYT& lhs, const XYT& rhs) { return lhs.Pos == rhs.Pos && lhs.TP == rhs.TP; };
-	inline bool operator!=(const XYT& lhs, const XYT& rhs) { return !(lhs == rhs); };
-	inline bool IsValid(const XYT& xyt) { return xyt.Pos.IsValid(); };
+	inline bool operator==(const XYT &lhs, const XYT &rhs) { return lhs.Pos == rhs.Pos && lhs.TP == rhs.TP; };
+	inline bool operator!=(const XYT &lhs, const XYT &rhs) { return !(lhs == rhs); };
+	inline bool IsValid(const XYT &xyt) { return xyt.Pos.IsValid(); };
 	inline bool XYT::IsValid() const { return HashColon::Feline::IsValid(*this); };
 	inline void XYT::Validify() { Pos.Validify(); };
 
@@ -239,21 +246,25 @@ namespace HashColon::Feline
 		// No user-declared constructors for aggregate initialization
 		XYVVaT() = default;
 
-		inline HashColon::Real& operator[](std::size_t i) { return dat[i]; };
+		inline HashColon::Real &operator[](std::size_t i) { return dat[i]; };
 
 		inline operator Position() const { return Pos; };
 		inline operator Velocity() const { return Vel; };
 		inline operator TimePoint() const { return TP; };
-		inline operator XYT() const { return { Pos, TP }; };
+		inline operator XYT() const { return {Pos, TP}; };
 
 		inline bool IsValid() const;
 		inline void Validify();
 	};
-	inline bool operator==(const XYVVaT& lhs, const XYVVaT& rhs) { return lhs.Pos == rhs.Pos && lhs.TP == rhs.TP && lhs.Vel == rhs.Vel; };
-	inline bool operator!=(const XYVVaT& lhs, const XYVVaT& rhs) { return !(lhs == rhs); };
-	inline bool IsValid(const XYVVaT& xyvvat) { return xyvvat.Pos.IsValid() && xyvvat.Vel.IsValid(); };
+	inline bool operator==(const XYVVaT &lhs, const XYVVaT &rhs) { return lhs.Pos == rhs.Pos && lhs.TP == rhs.TP && lhs.Vel == rhs.Vel; };
+	inline bool operator!=(const XYVVaT &lhs, const XYVVaT &rhs) { return !(lhs == rhs); };
+	inline bool IsValid(const XYVVaT &xyvvat) { return xyvvat.Pos.IsValid() && xyvvat.Vel.IsValid(); };
 	inline bool XYVVaT::IsValid() const { return HashColon::Feline::IsValid(*this); };
-	inline void XYVVaT::Validify() { Pos.Validify(); Vel.Validify(); };
+	inline void XYVVaT::Validify()
+	{
+		Pos.Validify();
+		Vel.Validify();
+	};
 
 	// XY(Position) + Xtd(XTD)
 	struct XYXtd
@@ -271,7 +282,7 @@ namespace HashColon::Feline
 		// No user-declared constructors for aggregate initialization
 		XYXtd() = default;
 
-		inline HashColon::Real& operator[](std::size_t i) { return dat[i]; };
+		inline HashColon::Real &operator[](std::size_t i) { return dat[i]; };
 
 		inline operator Position() const { return Pos; };
 		inline operator XTD() const { return Xtd; };
@@ -279,11 +290,15 @@ namespace HashColon::Feline
 		inline bool IsValid() const;
 		inline void Validify();
 	};
-	inline bool operator==(const XYXtd& lhs, const XYXtd& rhs) { return lhs.Pos == rhs.Pos && lhs.Xtd == rhs.Xtd; };
-	inline bool operator!=(const XYXtd& lhs, const XYXtd& rhs) { return !(lhs == rhs); };
-	inline bool IsValid(const XYXtd& xyxtd) { return xyxtd.Pos.IsValid() && xyxtd.Xtd.IsValid(); };
+	inline bool operator==(const XYXtd &lhs, const XYXtd &rhs) { return lhs.Pos == rhs.Pos && lhs.Xtd == rhs.Xtd; };
+	inline bool operator!=(const XYXtd &lhs, const XYXtd &rhs) { return !(lhs == rhs); };
+	inline bool IsValid(const XYXtd &xyxtd) { return xyxtd.Pos.IsValid() && xyxtd.Xtd.IsValid(); };
 	inline bool XYXtd::IsValid() const { return HashColon::Feline::IsValid(*this); };
-	inline void XYXtd::Validify() { Pos.Validify(); Xtd.Validify(); };
+	inline void XYXtd::Validify()
+	{
+		Pos.Validify();
+		Xtd.Validify();
+	};
 
 	// XY(Position) + VVa(Velocity) + Xtd(XTD) + T(TimePoint)
 	struct XYVVaXtdT
@@ -307,29 +322,29 @@ namespace HashColon::Feline
 		inline operator Velocity() const { return Vel; };
 		inline operator XTD() const { return Xtd; };
 		inline operator TimePoint() const { return TP; };
-		inline operator XYT() const { return { Pos, TP }; };
-		inline operator XYVVaT() const { return { Pos, Vel, TP }; };
-		inline operator XYXtd() const { return { Pos, Xtd }; };
+		inline operator XYT() const { return {Pos, TP}; };
+		inline operator XYVVaT() const { return {Pos, Vel, TP}; };
+		inline operator XYXtd() const { return {Pos, Xtd}; };
 
 		inline bool IsValid() const;
 		inline void Validify();
 	};
-	inline bool operator==(const XYVVaXtdT& lhs, const XYVVaXtdT& rhs)
+	inline bool operator==(const XYVVaXtdT &lhs, const XYVVaXtdT &rhs)
 	{
-		return lhs.Pos == rhs.Pos
-			&& lhs.Vel == rhs.Vel
-			&& lhs.Xtd == rhs.Xtd
-			&& lhs.TP == rhs.TP;
+		return lhs.Pos == rhs.Pos && lhs.Vel == rhs.Vel && lhs.Xtd == rhs.Xtd && lhs.TP == rhs.TP;
 	};
-	inline bool operator!=(const XYVVaXtdT& lhs, const XYVVaXtdT& rhs) { return !(lhs == rhs); };
-	inline bool IsValid(const XYVVaXtdT& xyvvaxtdt)
+	inline bool operator!=(const XYVVaXtdT &lhs, const XYVVaXtdT &rhs) { return !(lhs == rhs); };
+	inline bool IsValid(const XYVVaXtdT &xyvvaxtdt)
 	{
-		return xyvvaxtdt.Pos.IsValid() 
-			&& xyvvaxtdt.Vel.IsValid() 
-			&& xyvvaxtdt.Xtd.IsValid(); 
+		return xyvvaxtdt.Pos.IsValid() && xyvvaxtdt.Vel.IsValid() && xyvvaxtdt.Xtd.IsValid();
 	};
 	inline bool XYVVaXtdT::IsValid() const { return HashColon::Feline::IsValid(*this); };
-	inline void XYVVaXtdT::Validify() { Pos.Validify(); Vel.Validify(); Xtd.Validify(); };
+	inline void XYVVaXtdT::Validify()
+	{
+		Pos.Validify();
+		Vel.Validify();
+		Xtd.Validify();
+	};
 }
 
 // GeoTrajectories: A sequence of GeoValues
@@ -340,36 +355,36 @@ namespace HashColon::Feline
 	public:
 		HashColon::Real GetLength(size_t sIndex = 0, size_t eIndex = std::numeric_limits<size_t>::max()) const;
 		std::vector<HashColon::Real> GetLengths() const;
-		XYList GetLengthSampled(const std::vector<HashColon::Real>& lengthParams) const;
-		XYList GetUniformLengthSampled(size_t sizeN) const;		
+		XYList GetLengthSampled(const std::vector<HashColon::Real> &lengthParams) const;
+		XYList GetUniformLengthSampled(size_t sizeN) const;
 		XYList GetReversed() const;
 	};
 
 	class XYXtdList : public std::vector<XYXtd>
 	{
-	public:		
+	public:
 		HashColon::Real GetLength(size_t sIndex = 0, size_t eIndex = std::numeric_limits<size_t>::max()) const;
 		std::vector<HashColon::Real> GetLengths() const;
-		XYXtdList GetLengthSampled(const std::vector<HashColon::Real>& lengthParams) const;
-		XYXtdList GetUniformLengthSampled(size_t sizeN) const;		
-		XYXtdList GetReversed() const;		
+		XYXtdList GetLengthSampled(const std::vector<HashColon::Real> &lengthParams) const;
+		XYXtdList GetUniformLengthSampled(size_t sizeN) const;
+		XYXtdList GetReversed() const;
 		XYList ToXYList() const;
 
 		inline operator XYList() const { return ToXYList(); };
-	};	
+	};
 
 	class XYTList : public std::vector<XYT>
 	{
-	public:		
+	public:
 		HashColon::Real GetLength(size_t sIndex = 0, size_t eIndex = std::numeric_limits<size_t>::max()) const;
 		std::vector<HashColon::Real> GetLengths() const;
-		XYTList GetLengthSampled(const std::vector<HashColon::Real>& lengthParams) const;
-		XYTList GetUniformLengthSampled(size_t sizeN) const;		
+		XYTList GetLengthSampled(const std::vector<HashColon::Real> &lengthParams) const;
+		XYTList GetUniformLengthSampled(size_t sizeN) const;
 		Duration GetElapsedTime(size_t sIndex = 0, size_t eIndex = std::numeric_limits<size_t>::max()) const;
 		std::vector<Duration> GetElapsedTimes() const;
-		XYTList GetTimeSampled(const std::vector<HashColon::Feline::Duration>& timeParams) const;
-		XYTList GetUniformTimeSampled(size_t sizeN) const;				
-		
+		XYTList GetTimeSampled(const std::vector<HashColon::Feline::Duration> &timeParams) const;
+		XYTList GetUniformTimeSampled(size_t sizeN) const;
+
 		XYTList GetReversed() const;
 		XYList ToXYList() const;
 
@@ -378,15 +393,15 @@ namespace HashColon::Feline
 
 	class XYVVaTList : public std::vector<XYVVaT>
 	{
-	public:		
+	public:
 		HashColon::Real GetLength(size_t sIndex = 0, size_t eIndex = std::numeric_limits<size_t>::max()) const;
-		XYVVaTList GetLengthSampled(const std::vector<HashColon::Real>& lengthParams) const;
+		XYVVaTList GetLengthSampled(const std::vector<HashColon::Real> &lengthParams) const;
 		XYVVaTList GetUniformLengthSampled(size_t sizeN) const;
 		std::vector<HashColon::Real> GetLengths() const;
 		Duration GetElapsedTime(size_t sIndex = 0, size_t eIndex = std::numeric_limits<size_t>::max()) const;
 		std::vector<Duration> GetElapsedTimes() const;
-		XYVVaTList GetTimeSampled(const std::vector<HashColon::Feline::Duration>& timeParams) const;
-		XYVVaTList GetUniformTimeSampled(size_t sizeN) const;		
+		XYVVaTList GetTimeSampled(const std::vector<HashColon::Feline::Duration> &timeParams) const;
+		XYVVaTList GetUniformTimeSampled(size_t sizeN) const;
 
 		XYVVaTList GetReversed() const;
 		XYList ToXYList() const;
@@ -398,15 +413,15 @@ namespace HashColon::Feline
 
 	class XYVVaXtdTList : public std::vector<XYVVaXtdT>
 	{
-	public:		
+	public:
 		HashColon::Real GetLength(size_t sIndex = 0, size_t eIndex = std::numeric_limits<size_t>::max()) const;
-		XYVVaXtdTList GetLengthSampled(const std::vector<HashColon::Real>& lengthParams) const;
+		XYVVaXtdTList GetLengthSampled(const std::vector<HashColon::Real> &lengthParams) const;
 		XYVVaXtdTList GetUniformLengthSampled(size_t sizeN) const;
 		std::vector<HashColon::Real> GetLengths() const;
 		Duration GetElapsedTime(size_t sIndex = 0, size_t eIndex = std::numeric_limits<size_t>::max()) const;
 		std::vector<Duration> GetElapsedTimes() const;
-		XYVVaXtdTList GetTimeSampled(const std::vector<HashColon::Feline::Duration>& timeParams) const;
-		XYVVaXtdTList GetUniformTimeSampled(size_t sizeN) const;		
+		XYVVaXtdTList GetTimeSampled(const std::vector<HashColon::Feline::Duration> &timeParams) const;
+		XYVVaXtdTList GetUniformTimeSampled(size_t sizeN) const;
 
 		XYVVaXtdTList GetReversed() const;
 		XYList ToXYList() const;
@@ -428,7 +443,8 @@ namespace HashColon::Feline
 	{
 		ShipIDKey imo;
 		ShipIDKey mmsi;
-		struct {
+		struct
+		{
 			HashColon::Real L;
 			HashColon::Real B;
 			HashColon::Real T;
@@ -471,13 +487,13 @@ namespace HashColon::Feline::CoordSys
 		virtual Velocity VelocityBtwn(const XYT A, const XYT B) = 0;
 	};
 
-	// computes equirectangular projected distance 
+	// computes equirectangular projected distance
 	// ref: https://www.movable-type.co.uk/scripts/latlong.html
 	class Cartesian : public GeoCoordSysBase
 	{
 	private:
-		Real _lonUnit = HashColon::Constant::PI / 180.0 * EarthRadius::Val();	// Distance(metre) per degree. This varies to latitude.
-		const Real _latUnit = HashColon::Constant::PI / 180.0 * EarthRadius::Val();	// Distance(metre) per degree. This is constant.
+		Real _lonUnit = HashColon::Constant::PI / 180.0 * EarthRadius::Val();		// Distance(metre) per degree. This varies to latitude.
+		const Real _latUnit = HashColon::Constant::PI / 180.0 * EarthRadius::Val(); // Distance(metre) per degree. This is constant.
 
 	public:
 		Real lonUnit() { return _lonUnit; };
@@ -493,7 +509,7 @@ namespace HashColon::Feline::CoordSys
 		virtual HashColon::Degree Angle(const Position A, const Position B, const Position P) override;
 		virtual Position MovePoint(const Position A, const HashColon::Real d, const HashColon::Degree alpha) override;
 		virtual Position MovePoint(const Position A, const Velocity vel, const Duration t) override;
-		virtual XYT MovePoint(const XYT A, const Velocity vel, const Duration t)  override;
+		virtual XYT MovePoint(const XYT A, const Velocity vel, const Duration t) override;
 		virtual HashColon::Real CrossTrackDistance(const Position P, const Position path_S, const Position path_E) override;
 		virtual HashColon::Real OnTrackDistance(const Position P, const Position path_S, const Position path_E) override;
 		virtual HashColon::Real Speed(const XYT A, const XYT B) override;
@@ -515,13 +531,13 @@ namespace HashColon::Feline::CoordSys
 	// computes Geodesic distances with Haversine/Rhumb line equations.
 	// ref: https://www.movable-type.co.uk/scripts/latlong.html
 	class Haversine : public GeoCoordSysBase
-	{	
+	{
 		virtual HashColon::Real Distance(const Position A, const Position B) override;
 		virtual HashColon::Degree Angle(const Position A, const Position B) override;
 		virtual HashColon::Degree Angle(const Position A, const Position B, const Position P) override;
 		virtual Position MovePoint(const Position A, const HashColon::Real d, const HashColon::Degree alpha) override;
 		virtual Position MovePoint(const Position A, const Velocity vel, const Duration t) override;
-		virtual XYT MovePoint(const XYT A, const Velocity vel, const Duration t)  override;
+		virtual XYT MovePoint(const XYT A, const Velocity vel, const Duration t) override;
 		virtual HashColon::Real CrossTrackDistance(const Position P, const Position path_S, const Position path_E) override;
 		virtual HashColon::Real OnTrackDistance(const Position P, const Position path_S, const Position path_E) override;
 		virtual HashColon::Real Speed(const XYT A, const XYT B) override;
@@ -533,7 +549,7 @@ namespace HashColon::Feline::CoordSys
 namespace HashColon::Feline
 {
 	class GeoDistance
-	{		
+	{
 	public:
 		// Method selectable functions
 		static HashColon::Real Distance(const Position A, const Position B, GeoDistanceType type = DefaultDistance);
@@ -549,8 +565,8 @@ namespace HashColon::Feline
 
 		static inline CoordSys::Cartesian cartesian;
 		static inline CoordSys::Haversine haversine;
-				
-	private:		
+
+	private:
 		/*static inline std::unordered_map<size_t, std::shared_ptr<CoordSys::GeoCoordSysBase>>_init_coordsys()
 		{
 			std::unordered_map<size_t, std::shared_ptr<CoordSys::GeoCoordSysBase>> re;
@@ -559,9 +575,8 @@ namespace HashColon::Feline
 			re[HaversineDistance] = std::make_shared<CoordSys::Haversine>(haversine);
 			return re;
 		}*/
-		//static inline std::unordered_map<size_t, CoordSys::GeoCoordSysBase::Ptr> _coordsys = _init_coordsys();
-		static inline std::unordered_map<size_t, CoordSys::GeoCoordSysBase::Ptr> _coordsys
-		{
+		// static inline std::unordered_map<size_t, CoordSys::GeoCoordSysBase::Ptr> _coordsys = _init_coordsys();
+		static inline std::unordered_map<size_t, CoordSys::GeoCoordSysBase::Ptr> _coordsys{
 			{DefaultDistance, nullptr},
 			{CartesianDistance, std::make_shared<CoordSys::Cartesian>()},
 			{HaversineDistance, std::make_shared<CoordSys::Haversine>()}
@@ -569,14 +584,13 @@ namespace HashColon::Feline
 			{HaversineDistance, std::make_shared<CoordSys::Haversine>(haversine)}*/
 		};
 
-		static inline std::unordered_map<std::string, GeoDistanceType> _coordsysName = 
-		{
-			{"Cartesian", CartesianDistance},
-			{"Haversine", HaversineDistance}
-		};
+		static inline std::unordered_map<std::string, GeoDistanceType> _coordsysName =
+			{
+				{"Cartesian", CartesianDistance},
+				{"Haversine", HaversineDistance}};
 
 	public:
-		// Initialization 
+		// Initialization
 		static void SetBaseLocation(const Position baselocation);
 		static void SetDistanceMethod(GeoDistanceType type);
 		static void Initialize(GeoDistanceType type, const Position baselocation);
@@ -585,6 +599,5 @@ namespace HashColon::Feline
 		HASHCOLON_CLASS_EXCEPTION_DEFINITION(GeoDistance);
 	};
 }
-
 
 #endif
