@@ -36,5 +36,5 @@
 
 # CMake, CMake build directories
 build/
-CmakeFiles/
+CMakeFiles/
 .vscode/

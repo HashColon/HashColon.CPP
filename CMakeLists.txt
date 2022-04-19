@@ -48,7 +48,6 @@ add_library(HashColon
     # HashColon/Feline/src/XtdTrajectoryClustering.cpp
 )
 # set libraries
-message(${Boost_FILESYSTEM_LIBRARY})
 target_link_libraries(HashColon
 PUBLIC     
     Eigen3::Eigen
