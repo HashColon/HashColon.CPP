@@ -18,9 +18,9 @@
 #if __has_include(<filesystem>)
 #include <filesystem>
 #define HASHCOLON_USING_FILESYSTEM using namespace std::filesystem
-#elif __has_include(<experimental/filesystem>)
-#include <experimental/filesystem>
-#define HASHCOLON_USING_FILESYSTEM using namespace std::experimental::filesystem
+// #elif __has_include(<experimental/filesystem>)
+// #include <experimental/filesystem>
+// #define HASHCOLON_USING_FILESYSTEM using namespace std::experimental::filesystem
 #elif __has_include(<boost/filesystem.hpp>)
 #define HASHCOLON_USING_FILESYSTEM using namespace boost::filesystem
 #include <boost/filesystem.hpp>
