@@ -50,14 +50,15 @@ add_library(HashColon
 target_link_libraries(HashColon
 PUBLIC     
     Eigen3::Eigen
-    Boost::filesystem
-    Boost::system
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
 )
 # set include directories
 target_include_directories(HashColon 
 PUBLIC 
     .
     ./ext
+    ${Boost_INCLUDE_DIRS}
 )
 
 # Testing project
