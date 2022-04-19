@@ -20,7 +20,7 @@ COMPONENTS
     filesystem
     system
 REQUIRED)
-if(Eigen3_Found)
+if(Boost_Found)
     include_directories(${Boost_INCLUDE_DIRS})
 endif()
 
@@ -57,8 +57,7 @@ PUBLIC
 target_include_directories(HashColon 
 PUBLIC 
     .
-    ./ext
-    ${Boost_INCLUDE_DIRS}
+    ./ext    
 )
 
 # Testing project
