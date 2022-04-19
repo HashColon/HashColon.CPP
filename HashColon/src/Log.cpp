@@ -4,6 +4,7 @@
 // std libraries
 #include <cassert>
 #include <chrono>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <memory>
@@ -207,13 +208,13 @@ namespace HashColon
 					// if val is a file
 					if (is_regular_file(pathval))
 					{
-						shared_ptr<ofstream> ofFile = make_shared<ofstream>(trimVal);
+						shared_ptr<std::ofstream> ofFile = make_shared<std::ofstream>(trimVal);
 						targetStreamList.push_back(ofFile);
 					}
 					// if val is a directory
 					else if (is_directory(pathval))
 					{
-						shared_ptr<ofstream> ofFile = make_shared<ofstream>(_local::getFilename(trimVal, prefix));
+						shared_ptr<std::ofstream> ofFile = make_shared<std::ofstream>(_local::getFilename(trimVal, prefix));
 						targetStreamList.push_back(ofFile);
 					}
 					// if val is not a file nor directory
