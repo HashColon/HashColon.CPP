@@ -16,10 +16,11 @@ if(Eigen3_FOUND)
 endif()
 # Boost
 find_package(Boost 1.65
+REQUIRED
 COMPONENTS
     filesystem
     system
-REQUIRED)
+)
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
 endif()
@@ -47,11 +48,12 @@ add_library(HashColon
     # HashColon/Feline/src/XtdTrajectoryClustering.cpp
 )
 # set libraries
+message(${Boost_FILESYSTEM_LIBRARY})
 target_link_libraries(HashColon
 PUBLIC     
     Eigen3::Eigen
-    ${Boost_FILESYSTEM_LIBRARY}
-    ${Boost_SYSTEM_LIBRARY}
+    Boost::filesystem
+    Boost::system
 )
 # set include directories
 target_include_directories(HashColon 
@@ -66,8 +68,6 @@ add_executable(HashColon_Test
 )
 target_link_libraries(HashColon_Test PUBLIC HashColon)
 #target_include_directories()
-
-
 
 
 # set(CPACK_PROJECT_NAME ${PROJECT_NAME})
