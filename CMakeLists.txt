@@ -13,7 +13,7 @@ set (CMAKE_CXX_STANDARD_REQUIRED True)
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 if(Eigen3_Found)
     include_directories(${Eigen3_INCLUDE_DIRS})
-end()
+endif()
 # Boost
 find_package(Boost 1.65
 COMPONENTS
@@ -22,7 +22,7 @@ COMPONENTS
 REQUIRED)
 if(Eigen3_Found)
     include_directories(${Boost_INCLUDE_DIRS})
-end()
+endif()
 
 # Project source files
 add_library(HashColon 
