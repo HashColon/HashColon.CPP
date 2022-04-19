@@ -50,8 +50,8 @@ add_library(HashColon
 target_link_libraries(HashColon
 PUBLIC     
     Eigen3::Eigen
-    boost::filesystem
-    boost::system
+    Boost::filesystem
+    Boost::system
 )
 # set include directories
 target_include_directories(HashColon 
