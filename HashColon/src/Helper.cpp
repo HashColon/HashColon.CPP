@@ -9,11 +9,13 @@
 #if __has_include(<filesystem>)
 #include <filesystem>
 #define HASHCOLON_USING_FILESYSTEM using namespace std::filesystem
-#elif __has_include(<experimental/filesystem>)
-#include <experimental/filesystem>
-#define HASHCOLON_USING_FILESYSTEM using namespace std::experimental::filesystem
+#define HASHCOLON_FILESYSTEM_STD
+// #elif __has_include(<experimental/filesystem>)
+// #include <experimental/filesystem>
+// #define HASHCOLON_USING_FILESYSTEM using namespace std::experimental::filesystem
 #elif __has_include(<boost/filesystem.hpp>)
 #define HASHCOLON_USING_FILESYSTEM using namespace boost::filesystem
+#define HASHCOLON_FILESYSTEM_BOOST
 #include <boost/filesystem.hpp>
 #else
 #error C++17 support or boost library required.
@@ -163,7 +165,13 @@ namespace HashColon::Fs
 		// we are using filesystem library here (std/std::experimental/boost)
 		HASHCOLON_USING_FILESYSTEM;
 		path p = absolute(path(iDirectoryPathString));
+#if defined HASHCOLON_FILESYSTEM_STD
 		std::error_code ec;
+#elif defined HASHCOLON_FILESYSTEM_BOOST
+		boost::system::error_code ec;
+#else
+#error Neither std::filesystem nor boost::filesystem is available!
+#endif
 		if (exists(p))
 		{
 			remove_all(p, ec);
