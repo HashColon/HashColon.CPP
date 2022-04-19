@@ -116,7 +116,9 @@ namespace HashColon::String
 namespace HashColon
 {
 	// TimeInterval definition as duration
-	using Duration = std::chrono::duration<std::chrono::system_clock>;
+	using Duration = std::chrono::duration<
+		std::chrono::system_clock::rep,
+		std::chrono::system_clock::period>;
 
 	// TimePoint definition
 	class TimePoint : public std::chrono::time_point<std::chrono::system_clock>
