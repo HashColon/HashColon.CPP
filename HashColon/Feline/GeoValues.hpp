@@ -3,7 +3,6 @@
 
 // std libraries
 #include <array>
-#include <chrono>
 #include <functional>
 #include <map>
 #include <memory>
@@ -12,6 +11,7 @@
 #include <vector>
 // HashColon libraries
 #include <HashColon/Exception.hpp>
+#include <HashColon/Helper.hpp>
 #include <HashColon/Real.hpp>
 
 // GeoValues: ShipIDKey, Position, Velocity, TimePoint, Duration, XTD & combined types
@@ -129,42 +129,9 @@ namespace HashColon::Feline
 	}
 	using VVa = Velocity;
 
-	// TimeInterval definition as duration
-	using Duration = std::chrono::system_clock::duration;
-
-	// TimePoint definition
-	class TimePoint : public std::chrono::system_clock::time_point
-	{
-	public:
-		inline static const std::string defaultFormat = "yy-mm-dd HH:MM:SS";
-
-		constexpr TimePoint()
-			: std::chrono::system_clock::time_point(){};
-
-		constexpr explicit TimePoint(const Duration &d)
-			: std::chrono::system_clock::time_point(d){};
-
-		template <class Duration2>
-		constexpr TimePoint(const time_point<std::chrono::system_clock, Duration2> &t)
-			: std::chrono::system_clock::time_point(t){};
-
-		inline TimePoint(std::string datetimeStr) { fromString(datetimeStr); };
-		inline TimePoint(std::pair<std::string, std::string> timedef) { fromString(timedef.first, timedef.second); };
-
-	public:
-		inline TimePoint &operator=(std::string datetimeStr)
-		{
-			fromString(datetimeStr);
-			return (*this);
-		};
-		inline TimePoint &operator=(std::pair<std::string, std::string> timedef)
-		{
-			fromString(timedef.first, timedef.second);
-			return (*this);
-		};
-		void fromString(std::string datetimeStr, const std::string formatStr = defaultFormat);
-		std::string toString(const std::string formatStr = defaultFormat) const;
-	};
+	// time point
+	using Duration = HashColon::Duration;
+	using TimePoint = HashColon::TimePoint;
 
 	// XTD definition
 	struct XTD

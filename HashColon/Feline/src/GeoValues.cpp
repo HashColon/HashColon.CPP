@@ -3,14 +3,8 @@
 // std libraries
 #include <array>
 #include <algorithm>
-#include <chrono>
 #include <cmath>
-#include <ctime>
 #include <functional>
-#include <iomanip>
-#include <iosfwd>
-#include <mutex>
-#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -24,9 +18,6 @@
 
 using namespace std;
 using namespace HashColon;
-
-// mutex for ctime functions
-mutex ctime_mx;
 
 // define a const to ease computation
 const Real PI180 = Constant::PI / 180.0;
@@ -59,52 +50,9 @@ namespace HashColon::Feline
 		return GeoDistance::OnTrackDistance((*this), path_s, path_e, type);
 	}
 
-	//{ TimePoint functions
-	void TimePoint::fromString(string datetimeStr, const string formatStr)
-	{
-		tm temp_tm = { 0 };
-		stringstream ss(datetimeStr.c_str());
-		ss >> get_time(&temp_tm, formatStr.c_str());
-
-		// check if the datetimestr satisfies the format
-		if (ss.fail() || !ss)
-			throw out_of_range("datetime string out of range ( HashColon::Feline::Types::Timepoint::fromString() ).");
-		else
-		{
-			time_t temptime_t;
-
-			// unfortunately, mktime and localtime from ctime is not threadsafe.
-			// therefore a lock should be provided.
-			// refer to the following link for more information about tregedic behavior of mktime & localtime
-			//https://stackoverflow.com/questions/16575029/localtime-not-thread-safe-but-okay-to-call-in-only-one-thread
-			{
-				lock_guard<mutex> lock_mx(ctime_mx);
-				temptime_t = mktime(&temp_tm);
-			}
-			auto temp_tp = chrono::system_clock::from_time_t(temptime_t);
-			(*this) = temp_tp;
-		}
-	}
-
-	string TimePoint::toString(const string formatStr) const
-	{
-		time_t this_C = chrono::system_clock::to_time_t(*this);
-		stringstream ss;
-
-		// unfortunately, mktime and localtime from ctime is not threadsafe.
-		// therefore a lock should be provided.
-		// refer to the following link for more information about tregedic behavior of mktime & localtime
-		//https://stackoverflow.com/questions/16575029/localtime-not-thread-safe-but-okay-to-call-in-only-one-thread
-		{
-			lock_guard<mutex> lock_mx(ctime_mx);
-			ss << put_time(localtime(&this_C), formatStr.c_str());
-		}
-		return ss.str();
-	}
-
 	XYT XYT::MoveTo(const Velocity vel, const Duration t, GeoDistanceType type) const
-	{		
-		return GeoDistance::MovePoint((*this), vel, t, type);		
+	{
+		return GeoDistance::MovePoint((*this), vel, t, type);
 	}
 
 	Real XYT::SpeedTo(const XYT xyt, GeoDistanceType type) const
@@ -141,10 +89,8 @@ namespace HashColon::Feline::CoordSys
 		Real dist = abs<Real>(temp);
 
 		return (
-			(temp[0] >= 0) ?
-			acos(temp[1] / dist) :
-			2 * Constant::PI - acos(temp[1] / dist)
-			) * 180 / Constant::PI;
+				   (temp[0] >= 0) ? acos(temp[1] / dist) : 2 * Constant::PI - acos(temp[1] / dist)) *
+			   180 / Constant::PI;
 	}
 
 	HashColon::Degree Cartesian::Angle(const Position A, const Position B, const Position P)
@@ -175,18 +121,18 @@ namespace HashColon::Feline::CoordSys
 	HashColon::Real Cartesian::CrossTrackDistance(const Position P, const Position path_S, const Position path_E)
 	{
 		using namespace HashColon::Vec2D;
-		array<Real, 2> _P{ { lonUnit() * P.longitude, latUnit() * P.latitude} };
-		array<Real, 2> _S{ { lonUnit() * path_S.longitude, latUnit() * path_S.latitude} };
-		array<Real, 2> _E{ { lonUnit() * path_E.longitude, latUnit() * path_E.latitude} };
+		array<Real, 2> _P{{lonUnit() * P.longitude, latUnit() * P.latitude}};
+		array<Real, 2> _S{{lonUnit() * path_S.longitude, latUnit() * path_S.latitude}};
+		array<Real, 2> _E{{lonUnit() * path_E.longitude, latUnit() * path_E.latitude}};
 		return PointToLineDistance(_S, _E, _P);
 	}
 
 	HashColon::Real Cartesian::OnTrackDistance(const Position P, const Position path_S, const Position path_E)
 	{
 		using namespace HashColon::Vec2D;
-		array<Real, 2> _P{ { lonUnit() * P.longitude, latUnit() * P.latitude} };
-		array<Real, 2> _S{ { lonUnit() * path_S.longitude, latUnit() * path_S.latitude} };
-		array<Real, 2> _E{ { lonUnit() * path_E.longitude, latUnit() * path_E.latitude} };
+		array<Real, 2> _P{{lonUnit() * P.longitude, latUnit() * P.latitude}};
+		array<Real, 2> _S{{lonUnit() * path_S.longitude, latUnit() * path_S.latitude}};
+		array<Real, 2> _E{{lonUnit() * path_E.longitude, latUnit() * path_E.latitude}};
 
 		return dot(minus(_P, _S), minus(_E, _S)) / abs(minus(_E, _S));
 	}
@@ -198,7 +144,7 @@ namespace HashColon::Feline::CoordSys
 
 	Velocity Cartesian::VelocityBtwn(const XYT A, const XYT B)
 	{
-		return { Speed(A, B), Angle(A, B) };
+		return {Speed(A, B), Angle(A, B)};
 	}
 
 	HashColon::Real Cartesian::Distance_atDesignatedLocation(const Position A, const Position B, const Position base)
@@ -221,10 +167,8 @@ namespace HashColon::Feline::CoordSys
 		Real dist = abs<Real>(temp);
 
 		return (
-			(temp[0] >= 0) ?
-			acos(temp[1] / dist) :
-			2 * Constant::PI - acos(temp[1] / dist)
-			) * 180 / Constant::PI;
+				   (temp[0] >= 0) ? acos(temp[1] / dist) : 2 * Constant::PI - acos(temp[1] / dist)) *
+			   180 / Constant::PI;
 	}
 
 	HashColon::Degree Cartesian::Angle_atDesignatedLocation(const Position A, const Position B, const Position P, const Position base)
@@ -247,7 +191,7 @@ namespace HashColon::Feline::CoordSys
 		throw NotImplementedException;
 	}
 
-	XYT Cartesian::MovePoint_atDesignatedLocation(const XYT A, const Velocity vel, const  Duration t, const Position base)
+	XYT Cartesian::MovePoint_atDesignatedLocation(const XYT A, const Velocity vel, const Duration t, const Position base)
 	{
 		throw NotImplementedException;
 	}
@@ -255,18 +199,18 @@ namespace HashColon::Feline::CoordSys
 	HashColon::Real Cartesian::CrossTrackDistance_atDesignatedLocation(const Position P, const Position path_S, const Position path_E, const Position base)
 	{
 		using namespace HashColon::Vec2D;
-		array<Real, 2> _P{ { lonUnit(base) * P.longitude, latUnit(base) * P.latitude} };
-		array<Real, 2> _S{ { lonUnit(base) * path_S.longitude, latUnit(base) * path_S.latitude} };
-		array<Real, 2> _E{ { lonUnit(base) * path_E.longitude, latUnit(base) * path_E.latitude} };
+		array<Real, 2> _P{{lonUnit(base) * P.longitude, latUnit(base) * P.latitude}};
+		array<Real, 2> _S{{lonUnit(base) * path_S.longitude, latUnit(base) * path_S.latitude}};
+		array<Real, 2> _E{{lonUnit(base) * path_E.longitude, latUnit(base) * path_E.latitude}};
 		return PointToLineDistance(_S, _E, _P);
 	}
 
 	HashColon::Real Cartesian::OnTrackDistance_atDesignatedLocation(const Position P, const Position path_S, const Position path_E, const Position base)
 	{
 		using namespace HashColon::Vec2D;
-		array<Real, 2> _P{ { lonUnit(base) * P.longitude, latUnit(base) * P.latitude} };
-		array<Real, 2> _S{ { lonUnit(base) * path_S.longitude, latUnit(base) * path_S.latitude} };
-		array<Real, 2> _E{ { lonUnit(base) * path_E.longitude, latUnit(base) * path_E.latitude} };
+		array<Real, 2> _P{{lonUnit(base) * P.longitude, latUnit(base) * P.latitude}};
+		array<Real, 2> _S{{lonUnit(base) * path_S.longitude, latUnit(base) * path_S.latitude}};
+		array<Real, 2> _E{{lonUnit(base) * path_E.longitude, latUnit(base) * path_E.latitude}};
 		return (_E[0] - _S[0]) * (_P[0] - _S[0]) + (_E[1] - _S[1]) * (_P[1] - _S[1]);
 	}
 
@@ -277,7 +221,7 @@ namespace HashColon::Feline::CoordSys
 
 	Velocity Cartesian::VelocityBtwn_atDesignatedLocation(const XYT A, const XYT B, const Position base)
 	{
-		return { Speed_atDesignatedLocation(A, B, base), Angle_atDesignatedLocation(A, B, base) };
+		return {Speed_atDesignatedLocation(A, B, base), Angle_atDesignatedLocation(A, B, base)};
 	}
 }
 
@@ -286,7 +230,7 @@ namespace HashColon::Feline::CoordSys
 {
 	HashColon::Real Haversine::Distance(const Position A, const Position B)
 	{
-		// compute grand route using haversine formula 
+		// compute grand route using haversine formula
 		using namespace std;
 		using namespace HashColon;
 		const Radian A_lat = A.latitude * PI180;
@@ -322,29 +266,26 @@ namespace HashColon::Feline::CoordSys
 	Position Haversine::MovePoint(const Position A, const HashColon::Real d, const HashColon::Degree alpha)
 	{
 		const Radian delta = d / EarthRadius::Val();
-		const Radian reLat = asin(sin(A.latitude * PI180) * cos(delta) 
-			+ cos(A.latitude * PI180) * sin(delta) * cos(alpha * PI180));
-		const Radian reLon = A.longitude * PI180
-			+ std::atan2(sin(alpha * PI180) * sin(delta) * cos(A.latitude * PI180),
-				cos(delta) - sin(A.latitude * PI180) * sin(reLat));
+		const Radian reLat = asin(sin(A.latitude * PI180) * cos(delta) + cos(A.latitude * PI180) * sin(delta) * cos(alpha * PI180));
+		const Radian reLon = A.longitude * PI180 + std::atan2(sin(alpha * PI180) * sin(delta) * cos(A.latitude * PI180),
+															  cos(delta) - sin(A.latitude * PI180) * sin(reLat));
 
-		return { reLon / PI180, reLat / PI180 };
+		return {reLon / PI180, reLat / PI180};
 
-
-		//Position re = A;
+		// Position re = A;
 		//// compute latitude
-		//const Radian deltaLat = d / EarthRadius::Val() * cos((Radian)alpha);
-		//const Real reLat = re.latitude * PI180 + deltaLat;
-		//if (abs(reLat) > (Constant::PI / 2.0))
+		// const Radian deltaLat = d / EarthRadius::Val() * cos((Radian)alpha);
+		// const Real reLat = re.latitude * PI180 + deltaLat;
+		// if (abs(reLat) > (Constant::PI / 2.0))
 		//	re[1] = (reLat > 0 ? Constant::PI - reLat : -Constant::PI - reLat) / PI180;
-		//else
+		// else
 		//	re[1] = reLat / PI180;
 		//// compute longitude
-		//const Real deltaPsi = log(tan(re.latitude * PI180 / 2 + Constant::PI / 4) / tan(A.latitude * PI180 / 2 + Constant::PI / 4));
-		//const Real q = abs(deltaPsi) > 1e-12 ? deltaLat / deltaPsi : cos(A.latitude * PI180);
-		//re[0] += (d / EarthRadius::Val() * sin((Radian)alpha) / q) / PI180;
+		// const Real deltaPsi = log(tan(re.latitude * PI180 / 2 + Constant::PI / 4) / tan(A.latitude * PI180 / 2 + Constant::PI / 4));
+		// const Real q = abs(deltaPsi) > 1e-12 ? deltaLat / deltaPsi : cos(A.latitude * PI180);
+		// re[0] += (d / EarthRadius::Val() * sin((Radian)alpha) / q) / PI180;
 
-		//return re;
+		// return re;
 	}
 
 	Position Haversine::MovePoint(const Position A, const Velocity vel, const Duration t)
@@ -359,7 +300,7 @@ namespace HashColon::Feline::CoordSys
 
 	HashColon::Real Haversine::CrossTrackDistance(const Position P, const Position path_S, const Position path_E)
 	{
-		const Real adist_SP = Distance(path_S, P) / EarthRadius::Val();	// angular distance from S to P
+		const Real adist_SP = Distance(path_S, P) / EarthRadius::Val(); // angular distance from S to P
 		const Degree angle_SP = Angle(path_S, P);
 		const Degree angle_SE = Angle(path_S, path_E);
 
@@ -368,7 +309,7 @@ namespace HashColon::Feline::CoordSys
 
 	HashColon::Real Haversine::OnTrackDistance(const Position P, const Position path_S, const Position path_E)
 	{
-		const Real adist_SP = Distance(path_S, P) / EarthRadius::Val();	// angular distance from S to P
+		const Real adist_SP = Distance(path_S, P) / EarthRadius::Val();					 // angular distance from S to P
 		const Real axtdist = CrossTrackDistance(P, path_S, path_E) / EarthRadius::Val(); // angular cross track distance
 
 		return EarthRadius::Val() * acos(cos(adist_SP) / cos(axtdist));
@@ -381,14 +322,14 @@ namespace HashColon::Feline::CoordSys
 
 	Velocity Haversine::VelocityBtwn(const XYT A, const XYT B)
 	{
-		return { Speed(A, B), Angle(A, B) };
+		return {Speed(A, B), Angle(A, B)};
 	}
 }
 
-// GeoDistance 
+// GeoDistance
 namespace HashColon::Feline
 {
-	// Caller functions 
+	// Caller functions
 
 	HashColon::Real GeoDistance::Distance(const Position A, const Position B, GeoDistanceType type)
 	{
@@ -443,7 +384,7 @@ namespace HashColon::Feline
 	// Initializers
 
 	void GeoDistance::SetBaseLocation(const Position baselocation)
-	{		
+	{
 		cartesian.SetBase(baselocation);
 	}
 
@@ -462,7 +403,7 @@ namespace HashColon::Feline
 
 	void GeoDistance::Initialize(const string configFilePath)
 	{
-		CLI::App* cli = SingletonCLI::GetInstance().GetCLI("Feline.GeoDistance");
+		CLI::App *cli = SingletonCLI::GetInstance().GetCLI("Feline.GeoDistance");
 
 		// create help string for default distance type
 		string allCoordSysNames = "";
@@ -476,17 +417,21 @@ namespace HashColon::Feline
 			SingletonCLI::GetInstance().AddConfigFile(configFilePath);
 		}
 
-		cli->add_option_function<vector<Real>>("--baseLocation",
-			[](const vector<Real>& val)
+		cli->add_option_function<vector<Real>>(
+			"--baseLocation",
+			[](const vector<Real> &val)
 			{
-				SetBaseLocation({ val[0], val[1] });
-			}, "Set base location for equirectangular approximation in format [lon, lat].");
+				SetBaseLocation({val[0], val[1]});
+			},
+			"Set base location for equirectangular approximation in format [lon, lat].");
 
-		cli->add_option_function<string>("--defaultDistanceType",
-			[](const string& val)
+		cli->add_option_function<string>(
+			"--defaultDistanceType",
+			[](const string &val)
 			{
 				SetDistanceMethod(_coordsysName.at(val));
-			}, "Set default distance method. (" + allCoordSysNames + ")");
+			},
+			"Set default distance method. (" + allCoordSysNames + ")");
 	}
 }
 
@@ -497,25 +442,26 @@ namespace HashColon::Feline
 	namespace _common
 	{
 		template <typename TList>
-		Real _GetLength(const TList& list, size_t sIndex, size_t eIndex)
+		Real _GetLength(const TList &list, size_t sIndex, size_t eIndex)
 		{
-			// check validity					
+			// check validity
 			if (eIndex >= list.size())
 				eIndex = list.size() - 1;
 			assert(sIndex < list.size());
 			assert(sIndex <= eIndex);
 			Real re = 0;
 			for (size_t i = sIndex; i < eIndex; i++)
-				re += GeoDistance::Distance(list[i], list[i + 1]);				
+				re += GeoDistance::Distance(list[i], list[i + 1]);
 			return re;
 		}
 
 		template <typename TList>
-		vector<Real> _GetLengths(const TList& list)
+		vector<Real> _GetLengths(const TList &list)
 		{
 			// input list should have at least 1 item. if not, return empty vector
-			vector<Real> uVec;			
-			if (list.size() <= 0) return uVec;			
+			vector<Real> uVec;
+			if (list.size() <= 0)
+				return uVec;
 
 			uVec.resize(list.size());
 			uVec[0] = 0;
@@ -525,16 +471,17 @@ namespace HashColon::Feline
 		}
 
 		template <typename TList>
-		TList _GetLengthSampled(const TList& list, const vector<Real>& lengthParams)
+		TList _GetLengthSampled(const TList &list, const vector<Real> &lengthParams)
 		{
 			// input list should have at least 1 item && length Params should have at least 1 item
 			// if not, return empty vector
 			TList re;
-			if (lengthParams.size() <= 0 || list.size() <= 0) return re;						
-			
+			if (lengthParams.size() <= 0 || list.size() <= 0)
+				return re;
+
 			re.resize(lengthParams.size());
-			vector<Real> u1Vec = _GetLengths(list);	// parameter u of original list
-			const vector<Real>& u2Vec = lengthParams;		// parameter u of new list
+			vector<Real> u1Vec = _GetLengths(list);	  // parameter u of original list
+			const vector<Real> &u2Vec = lengthParams; // parameter u of new list
 
 			size_t i1 = 0;
 			for (size_t i2 = 0; i2 < u2Vec.size(); i2++)
@@ -542,88 +489,18 @@ namespace HashColon::Feline
 				// assert if u2Vec is in increasing order
 				assert(i2 <= 0 ? true : u2Vec[i2 - 1] < u2Vec[i2]);
 
-				const Real& u2 = u2Vec[i2];
+				const Real &u2 = u2Vec[i2];
 				// u1Vec[i1] /* u1 */ <= u2 < u1Vec[i1+1] /* u1max */
-				for (; u2 > u1Vec[i1 + 1] && i1 < u1Vec.size(); i1++);
-				const Real& u1 = u1Vec[i1];				
+				for (; u2 > u1Vec[i1 + 1] && i1 < u1Vec.size(); i1++)
+					;
+				const Real &u1 = u1Vec[i1];
 
-				// compute point at i2				
-				re[i2] = list[i1];
-				if (!(u1 == u2 || i1 >= u1Vec.size() - 1))
-				{					
-					auto tmpPt = GeoDistance::MovePoint(list[i1], u2 - u1, GeoDistance::Angle(list[i1], list[i1 + 1]));
-					if constexpr (std::is_same<Position, typename TList::value_type>::value)
-						re[i2] = tmpPt;
-					else 
-						re[i2].Pos = tmpPt;
-				}
-			}
-			return re;			
-		}
-
-		template <typename TList>
-		TList _GetUniformLengthSampled(const TList& list, size_t sizeN)
-		{			
-			assert(sizeN >= 2);
-			vector<Real> lengthParams(sizeN, 0.0);
-			if (sizeN >= 2)			
-			{
-				// build length params
-				const Real len = _GetLength(list, 0, list.size() - 1);
-				const Real step = len / ((Real)sizeN - 1.0);
-				for (size_t v = 0; v < sizeN - 1; v++)
-					lengthParams[v] = (Real)v * step;				
-				lengthParams[sizeN - 1] = len;
-			}
-			return _GetLengthSampled(list, lengthParams);
-		}
-
-		template <typename TList>
-		Duration _GetElapsedTime(const TList& list, size_t sIndex, size_t eIndex)
-		{
-			TimePoint sTP = list[sIndex];
-			TimePoint eTP = list[eIndex];
-			return eTP - sTP;
-		}
-
-		template <typename TList>
-		vector<Duration> _GetElapsedTimes(const TList& list)
-		{
-			vector<Duration> re(list.size());
-			for (size_t i = 0; i < list.size(); i++)
-				re[i] = _GetElapsedTime(list, 0, i);
-			return re;
-		}
-
-		template <typename TList>
-		TList _GetTimeSampled(const TList& list, const vector<Duration>& timeParams)
-		{
-			// input list should have at least 1 item && length Params should have at least 1 item
-			// if not, return empty vector
-			TList re;
-			if (timeParams.size() <= 0 || list.size() <= 0) return re;
-
-			re.resize(timeParams.size());
-			vector<Duration> u1Vec = _GetElapsedTimes(list);	// parameter u of original list
-			const vector<Duration>& u2Vec = timeParams;		// parameter u of new list
-
-			size_t i1 = 0;
-			for (size_t i2 = 0; i2 < u2Vec.size(); i2++)
-			{
-				// assert if u2Vec is in increasing order
-				assert(i2 <= 0 ? true : u2Vec[i2 - 1] < u2Vec[i2]);
-
-				const Duration& u2 = u2Vec[i2];
-				// u1Vec[i1] /* u1 */ <= u2 < u1Vec[i1+1] /* u1max */
-				for (; u2 > u1Vec[i1 + 1] && i1 < u1Vec.size(); i1++);
-				const Duration u1 = u1Vec[i1];
-				
-				// compute point at i2				
+				// compute point at i2
 				re[i2] = list[i1];
 				if (!(u1 == u2 || i1 >= u1Vec.size() - 1))
 				{
-					auto tmpPt = GeoDistance::MovePoint((XY)list[i1], GeoDistance::VelocityBtwn(list[i1], list[i1 + 1]), u2 - u1);
-					if constexpr (std::is_same<Position, typename  TList::value_type>::value)
+					auto tmpPt = GeoDistance::MovePoint(list[i1], u2 - u1, GeoDistance::Angle(list[i1], list[i1 + 1]));
+					if constexpr (std::is_same<Position, typename TList::value_type>::value)
 						re[i2] = tmpPt;
 					else
 						re[i2].Pos = tmpPt;
@@ -633,7 +510,80 @@ namespace HashColon::Feline
 		}
 
 		template <typename TList>
-		TList _GetUniformTimeSampled(const TList& list, size_t sizeN)
+		TList _GetUniformLengthSampled(const TList &list, size_t sizeN)
+		{
+			assert(sizeN >= 2);
+			vector<Real> lengthParams(sizeN, 0.0);
+			if (sizeN >= 2)
+			{
+				// build length params
+				const Real len = _GetLength(list, 0, list.size() - 1);
+				const Real step = len / ((Real)sizeN - 1.0);
+				for (size_t v = 0; v < sizeN - 1; v++)
+					lengthParams[v] = (Real)v * step;
+				lengthParams[sizeN - 1] = len;
+			}
+			return _GetLengthSampled(list, lengthParams);
+		}
+
+		template <typename TList>
+		Duration _GetElapsedTime(const TList &list, size_t sIndex, size_t eIndex)
+		{
+			TimePoint sTP = list[sIndex];
+			TimePoint eTP = list[eIndex];
+			return eTP - sTP;
+		}
+
+		template <typename TList>
+		vector<Duration> _GetElapsedTimes(const TList &list)
+		{
+			vector<Duration> re(list.size());
+			for (size_t i = 0; i < list.size(); i++)
+				re[i] = _GetElapsedTime(list, 0, i);
+			return re;
+		}
+
+		template <typename TList>
+		TList _GetTimeSampled(const TList &list, const vector<Duration> &timeParams)
+		{
+			// input list should have at least 1 item && length Params should have at least 1 item
+			// if not, return empty vector
+			TList re;
+			if (timeParams.size() <= 0 || list.size() <= 0)
+				return re;
+
+			re.resize(timeParams.size());
+			vector<Duration> u1Vec = _GetElapsedTimes(list); // parameter u of original list
+			const vector<Duration> &u2Vec = timeParams;		 // parameter u of new list
+
+			size_t i1 = 0;
+			for (size_t i2 = 0; i2 < u2Vec.size(); i2++)
+			{
+				// assert if u2Vec is in increasing order
+				assert(i2 <= 0 ? true : u2Vec[i2 - 1] < u2Vec[i2]);
+
+				const Duration &u2 = u2Vec[i2];
+				// u1Vec[i1] /* u1 */ <= u2 < u1Vec[i1+1] /* u1max */
+				for (; u2 > u1Vec[i1 + 1] && i1 < u1Vec.size(); i1++)
+					;
+				const Duration u1 = u1Vec[i1];
+
+				// compute point at i2
+				re[i2] = list[i1];
+				if (!(u1 == u2 || i1 >= u1Vec.size() - 1))
+				{
+					auto tmpPt = GeoDistance::MovePoint((XY)list[i1], GeoDistance::VelocityBtwn(list[i1], list[i1 + 1]), u2 - u1);
+					if constexpr (std::is_same<Position, typename TList::value_type>::value)
+						re[i2] = tmpPt;
+					else
+						re[i2].Pos = tmpPt;
+				}
+			}
+			return re;
+		}
+
+		template <typename TList>
+		TList _GetUniformTimeSampled(const TList &list, size_t sizeN)
 		{
 			assert(sizeN >= 2);
 			vector<Duration> timeParams(sizeN);
@@ -648,18 +598,20 @@ namespace HashColon::Feline
 		}
 
 		template <typename TList>
-		TList _GetReversed(const TList& list)
+		TList _GetReversed(const TList &list)
 		{
-			TList re; re.resize(list.size());
+			TList re;
+			re.resize(list.size());
 			reverse_copy(list.begin(), list.end(), re.begin());
 			return re;
 		}
 
 		template <typename fromTList, typename toTList>
-		toTList _ConvertList(const fromTList& list)
+		toTList _ConvertList(const fromTList &list)
 		{
-			toTList re; re.clear();
-			for (const auto& it : list)
+			toTList re;
+			re.clear();
+			for (const auto &it : list)
 				re.push_back(it);
 			return re;
 		}
@@ -670,14 +622,14 @@ namespace HashColon::Feline
 	// XYList
 	Real XYList::GetLength(size_t sIndex, size_t eIndex) const { return _GetLength((*this), sIndex, eIndex); }
 	vector<Real> XYList::GetLengths() const { return _GetLengths(*this); }
-	XYList XYList::GetLengthSampled(const vector<Real>& lengthParams) const { return _GetLengthSampled((*this), lengthParams); }
+	XYList XYList::GetLengthSampled(const vector<Real> &lengthParams) const { return _GetLengthSampled((*this), lengthParams); }
 	XYList XYList::GetUniformLengthSampled(size_t sizeN) const { return _GetUniformLengthSampled((*this), sizeN); }
 	XYList XYList::GetReversed() const { return _GetReversed((*this)); }
 
-	//XYXtdList
+	// XYXtdList
 	Real XYXtdList::GetLength(size_t sIndex, size_t eIndex) const { return _GetLength((*this), sIndex, eIndex); }
 	vector<Real> XYXtdList::GetLengths() const { return _GetLengths(*this); }
-	XYXtdList XYXtdList::GetLengthSampled(const vector<Real>& lengthParams) const { return _GetLengthSampled((*this), lengthParams); }
+	XYXtdList XYXtdList::GetLengthSampled(const vector<Real> &lengthParams) const { return _GetLengthSampled((*this), lengthParams); }
 	XYXtdList XYXtdList::GetUniformLengthSampled(size_t sizeN) const { return _GetUniformLengthSampled((*this), sizeN); }
 	XYXtdList XYXtdList::GetReversed() const { return _GetReversed(*this); }
 	XYList XYXtdList::ToXYList() const { return _ConvertList<XYXtdList, XYList>(*this); }
@@ -685,23 +637,23 @@ namespace HashColon::Feline
 	// XYTList
 	Real XYTList::GetLength(size_t sIndex, size_t eIndex) const { return _GetLength((*this), sIndex, eIndex); }
 	vector<Real> XYTList::GetLengths() const { return _GetLengths(*this); }
-	XYTList XYTList::GetLengthSampled(const vector<Real>& lengthParams) const { return _GetLengthSampled((*this), lengthParams); }
+	XYTList XYTList::GetLengthSampled(const vector<Real> &lengthParams) const { return _GetLengthSampled((*this), lengthParams); }
 	XYTList XYTList::GetUniformLengthSampled(size_t sizeN) const { return _GetUniformLengthSampled((*this), sizeN); }
 	Duration XYTList::GetElapsedTime(size_t sIndex, size_t eIndex) const { return _GetElapsedTime((*this), sIndex, eIndex); }
 	vector<Duration> XYTList::GetElapsedTimes() const { return _GetElapsedTimes((*this)); };
-	XYTList XYTList::GetTimeSampled(const vector<Duration>& timeParams) const { return _GetTimeSampled((*this), timeParams); }
-	XYTList XYTList::GetUniformTimeSampled(size_t sizeN) const { return _GetUniformTimeSampled((*this), sizeN); }	
+	XYTList XYTList::GetTimeSampled(const vector<Duration> &timeParams) const { return _GetTimeSampled((*this), timeParams); }
+	XYTList XYTList::GetUniformTimeSampled(size_t sizeN) const { return _GetUniformTimeSampled((*this), sizeN); }
 	XYTList XYTList::GetReversed() const { return _GetReversed(*this); }
 	XYList XYTList::ToXYList() const { return _ConvertList<XYTList, XYList>(*this); }
 
 	// XYVVaTList
 	Real XYVVaTList::GetLength(size_t sIndex, size_t eIndex) const { return _GetLength((*this), sIndex, eIndex); }
 	vector<Real> XYVVaTList::GetLengths() const { return _GetLengths(*this); }
-	XYVVaTList XYVVaTList::GetLengthSampled(const vector<Real>& lengthParams) const { return _GetLengthSampled((*this), lengthParams); }
+	XYVVaTList XYVVaTList::GetLengthSampled(const vector<Real> &lengthParams) const { return _GetLengthSampled((*this), lengthParams); }
 	XYVVaTList XYVVaTList::GetUniformLengthSampled(size_t sizeN) const { return _GetUniformLengthSampled((*this), sizeN); }
 	Duration XYVVaTList::GetElapsedTime(size_t sIndex, size_t eIndex) const { return _GetElapsedTime((*this), sIndex, eIndex); }
 	vector<Duration> XYVVaTList::GetElapsedTimes() const { return _GetElapsedTimes((*this)); };
-	XYVVaTList XYVVaTList::GetTimeSampled(const vector<Duration>& timeParams) const { return _GetTimeSampled((*this), timeParams); }
+	XYVVaTList XYVVaTList::GetTimeSampled(const vector<Duration> &timeParams) const { return _GetTimeSampled((*this), timeParams); }
 	XYVVaTList XYVVaTList::GetUniformTimeSampled(size_t sizeN) const { return _GetUniformTimeSampled((*this), sizeN); }
 	XYVVaTList XYVVaTList::GetReversed() const { return _GetReversed(*this); }
 	XYList XYVVaTList::ToXYList() const { return _ConvertList<XYVVaTList, XYList>(*this); }
@@ -710,11 +662,11 @@ namespace HashColon::Feline
 	// XYVVaXtdTList
 	Real XYVVaXtdTList::GetLength(size_t sIndex, size_t eIndex) const { return _GetLength((*this), sIndex, eIndex); }
 	vector<Real> XYVVaXtdTList::GetLengths() const { return _GetLengths(*this); }
-	XYVVaXtdTList XYVVaXtdTList::GetLengthSampled(const vector<Real>& lengthParams) const { return _GetLengthSampled((*this), lengthParams); }
+	XYVVaXtdTList XYVVaXtdTList::GetLengthSampled(const vector<Real> &lengthParams) const { return _GetLengthSampled((*this), lengthParams); }
 	XYVVaXtdTList XYVVaXtdTList::GetUniformLengthSampled(size_t sizeN) const { return _GetUniformLengthSampled((*this), sizeN); }
 	Duration XYVVaXtdTList::GetElapsedTime(size_t sIndex, size_t eIndex) const { return _GetElapsedTime((*this), sIndex, eIndex); }
 	vector<Duration> XYVVaXtdTList::GetElapsedTimes() const { return _GetElapsedTimes((*this)); };
-	XYVVaXtdTList XYVVaXtdTList::GetTimeSampled(const vector<Duration>& timeParams) const { return _GetTimeSampled((*this), timeParams); }
+	XYVVaXtdTList XYVVaXtdTList::GetTimeSampled(const vector<Duration> &timeParams) const { return _GetTimeSampled((*this), timeParams); }
 	XYVVaXtdTList XYVVaXtdTList::GetUniformTimeSampled(size_t sizeN) const { return _GetUniformTimeSampled((*this), sizeN); }
 	XYVVaXtdTList XYVVaXtdTList::GetReversed() const { return _GetReversed(*this); }
 	XYList XYVVaXtdTList::ToXYList() const { return _ConvertList<XYVVaXtdTList, XYList>(*this); }
@@ -722,4 +674,3 @@ namespace HashColon::Feline
 	XYTList XYVVaXtdTList::ToXYTList() const { return _ConvertList<XYVVaXtdTList, XYTList>(*this); }
 	XYVVaTList XYVVaXtdTList::ToXYVVaTList() const { return _ConvertList<XYVVaXtdTList, XYVVaTList>(*this); }
 }
-

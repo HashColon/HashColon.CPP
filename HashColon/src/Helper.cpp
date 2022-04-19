@@ -1,6 +1,9 @@
 // HashColon config
 #include <HashColon/Helper.hpp>
 // std libraries
+#include <chrono>
+#include <ctime>
+#include <iomanip>
 // check filesystem support
 #if defined __has_include
 #if __has_include(<filesystem>)
@@ -19,6 +22,7 @@
 #error C++ compiler with __has_include support required.
 #endif
 
+#include <mutex>
 #include <regex>
 #include <sstream>
 #include <string>
@@ -168,4 +172,55 @@ namespace HashColon::Fs
 		else
 			return false;
 	}
+}
+
+// time point functions
+namespace HashColon
+{
+	// mutex for ctime functions
+	mutex ctime_mx;
+
+	//{ TimePoint functions
+	void TimePoint::fromString(string datetimeStr, const string formatStr)
+	{
+		tm temp_tm = {0};
+		stringstream ss(datetimeStr.c_str());
+		ss >> get_time(&temp_tm, formatStr.c_str());
+
+		// check if the datetimestr satisfies the format
+		if (ss.fail() || !ss)
+			throw out_of_range("datetime string out of range ( HashColon::Feline::Types::Timepoint::fromString() ).");
+		else
+		{
+			time_t temptime_t;
+
+			// unfortunately, mktime and localtime from ctime is not threadsafe.
+			// therefore a lock should be provided.
+			// refer to the following link for more information about tregedic behavior of mktime & localtime
+			// https://stackoverflow.com/questions/16575029/localtime-not-thread-safe-but-okay-to-call-in-only-one-thread
+			{
+				lock_guard<mutex> lock_mx(ctime_mx);
+				temptime_t = mktime(&temp_tm);
+			}
+			auto temp_tp = chrono::system_clock::from_time_t(temptime_t);
+			(*this) = temp_tp;
+		}
+	}
+
+	string TimePoint::toString(const string formatStr) const
+	{
+		time_t this_C = chrono::system_clock::to_time_t(*this);
+		stringstream ss;
+
+		// unfortunately, mktime and localtime from ctime is not threadsafe.
+		// therefore a lock should be provided.
+		// refer to the following link for more information about tregedic behavior of mktime & localtime
+		// https://stackoverflow.com/questions/16575029/localtime-not-thread-safe-but-okay-to-call-in-only-one-thread
+		{
+			lock_guard<mutex> lock_mx(ctime_mx);
+			ss << put_time(localtime(&this_C), formatStr.c_str());
+		}
+		return ss.str();
+	}
+
 }
