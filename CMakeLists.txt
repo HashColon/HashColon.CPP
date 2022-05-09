@@ -10,12 +10,12 @@ set (CMAKE_CXX_STANDARD_REQUIRED True)
 
 # ==== External libraries ====
 # Eigen3
-find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+find_package(Eigen3 3.3... REQUIRED NO_MODULE)
 if(Eigen3_FOUND)
     include_directories(${Eigen3_INCLUDE_DIRS})
 endif()
 # Boost
-find_package(Boost 1.65
+find_package(Boost 1.65...
 REQUIRED
 COMPONENTS
     filesystem
