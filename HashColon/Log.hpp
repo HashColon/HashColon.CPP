@@ -10,6 +10,7 @@
 #include <sstream>
 #include <streambuf>
 #include <string>
+// #include <map>
 #include <unordered_map>
 #include <variant>
 #include <vector>
@@ -26,6 +27,7 @@ namespace HashColon
 		using ArgValue = std::variant<char, int, std::string, double>;
 		using ArgType = std::pair<tagtype, ArgValue>;
 		using ArgListType = std::unordered_map<tagtype, ArgValue>;
+		// using ArgListType = std::map<tagtype, ArgValue>;
 		using FormatterType = std::function<std::string(std::string, ArgListType)>;
 		using FilterType = std::function<bool(ArgListType)>;
 
@@ -107,6 +109,7 @@ namespace HashColon
 		using ArgValue = std::variant<char, int, std::string, double>;
 		using ArgType = std::pair<tagtype, ArgValue>;
 		using ArgListType = std::unordered_map<tagtype, ArgValue>;
+		// using ArgListType = std::map<tagtype, ArgValue>;
 		using FormatterType = std::function<std::string(std::string, ArgListType)>;
 		using FilterType = std::function<bool(ArgListType)>;
 
@@ -240,8 +243,6 @@ namespace HashColon::LogUtils
 								logger.Log() << "Progress finished." >> endl;
 	*/
 
-	using ArgValue = std::variant<char, int, std::string, double>;
-
 	/*static const shared_ptr<ostream> Stdout;
 	static const shared_ptr<ostream> Stderr;*/
 	const std::shared_ptr<std::ostream> Stdout = std::shared_ptr<std::ostream>(&std::cout, [](std::ostream *) {});
@@ -257,14 +258,18 @@ namespace HashColon::LogUtils
 		maxlvl
 	};
 
-	std::string LogFormat(std::string msg, std::unordered_map<Tag, ArgValue> args);
-	std::string ErrFormat(std::string msg, std::unordered_map<Tag, ArgValue> args);
-	std::string NullFormat(std::string msg, std::unordered_map<Tag, ArgValue> args);
-	std::string BasicFormat(std::string msg, std::unordered_map<Tag, ArgValue> args);
+	using ArgValue = std::variant<char, int, std::string, double>;
+	using ArgListType = std::unordered_map<Tag, ArgValue>;
+	// using ArgListType = std::map<Tag, ArgValue>;
 
-	bool PassFilter(std::unordered_map<Tag, ArgValue> args);
-	bool BlockFilter(std::unordered_map<Tag, ArgValue> args);
-	bool VerboseFilter(std::unordered_map<Tag, ArgValue> args);
+	std::string LogFormat(std::string msg, ArgListType args);
+	std::string ErrFormat(std::string msg, ArgListType args);
+	std::string NullFormat(std::string msg, ArgListType args);
+	std::string BasicFormat(std::string msg, ArgListType args);
+
+	bool PassFilter(ArgListType args);
+	bool BlockFilter(ArgListType args);
+	bool VerboseFilter(ArgListType args);
 
 	class Flashl
 	{
@@ -334,28 +339,19 @@ namespace HashColon
 	* Loggers:
 		Log: For basic logging. Use Util::LogFormat for logging.
 			{ tag::type, "Log" } is pre-defined.
-			stdout, log file available
 		Error: For logging Errors. Use Util::ErrFormat for logging.
 			{ tag::type, "Error" } is pre-defined.
-			File/Screen logging available.
 			stderr, log file + error log file available.
 		Debug: For debugging messages. Use Util::ErrFormat for logging.
 			{ tag::type, "Debug" } is pre-defined.
-			stderr, log file + error log file available.
 		Message: For screen-only & no formatted messages. Use Util::BasicFormat for logging.
 			{ tag::type, "Message" } is pre-defined.
-			only stdout is available.
 
 	* Parameters:
-		ErrorFile			:	shared_ptr<ostream>	:	Pointer to error logging file stream
-		LogFile				:	shared_ptr<ostream>	:	Pointer to basic logging file stream
-		enableLog.Screen	:	bool	:	If true, messages through Log will be screen printed to stdout.
-		enableLog.File		:	bool	:	If true, messages through Log will be file printed to LogFile.
-		enableError.Screen	:	bool	:	If true, messages through Error will be screen printed to stderr.
-		enableError.File	:	bool	:	If true, messages through Error will be file printed to LogFile and ErrorFile.
-		enableDebug.Screen	:	bool	:	If true, messages through Debug will be screen printed to stderr.
-		enableDebug.File	:	bool	:	If true, messages through Debug will be file printed to LogFile and ErrorFile.
-		enableMessage		:	bool	:	If true, messages through Message will be screen printed to stdout.
+		logStreams			: 	vector of ofstreeam for .Log
+		errorStreams		: 	vector of ofstreeam for .Error
+		debugStreams		: 	vector of ofstreeam for .Debug
+		messageStreams		: 	vector of ofstreeam for .Message
 		verboseLevel		:	int		:	Messages with argument { tag: lvl, level } and 'level' less than given 'verboseLevel' will be suppressed.
 
 	*/
@@ -376,6 +372,7 @@ namespace HashColon
 
 	private:
 		inline static _Params _cDefault;
+		void Reset();
 
 	public:
 		static _Params &GetDefaultParams() { return _cDefault; };
@@ -391,6 +388,8 @@ namespace HashColon
 		// mutex-lock support for multi-threading
 		inline static std::mutex _mutex;
 	};
+
+	extern CommonLogger GlobalLogger;
 }
 
 // ResultPrinter

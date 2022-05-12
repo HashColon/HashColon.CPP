@@ -38,9 +38,13 @@ namespace HashColon
 		do
 		{
 			std::getline(sscn, name, '.');
-			if ((child = parent->get_subcommand(name)) == nullptr)
+			try
 			{
-				parent->add_option_group(name, "");
+				child = parent->get_subcommand(name);
+			}
+			catch (const CLI::OptionNotFound &e)
+			{
+				parent->add_subcommand(name, "");
 				child = parent->get_subcommand(name);
 			}
 			parent = child;
@@ -58,6 +62,7 @@ namespace HashColon
 				SingletonCLI::_instance.reset(new SingletonCLI(idx));
 			},
 			id);
+
 		return *SingletonCLI::_instance;
 	}
 
@@ -107,7 +112,8 @@ namespace HashColon
 	{
 		// set number of config files
 		// set config
-		GetInstance().GetCLI()->set_config("--config", "", "Read configuration json files", true)->expected((int)(GetInstance().GetConfigFileList().size() + configFiles.size()))->check(CLI::ExistingFile);
+		size_t configCnt = GetInstance().GetConfigFileList().size() + configFiles.size();
+		GetInstance().GetCLI()->set_config("--config", "", "Read configuration files", true)->expected(configCnt, configCnt + 1)->check(CLI::ExistingFile);
 
 		// allow config extras
 		GetInstance().GetCLI()->allow_config_extras(true);
