@@ -2,6 +2,7 @@
 #define HASHCOLON_HELPER
 
 // std libraries
+#include <chrono>
 #include <string>
 #include <vector>
 // dependant external libraries
@@ -108,6 +109,50 @@ namespace HashColon::String
 	{
 		return ToUpper(s);
 	}
+
+}
+
+// Timepoint
+namespace HashColon
+{
+	// TimeInterval definition as duration
+	using Duration = std::chrono::duration<
+		std::chrono::system_clock::rep,
+		std::chrono::system_clock::period>;
+
+	// TimePoint definition
+	class TimePoint : public std::chrono::time_point<std::chrono::system_clock>
+	{
+	public:
+		inline static const std::string defaultFormat = "yy-mm-dd HH:MM:SS";
+
+		constexpr TimePoint()
+			: std::chrono::time_point<std::chrono::system_clock>(){};
+
+		constexpr explicit TimePoint(const Duration &d)
+			: std::chrono::time_point<std::chrono::system_clock>(d){};
+
+		template <class Duration2>
+		constexpr TimePoint(const time_point<std::chrono::system_clock, Duration2> &t)
+			: std::chrono::time_point<std::chrono::system_clock>(t){};
+
+		inline TimePoint(std::string datetimeStr) { fromString(datetimeStr); };
+		inline TimePoint(std::pair<std::string, std::string> timedef) { fromString(timedef.first, timedef.second); };
+
+	public:
+		inline TimePoint &operator=(std::string datetimeStr)
+		{
+			fromString(datetimeStr);
+			return (*this);
+		};
+		inline TimePoint &operator=(std::pair<std::string, std::string> timedef)
+		{
+			fromString(timedef.first, timedef.second);
+			return (*this);
+		};
+		void fromString(std::string datetimeStr, const std::string formatStr = defaultFormat);
+		std::string toString(const std::string formatStr = defaultFormat) const;
+	};
 
 }
 

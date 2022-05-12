@@ -1,16 +1,21 @@
 // HashColon config
 #include <HashColon/Helper.hpp>
 // std libraries
+#include <chrono>
+#include <ctime>
+#include <iomanip>
 // check filesystem support
 #if defined __has_include
 #if __has_include(<filesystem>)
 #include <filesystem>
 #define HASHCOLON_USING_FILESYSTEM using namespace std::filesystem
-#elif __has_include(<experimental/filesystem>)
-#include <experimental/filesystem>
-#define HASHCOLON_USING_FILESYSTEM using namespace std::experimental::filesystem
+#define HASHCOLON_FILESYSTEM_STD
+// #elif __has_include(<experimental/filesystem>)
+// #include <experimental/filesystem>
+// #define HASHCOLON_USING_FILESYSTEM using namespace std::experimental::filesystem
 #elif __has_include(<boost/filesystem.hpp>)
 #define HASHCOLON_USING_FILESYSTEM using namespace boost::filesystem
+#define HASHCOLON_FILESYSTEM_BOOST
 #include <boost/filesystem.hpp>
 #else
 #error C++17 support or boost library required.
@@ -19,6 +24,7 @@
 #error C++ compiler with __has_include support required.
 #endif
 
+#include <mutex>
 #include <regex>
 #include <sstream>
 #include <string>
@@ -159,7 +165,13 @@ namespace HashColon::Fs
 		// we are using filesystem library here (std/std::experimental/boost)
 		HASHCOLON_USING_FILESYSTEM;
 		path p = absolute(path(iDirectoryPathString));
+#if defined HASHCOLON_FILESYSTEM_STD
 		std::error_code ec;
+#elif defined HASHCOLON_FILESYSTEM_BOOST
+		boost::system::error_code ec;
+#else
+#error Neither std::filesystem nor boost::filesystem is available!
+#endif
 		if (exists(p))
 		{
 			remove_all(p, ec);
@@ -168,4 +180,55 @@ namespace HashColon::Fs
 		else
 			return false;
 	}
+}
+
+// time point functions
+namespace HashColon
+{
+	// mutex for ctime functions
+	mutex ctime_mx;
+
+	//{ TimePoint functions
+	void TimePoint::fromString(string datetimeStr, const string formatStr)
+	{
+		tm temp_tm = {0};
+		stringstream ss(datetimeStr.c_str());
+		ss >> get_time(&temp_tm, formatStr.c_str());
+
+		// check if the datetimestr satisfies the format
+		if (ss.fail() || !ss)
+			throw out_of_range("datetime string out of range ( HashColon::Feline::Types::Timepoint::fromString() ).");
+		else
+		{
+			time_t temptime_t;
+
+			// unfortunately, mktime and localtime from ctime is not threadsafe.
+			// therefore a lock should be provided.
+			// refer to the following link for more information about tregedic behavior of mktime & localtime
+			// https://stackoverflow.com/questions/16575029/localtime-not-thread-safe-but-okay-to-call-in-only-one-thread
+			{
+				lock_guard<mutex> lock_mx(ctime_mx);
+				temptime_t = mktime(&temp_tm);
+			}
+			auto temp_tp = chrono::system_clock::from_time_t(temptime_t);
+			(*this) = temp_tp;
+		}
+	}
+
+	string TimePoint::toString(const string formatStr) const
+	{
+		time_t this_C = chrono::system_clock::to_time_t(*this);
+		stringstream ss;
+
+		// unfortunately, mktime and localtime from ctime is not threadsafe.
+		// therefore a lock should be provided.
+		// refer to the following link for more information about tregedic behavior of mktime & localtime
+		// https://stackoverflow.com/questions/16575029/localtime-not-thread-safe-but-okay-to-call-in-only-one-thread
+		{
+			lock_guard<mutex> lock_mx(ctime_mx);
+			ss << put_time(localtime(&this_C), formatStr.c_str());
+		}
+		return ss.str();
+	}
+
 }

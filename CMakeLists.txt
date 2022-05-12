@@ -8,8 +8,22 @@ set (CMAKE_C_STANDARD_REQUIRED True)
 set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_STANDARD_REQUIRED True)
 
-# find required libraries
-find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+# ==== External libraries ====
+# Eigen3
+find_package(Eigen3 3.3... REQUIRED NO_MODULE)
+if(Eigen3_FOUND)
+    include_directories(${Eigen3_INCLUDE_DIRS})
+endif()
+# Boost
+find_package(Boost 1.65...
+REQUIRED
+COMPONENTS
+    filesystem
+    system
+)
+if(Boost_FOUND)
+    include_directories(${Boost_INCLUDE_DIRS})
+endif()
 
 # Project source files
 add_library(HashColon 
@@ -28,20 +42,23 @@ add_library(HashColon
     HashColon/Feline/src/FelineJsonIO.cpp
     HashColon/Feline/src/GeoData.cpp
     HashColon/Feline/src/GeoValues.cpp
-    HashColon/Feline/src/TrajectoryClustering.cpp
-    HashColon/Feline/src/XtdEstimation.cpp
-    HashColon/Feline/src/XtdTrajectoryClustering.cpp
+    # Trajectory, XTD stuffs are disabled
+    # HashColon/Feline/src/TrajectoryClustering.cpp
+    # HashColon/Feline/src/XtdEstimation.cpp
+    # HashColon/Feline/src/XtdTrajectoryClustering.cpp
 )
 # set libraries
 target_link_libraries(HashColon
 PUBLIC     
     Eigen3::Eigen
+    Boost::filesystem
+    Boost::system
 )
 # set include directories
 target_include_directories(HashColon 
 PUBLIC 
     .
-    ./ext
+    ./ext    
 )
 
 # Testing project
@@ -50,8 +67,6 @@ add_executable(HashColon_Test
 )
 target_link_libraries(HashColon_Test PUBLIC HashColon)
 #target_include_directories()
-
-
 
 
 # set(CPACK_PROJECT_NAME ${PROJECT_NAME})
