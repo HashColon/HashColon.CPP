@@ -112,14 +112,20 @@ if(HASHCOLON_TEST_CODE)
     )
 
     # set linker options
-    target_link_options(HashColon_Test
-    PUBLIC
-        -fopenmp
-        -pthread
-        -fPIC
-        -O3
+    # target_link_options(HashColon_Test
+    # PUBLIC
+    #    -fopenmp
+    #    -pthread
+    #    -fPIC
+    #    -O3
         # -pg
-    )
+    #)
+    set_target_properties(route-planning-builder
+PROPERTIES 
+    LINK_FLAGS
+        -fopenmp
+)
+
 endif()
 
 # set(CPACK_PROJECT_NAME ${PROJECT_NAME})
