@@ -73,13 +73,17 @@ PUBLIC
 )
 
 # set linker options
-target_link_options(HashColon
-PUBLIC
-    -fopenmp
-    -pthread
-    -fPIC
-    -O3
-    # -pg
+# target_link_options(HashColon
+# PUBLIC
+#     -fopenmp
+#     -pthread
+#     -fPIC
+#     -O3
+#     # -pg
+# )
+set_target_properties(HashColon
+PROPERTIES 
+    LINK_FLAGS "-fopenmp -pthread -fPIC -O3" #-pg
 )
 
 # Testing project
@@ -120,7 +124,7 @@ if(HASHCOLON_TEST_CODE)
     #    -O3
         # -pg
     #)
-    set_target_properties(route-planning-builder
+    set_target_properties(HashColon_Test
 PROPERTIES 
     LINK_FLAGS
         -fopenmp
