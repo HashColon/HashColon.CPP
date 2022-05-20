@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(HashColon VERSION 1.0.0)
 
+# Build options
+set(CMAKE_VERBOSE_MAKEFILE ON)
+set(HASHCOLON_TEST_CODE OFF)
+
 # ==== C/C++ standard ====
 # C11, C++17 required 
 set (CMAKE_C_STANDARD 11)
@@ -10,20 +14,15 @@ set (CMAKE_CXX_STANDARD_REQUIRED True)
 
 # ==== External libraries ====
 # Eigen3
-find_package(Eigen3 3.3 REQUIRED NO_MODULE)
-if(Eigen3_FOUND)
-    include_directories(${Eigen3_INCLUDE_DIRS})
-endif()
+find_package(Eigen3 3.3... REQUIRED NO_MODULE)
+
 # Boost
-find_package(Boost 1.65
+find_package(Boost 1.65...
 REQUIRED
 COMPONENTS
     filesystem
     system
 )
-if(Boost_FOUND)
-    include_directories(${Boost_INCLUDE_DIRS})
-endif()
 
 # Project source files
 add_library(HashColon 
@@ -58,16 +57,76 @@ PUBLIC
 target_include_directories(HashColon 
 PUBLIC 
     .
-    ./ext    
+    ./ext  
+    ${Eigen3_INCLUDE_DIRS}
+    ${Boost_INCLUDE_DIRS}  
+)
+
+#set compiler options
+target_compile_options(HashColon
+PUBLIC
+    -fopenmp
+    -pthread
+    -fPIC
+    -O3
+    # -pg
+)
+
+# set linker options
+target_link_options(HashColon
+PUBLIC
+    -fopenmp
+    -pthread
+    -fPIC
+    -O3
+    # -pg
 )
 
 # Testing project
-add_executable(HashColon_Test
-    test/test.cpp
-)
-target_link_libraries(HashColon_Test PUBLIC HashColon)
-#target_include_directories()
+if(HASHCOLON_TEST_CODE)
+    add_executable(HashColon_Test
+        test/test.cpp
+    )
+    target_link_libraries(HashColon_Test 
+    PUBLIC 
+        HashColon
+    )
 
+    # set include directories
+    target_include_directories(HashColon_Test
+    PUBLIC 
+        .
+        ./ext  
+        ${Eigen3_INCLUDE_DIRS}
+        ${Boost_INCLUDE_DIRS}  
+    )
+
+    #set compiler options
+    target_compile_options(HashColon_Test
+    PUBLIC
+        -fopenmp
+        -pthread
+        -fPIC
+        -O3
+        # -pg
+    )
+
+    # set linker options
+    # target_link_options(HashColon_Test
+    # PUBLIC
+    #    -fopenmp
+    #    -pthread
+    #    -fPIC
+    #    -O3
+        # -pg
+    #)
+    set_target_properties(route-planning-builder
+PROPERTIES 
+    LINK_FLAGS
+        -fopenmp
+)
+
+endif()
 
 # set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 # set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

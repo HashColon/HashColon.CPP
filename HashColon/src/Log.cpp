@@ -12,6 +12,7 @@
 #include <sstream>
 #include <string>
 #include <unordered_map>
+// #include <map>
 #include <variant>
 #include <vector>
 // check filesystem support
@@ -47,7 +48,7 @@ using namespace HashColon::Fs;
 // LogUtils
 namespace HashColon::LogUtils
 {
-	string LogFormat(string msg, unordered_map<Tag, ArgValue> args)
+	string LogFormat(string msg, ArgListType args)
 	{
 		// get current time;
 		auto now = system_clock::now();
@@ -65,10 +66,11 @@ namespace HashColon::LogUtils
 		return ss.str();
 	}
 
-	string ErrFormat(string msg, unordered_map<Tag, ArgValue> args)
+	string ErrFormat(string msg, ArgListType args)
 	{
 		// get current time;
 		auto now = system_clock::now();
+
 		// auto now_time_t = system_clock::to_time_t(now);
 		auto ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
 
@@ -85,20 +87,20 @@ namespace HashColon::LogUtils
 		return ss.str();
 	}
 
-	string NullFormat(string msg, unordered_map<Tag, ArgValue> args)
+	string NullFormat(string msg, ArgListType args)
 	{
 		return "";
 	}
 
-	string BasicFormat(string msg, unordered_map<Tag, ArgValue> args)
+	string BasicFormat(string msg, ArgListType args)
 	{
 		return msg;
 	}
 
-	bool PassFilter(unordered_map<Tag, ArgValue> args) { return true; }
-	bool BlockFilter(unordered_map<Tag, ArgValue> args) { return false; }
+	bool PassFilter(ArgListType args) { return true; }
+	bool BlockFilter(ArgListType args) { return false; }
 
-	bool VerboseFilter(unordered_map<Tag, ArgValue> args)
+	bool VerboseFilter(ArgListType args)
 	{
 		if (args.count(Tag::lvl) == 1 && args.count(Tag::maxlvl) == 1)
 		{
@@ -201,7 +203,10 @@ namespace HashColon
 					targetStreamList.push_back(LogUtils::Stdout);
 				// if val is stderr
 				else if (lowerVal == "stderr")
+				{
+					cout << "!!!!" << endl;
 					targetStreamList.push_back(LogUtils::Stderr);
+				}
 				else
 				{
 					path pathval = trimVal.c_str();
@@ -226,6 +231,8 @@ namespace HashColon
 			}
 		}
 	}
+
+	CommonLogger GlobalLogger;
 
 	void CommonLogger::Initialize(const string configFilePath)
 	{
@@ -266,10 +273,19 @@ namespace HashColon
 			{ _local::SetStreams(vals, _cDefault.messageStreams, "message"); },
 			"Streams for message logging. List of any of the File/Directory/stdout/stderr.");
 
+		// set verbose level
 		cli->add_option(
 			"--verboseLvl",
 			_cDefault.verbose_level,
 			"Enable verbose level. Logs with level exceeding verbose level will not be logged.");
+
+		cli->callback(
+			[&]()
+			{
+				GlobalLogger.Reset();
+			});
+
+		cli->configurable();
 	}
 
 	CommonLogger::CommonLogger(_Params params)
@@ -291,6 +307,24 @@ namespace HashColon
 			Error.Stream().Arguments().insert({LogUtils::Tag::maxlvl, params.verbose_level});
 			Debug.Stream().Arguments().insert({LogUtils::Tag::maxlvl, params.verbose_level});
 			Message.Stream().Arguments().insert({LogUtils::Tag::maxlvl, params.verbose_level});
+		}
+	}
+
+	void CommonLogger::Reset()
+	{
+		// set streams for each logger
+		Log.Stream().StreamList() = _cDefault.logStreams;
+		Error.Stream().StreamList() = _cDefault.errorStreams;
+		Debug.Stream().StreamList() = _cDefault.debugStreams;
+		Message.Stream().StreamList() = _cDefault.messageStreams;
+
+		// set verbose_lvl
+		if (_cDefault.verbose_level >= 0)
+		{
+			Log.Stream().Arguments().insert_or_assign(LogUtils::Tag::maxlvl, _cDefault.verbose_level);
+			Error.Stream().Arguments().insert_or_assign(LogUtils::Tag::maxlvl, _cDefault.verbose_level);
+			Debug.Stream().Arguments().insert_or_assign(LogUtils::Tag::maxlvl, _cDefault.verbose_level);
+			Message.Stream().Arguments().insert_or_assign(LogUtils::Tag::maxlvl, _cDefault.verbose_level);
 		}
 	}
 }
