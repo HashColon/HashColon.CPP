@@ -320,6 +320,7 @@ namespace HashColon::Feline
 	class XYList : public std::vector<XY>
 	{
 	public:
+		using PointT = XY;
 		using std::vector<XY>::vector;
 		HashColon::Real GetLength(size_t sIndex = 0, size_t eIndex = std::numeric_limits<size_t>::max()) const;
 		std::vector<HashColon::Real> GetLengths() const;
@@ -331,6 +332,7 @@ namespace HashColon::Feline
 	class XYXtdList : public std::vector<XYXtd>
 	{
 	public:
+		using PointT = XYXtd;
 		using std::vector<XYXtd>::vector;
 		HashColon::Real GetLength(size_t sIndex = 0, size_t eIndex = std::numeric_limits<size_t>::max()) const;
 		std::vector<HashColon::Real> GetLengths() const;
@@ -345,6 +347,7 @@ namespace HashColon::Feline
 	class XYTList : public std::vector<XYT>
 	{
 	public:
+		using PointT = XYT;
 		using std::vector<XYT>::vector;
 		HashColon::Real GetLength(size_t sIndex = 0, size_t eIndex = std::numeric_limits<size_t>::max()) const;
 		std::vector<HashColon::Real> GetLengths() const;
@@ -364,6 +367,7 @@ namespace HashColon::Feline
 	class XYVVaTList : public std::vector<XYVVaT>
 	{
 	public:
+		using PointT = XYVVaT;
 		using std::vector<XYVVaT>::vector;
 		HashColon::Real GetLength(size_t sIndex = 0, size_t eIndex = std::numeric_limits<size_t>::max()) const;
 		XYVVaTList GetLengthSampled(const std::vector<HashColon::Real> &lengthParams) const;
@@ -385,6 +389,7 @@ namespace HashColon::Feline
 	class XYVVaXtdTList : public std::vector<XYVVaXtdT>
 	{
 	public:
+		using PointT = XYVVaXtdT;
 		using std::vector<XYVVaXtdT>::vector;
 		HashColon::Real GetLength(size_t sIndex = 0, size_t eIndex = std::numeric_limits<size_t>::max()) const;
 		XYVVaXtdTList GetLengthSampled(const std::vector<HashColon::Real> &lengthParams) const;
