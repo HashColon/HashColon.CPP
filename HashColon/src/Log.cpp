@@ -234,9 +234,11 @@ namespace HashColon
 
 	CommonLogger GlobalLogger;
 
-	void CommonLogger::Initialize(const string configFilePath)
+	void CommonLogger::Initialize(
+		const string configFilePath,
+		const string configNamespace)
 	{
-		CLI::App *cli = SingletonCLI::GetInstance().GetCLI("Log");
+		CLI::App *cli = SingletonCLI::GetInstance().GetCLI(configNamespace);
 
 		if (!configFilePath.empty())
 		{
@@ -250,28 +252,28 @@ namespace HashColon
 			"--logStreams",
 			[](const vector<string> &vals)
 			{ _local::SetStreams(vals, _cDefault.logStreams, "log"); },
-			"Streams for default logging. List of any of the File/Directory/stdout/stderr.");
+			"Streams for default logging. List of any of the File/Directory/Stdout/Stderr.");
 
 		// add errorStreams options using SetStreams
 		cli->add_option_function<vector<string>>(
 			"--errorStreams",
 			[](const vector<string> &vals)
 			{ _local::SetStreams(vals, _cDefault.errorStreams, "error"); },
-			"Streams for error logging. List of any of the File/Directory/stdout/stderr.");
+			"Streams for error logging. List of any of the File/Directory/Stdout/Stderr.");
 
 		// add debugStreams options using SetStreams
 		cli->add_option_function<vector<string>>(
 			"--debugStreams",
 			[](const vector<string> &vals)
 			{ _local::SetStreams(vals, _cDefault.debugStreams, "debug"); },
-			"Streams for debug message logging. List of any of the File/Directory/stdout/stderr.");
+			"Streams for debug message logging. List of any of the File/Directory/Stdout/Stderr.");
 
 		// add messageStreams options using SetStreams
 		cli->add_option_function<vector<string>>(
 			"--messageStreams",
 			[](const vector<string> &vals)
 			{ _local::SetStreams(vals, _cDefault.messageStreams, "message"); },
-			"Streams for message logging. List of any of the File/Directory/stdout/stderr.");
+			"Streams for messages. List of any of the File/Directory/Stdout/Stderr.");
 
 		// set verbose level
 		cli->add_option(
@@ -327,39 +329,4 @@ namespace HashColon
 			Message.Stream().Arguments().insert_or_assign(LogUtils::Tag::maxlvl, _cDefault.verbose_level);
 		}
 	}
-}
-
-// ResultPrinter
-namespace HashColon
-{
-	void ResultPrinter::Initialize()
-	{
-		CLI::App *cli = SingletonCLI::GetInstance().GetCLI("Log");
-
-		cli->add_option("--enableResultScreen", _cDefault.Screen, "Enable logging to screen");
-		cli->add_option("--enableResultFile", _cDefault.File, "Enable logging to file");
-	}
-
-	ResultPrinter::ResultPrinter(string filepath, _Params params)
-		: Logger({}, LogUtils::BasicFormat, LogUtils::PassFilter, {{LogUtils::Tag::type, "Result"}}),
-		  _c(params)
-	{
-		if (_c.File)
-		{
-			shared_ptr<ofstream> filestream = make_shared<ofstream>(filepath);
-			if (!filestream->is_open())
-				throw ResultPrinter::Exception("Result file " + filepath + "is invalid.", __CODEINFO__);
-			else
-				this->Stream().StreamList().push_back(filestream);
-		}
-
-		if (_c.Screen)
-		{
-			assert(LogUtils::Stdout);
-			this->Stream().StreamList().push_back(LogUtils::Stdout);
-		}
-	}
-
-	ResultPrinter::ResultPrinter(const ResultPrinter &rhs)
-		: Logger(rhs), _c(rhs._c){};
 }

@@ -29,6 +29,7 @@ add_library(HashColon
 # HashColon
     HashColon/src/CAGD.cpp
     HashColon/src/Clustering.cpp
+    HashColon/src/GeoValues.cpp
     HashColon/src/Helper.cpp
     HashColon/src/Log.cpp
     HashColon/src/Real.cpp
@@ -39,8 +40,7 @@ add_library(HashColon
 # HashColon/Feline
     HashColon/Feline/src/AisPreprocess.cpp
     HashColon/Feline/src/FelineJsonIO.cpp
-    HashColon/Feline/src/GeoData.cpp
-    HashColon/Feline/src/GeoValues.cpp
+    HashColon/Feline/src/GeoData.cpp    
     # Trajectory, XTD stuffs are disabled
     # HashColon/Feline/src/TrajectoryClustering.cpp
     # HashColon/Feline/src/XtdEstimation.cpp

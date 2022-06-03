@@ -34,9 +34,11 @@ using PointType = std::vector<HashColon::Real>;
 // DBSCAN
 namespace HashColon::Clustering
 {
-	void DBSCAN::Initialize(const string configFilePath)
+	void DBSCAN::Initialize(
+		const string configFilePath,
+		const string configNamespace)
 	{
-		CLI::App *cli = SingletonCLI::GetInstance().GetCLI("Clustering.DBSCAN");
+		CLI::App *cli = SingletonCLI::GetInstance().GetCLI(configNamespace);
 
 		if (!configFilePath.empty())
 		{
@@ -221,9 +223,11 @@ namespace HashColon::Clustering
 // Kmenas
 namespace HashColon::Clustering
 {
-	void Kmeans::Initialize(const string configFilePath)
+	void Kmeans::Initialize(
+		const string configFilePath,
+		const string configNamespace)
 	{
-		CLI::App *cli = SingletonCLI::GetInstance().GetCLI("Clustering.Kmeans");
+		CLI::App *cli = SingletonCLI::GetInstance().GetCLI(configNamespace);
 
 		if (!configFilePath.empty())
 		{

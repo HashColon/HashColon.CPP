@@ -14,7 +14,7 @@
 #include <rapidjson/writer.h>
 // HashColon libraries
 #include <HashColon/Helper.hpp>
-#include <HashColon/Feline/GeoValues.hpp>
+#include <HashColon/GeoValues.hpp>
 // header file for this source file
 #include <HashColon/Feline/FelineJsonIO.hpp>
 

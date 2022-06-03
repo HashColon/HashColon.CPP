@@ -24,7 +24,7 @@
 #include <HashColon/SingletonCLI.hpp>
 #include <HashColon/Table.hpp>
 #include <HashColon/ThreadPool.hpp>
-#include <HashColon/Feline/GeoValues.hpp>
+#include <HashColon/GeoValues.hpp>
 // header file for this source file
 #include <HashColon/Feline/AisPreprocess.hpp>
 

@@ -15,7 +15,7 @@
 #include <HashColon/Real.hpp>
 
 // GeoValues: ShipIDKey, Position, Velocity, TimePoint, Duration, XTD & combined types
-namespace HashColon::Feline
+namespace HashColon 
 {
 	// declare GeoDistanceType in use
 	enum GeoDistanceType : size_t
@@ -80,7 +80,7 @@ namespace HashColon::Feline
 	inline bool IsLatValid(const HashColon::Real lat) { return lat >= PositionBounds::S && lat <= PositionBounds::N; };
 	inline bool IsLonLatValid(const HashColon::Real lon, const HashColon::Real lat) { return IsLonValid && IsLatValid; };
 	inline bool IsValid(const Position &pos) { return IsLonLatValid(pos.dat[0], pos.dat[1]); };
-	inline bool Position::IsValid() const { return HashColon::Feline::IsValid(*this); };
+	inline bool Position::IsValid() const { return HashColon ::IsValid(*this); };
 	inline void Position::Validify()
 	{
 		if (!IsLonValid(longitude))
@@ -118,7 +118,7 @@ namespace HashColon::Feline
 	inline bool IsSpeedValid(const HashColon::Real s) { return _helper::IsNonNegative(s); };
 	inline bool IsAngleValid(const HashColon::Real a) { return _helper::IsAngle(a); };
 	inline bool IsValid(const Velocity &v) { return IsSpeedValid(v.dat[0]) && IsAngleValid(v.dat[1]); };
-	inline bool Velocity::IsValid() const { return HashColon::Feline::IsValid(*this); };
+	inline bool Velocity::IsValid() const { return HashColon ::IsValid(*this); };
 	inline void Velocity::Validify()
 	{
 		if (!IsSpeedValid(speed))
@@ -157,7 +157,7 @@ namespace HashColon::Feline
 	inline bool operator!=(const XTD &lhs, const XTD &rhs) { return !(lhs == rhs); };
 	inline bool IsXtdValid(const HashColon::Real x) { return _helper::IsNonNegative(x); };
 	inline bool IsValid(const XTD &xtd) { return IsXtdValid(xtd.dat[0]) && IsXtdValid(xtd.dat[1]); };
-	inline bool XTD::IsValid() const { return HashColon::Feline::IsValid(*this); };
+	inline bool XTD::IsValid() const { return HashColon ::IsValid(*this); };
 	inline void XTD::Validify()
 	{
 		if (!IsXtdValid(xtdPortside))
@@ -189,7 +189,7 @@ namespace HashColon::Feline
 	inline bool operator==(const XYT &lhs, const XYT &rhs) { return lhs.Pos == rhs.Pos && lhs.TP == rhs.TP; };
 	inline bool operator!=(const XYT &lhs, const XYT &rhs) { return !(lhs == rhs); };
 	inline bool IsValid(const XYT &xyt) { return xyt.Pos.IsValid(); };
-	inline bool XYT::IsValid() const { return HashColon::Feline::IsValid(*this); };
+	inline bool XYT::IsValid() const { return HashColon ::IsValid(*this); };
 	inline void XYT::Validify() { Pos.Validify(); };
 
 	// XY(Position) + VVa(Velocity) + T(TimePoint)
@@ -226,7 +226,7 @@ namespace HashColon::Feline
 	inline bool operator==(const XYVVaT &lhs, const XYVVaT &rhs) { return lhs.Pos == rhs.Pos && lhs.TP == rhs.TP && lhs.Vel == rhs.Vel; };
 	inline bool operator!=(const XYVVaT &lhs, const XYVVaT &rhs) { return !(lhs == rhs); };
 	inline bool IsValid(const XYVVaT &xyvvat) { return xyvvat.Pos.IsValid() && xyvvat.Vel.IsValid(); };
-	inline bool XYVVaT::IsValid() const { return HashColon::Feline::IsValid(*this); };
+	inline bool XYVVaT::IsValid() const { return HashColon ::IsValid(*this); };
 	inline void XYVVaT::Validify()
 	{
 		Pos.Validify();
@@ -260,7 +260,7 @@ namespace HashColon::Feline
 	inline bool operator==(const XYXtd &lhs, const XYXtd &rhs) { return lhs.Pos == rhs.Pos && lhs.Xtd == rhs.Xtd; };
 	inline bool operator!=(const XYXtd &lhs, const XYXtd &rhs) { return !(lhs == rhs); };
 	inline bool IsValid(const XYXtd &xyxtd) { return xyxtd.Pos.IsValid() && xyxtd.Xtd.IsValid(); };
-	inline bool XYXtd::IsValid() const { return HashColon::Feline::IsValid(*this); };
+	inline bool XYXtd::IsValid() const { return HashColon ::IsValid(*this); };
 	inline void XYXtd::Validify()
 	{
 		Pos.Validify();
@@ -305,7 +305,7 @@ namespace HashColon::Feline
 	{
 		return xyvvaxtdt.Pos.IsValid() && xyvvaxtdt.Vel.IsValid() && xyvvaxtdt.Xtd.IsValid();
 	};
-	inline bool XYVVaXtdT::IsValid() const { return HashColon::Feline::IsValid(*this); };
+	inline bool XYVVaXtdT::IsValid() const { return HashColon ::IsValid(*this); };
 	inline void XYVVaXtdT::Validify()
 	{
 		Pos.Validify();
@@ -315,7 +315,7 @@ namespace HashColon::Feline
 }
 
 // GeoTrajectories: A sequence of GeoValues
-namespace HashColon::Feline
+namespace HashColon 
 {
 	class XYList : public std::vector<XY>
 	{
@@ -355,7 +355,7 @@ namespace HashColon::Feline
 		XYTList GetUniformLengthSampled(size_t sizeN) const;
 		Duration GetElapsedTime(size_t sIndex = 0, size_t eIndex = std::numeric_limits<size_t>::max()) const;
 		std::vector<Duration> GetElapsedTimes() const;
-		XYTList GetTimeSampled(const std::vector<HashColon::Feline::Duration> &timeParams) const;
+		XYTList GetTimeSampled(const std::vector<HashColon ::Duration> &timeParams) const;
 		XYTList GetUniformTimeSampled(size_t sizeN) const;
 
 		XYTList GetReversed() const;
@@ -375,7 +375,7 @@ namespace HashColon::Feline
 		std::vector<HashColon::Real> GetLengths() const;
 		Duration GetElapsedTime(size_t sIndex = 0, size_t eIndex = std::numeric_limits<size_t>::max()) const;
 		std::vector<Duration> GetElapsedTimes() const;
-		XYVVaTList GetTimeSampled(const std::vector<HashColon::Feline::Duration> &timeParams) const;
+		XYVVaTList GetTimeSampled(const std::vector<HashColon ::Duration> &timeParams) const;
 		XYVVaTList GetUniformTimeSampled(size_t sizeN) const;
 
 		XYVVaTList GetReversed() const;
@@ -397,7 +397,7 @@ namespace HashColon::Feline
 		std::vector<HashColon::Real> GetLengths() const;
 		Duration GetElapsedTime(size_t sIndex = 0, size_t eIndex = std::numeric_limits<size_t>::max()) const;
 		std::vector<Duration> GetElapsedTimes() const;
-		XYVVaXtdTList GetTimeSampled(const std::vector<HashColon::Feline::Duration> &timeParams) const;
+		XYVVaXtdTList GetTimeSampled(const std::vector<HashColon ::Duration> &timeParams) const;
 		XYVVaXtdTList GetUniformTimeSampled(size_t sizeN) const;
 
 		XYVVaXtdTList GetReversed() const;
@@ -414,7 +414,7 @@ namespace HashColon::Feline
 }
 
 // GeoTrajecory with vessel data
-namespace HashColon::Feline
+namespace HashColon 
 {
 	struct StaticType
 	{
@@ -437,7 +437,7 @@ namespace HashColon::Feline
 }
 
 // Geospatial distances
-namespace HashColon::Feline::CoordSys
+namespace HashColon ::CoordSys
 {
 	class EarthRadius
 	{
@@ -523,7 +523,7 @@ namespace HashColon::Feline::CoordSys
 }
 
 //
-namespace HashColon::Feline
+namespace HashColon 
 {
 	class GeoDistance
 	{
@@ -571,7 +571,7 @@ namespace HashColon::Feline
 		static void SetBaseLocation(const Position baselocation);
 		static void SetDistanceMethod(GeoDistanceType type);
 		static void Initialize(GeoDistanceType type, const Position baselocation);
-		static void Initialize(const std::string configFilePath = "");
+		static void Initialize(const std::string configFilePath = "",		const std::string configNamespace="GeoDistance");
 
 		HASHCOLON_CLASS_EXCEPTION_DEFINITION(GeoDistance);
 	};

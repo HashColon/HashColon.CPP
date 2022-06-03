@@ -129,9 +129,11 @@ namespace HashColon::Clustering
 namespace HashColon::Clustering
 {
 	template <typename T>
-	void SpectralClustering<T>::Initialize(const std::string configFilePath)
+	void SpectralClustering<T>::Initialize(
+		const std::string configFilePath,
+		const std::string configNamespace)
 	{
-		CLI::App *cli = HashColon::SingletonCLI::GetInstance().GetCLI("Clustering.SpectralClustering");
+		CLI::App *cli = HashColon::SingletonCLI::GetInstance().GetCLI(configNamespace);
 
 		if (!configFilePath.empty())
 		{
@@ -294,13 +296,14 @@ namespace HashColon::Clustering
 	template <typename T>
 	void NJW<T>::Initialize(
 		const std::string identifierPostfix,
-		const std::string configFilePath)
+		const std::string configFilePath,
+		const std::string configNamespace)
 	{
 		using namespace std;
 		using namespace HashColon::String;
 		using namespace boost::typeindex;
 
-		string identifier = "Clustering.NJW";
+		string identifier = configNamespace;
 		if (identifierPostfix.empty())
 		{
 			identifier += ("_" + Split(type_id<T>().pretty_name(), ":").back());
@@ -457,14 +460,15 @@ namespace HashColon::Clustering
 	template <typename T>
 	void DistanceBasedDBSCAN<T>::Initialize(
 		const std::string identifierPostfix,
-		const std::string configFilePath)
+		const std::string configFilePath,
+		const std::string configNamespace)
 	{
 		using namespace std;
 		using namespace HashColon;
 		using namespace HashColon::String;
 		using namespace boost::typeindex;
 
-		string identifier = "Clustering.DistanceBasedDBSCAN";
+		string identifier = configNamespace;
 		if (identifierPostfix.empty())
 		{
 			identifier += ("_" + Split(type_id<T>().pretty_name(), ":").back());

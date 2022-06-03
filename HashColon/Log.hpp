@@ -376,7 +376,9 @@ namespace HashColon
 
 	public:
 		static _Params &GetDefaultParams() { return _cDefault; };
-		static void Initialize(const std::string configFilePath = "");
+		static void Initialize(
+			const std::string configFilePath = "",
+			const std::string configNamespace = "Log");
 		CommonLogger(_Params params = _cDefault);
 
 	public:
@@ -390,33 +392,6 @@ namespace HashColon
 	};
 
 	extern CommonLogger GlobalLogger;
-}
-
-// ResultPrinter
-namespace HashColon
-{
-	class ResultPrinter final : public Logger<LogUtils::Tag>
-	{
-	public:
-		struct _Params
-		{
-			bool Screen;
-			bool File;
-		};
-
-		HASHCOLON_CLASS_EXCEPTION_DEFINITION(ResultPrinter);
-
-	private:
-		inline static _Params _cDefault;
-		_Params _c;
-
-	public:
-		static _Params GetDefaultParams() { return _cDefault; };
-		_Params GetParams() { return _c; };
-		static void Initialize();
-		ResultPrinter(std::string filepath, _Params params = _cDefault);
-		ResultPrinter(const ResultPrinter &rhs);
-	};
 }
 
 #endif

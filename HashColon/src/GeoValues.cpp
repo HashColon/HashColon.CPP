@@ -14,7 +14,7 @@
 #include <HashColon/Real.hpp>
 #include <HashColon/SingletonCLI.hpp>
 // header file for this source file
-#include <HashColon/Feline/GeoValues.hpp>
+#include <HashColon/GeoValues.hpp>
 
 using namespace std;
 using namespace HashColon;
@@ -23,7 +23,7 @@ using namespace HashColon;
 const Real PI180 = Constant::PI / 180.0;
 
 // GeoValues: ShipIDKey, Position, Velocity, TimePoint, Duration, XTD & combined types
-namespace HashColon::Feline
+namespace HashColon
 {
 	Real Position::DistanceTo(const Position toPoint, GeoDistanceType type) const
 	{
@@ -67,7 +67,7 @@ namespace HashColon::Feline
 }
 
 // Coordinate systems: Cartesian(Rectequiv approximation)
-namespace HashColon::Feline::CoordSys
+namespace HashColon ::CoordSys
 {
 	HashColon::Real Cartesian::Distance(const Position A, const Position B)
 	{
@@ -226,7 +226,7 @@ namespace HashColon::Feline::CoordSys
 }
 
 // Coordinate system: Haversine distnace(geodesic)
-namespace HashColon::Feline::CoordSys
+namespace HashColon ::CoordSys
 {
 	HashColon::Real Haversine::Distance(const Position A, const Position B)
 	{
@@ -327,7 +327,7 @@ namespace HashColon::Feline::CoordSys
 }
 
 // GeoDistance
-namespace HashColon::Feline
+namespace HashColon
 {
 	// Caller functions
 
@@ -401,9 +401,9 @@ namespace HashColon::Feline
 		SetBaseLocation(baselocation);
 	}
 
-	void GeoDistance::Initialize(const string configFilePath)
+	void GeoDistance::Initialize(const string configFilePath, const string configNamespace)
 	{
-		CLI::App *cli = SingletonCLI::GetInstance().GetCLI("Feline.GeoDistance");
+		CLI::App *cli = SingletonCLI::GetInstance().GetCLI(configNamespace);
 
 		// create help string for default distance type
 		string allCoordSysNames = "";
@@ -436,7 +436,7 @@ namespace HashColon::Feline
 }
 
 // List of values: XYList, XYTList...
-namespace HashColon::Feline
+namespace HashColon
 {
 	// common functions
 	namespace _common

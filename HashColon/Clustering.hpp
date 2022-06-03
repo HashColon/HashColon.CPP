@@ -158,7 +158,8 @@ namespace HashColon::Clustering
 
 		static void Initialize(
 			const std::string identifierPostfix = "",
-			const std::string configFilePath = "");
+			const std::string configFilePath = "",
+			const std::string configNamespace = "Clustering.NJW");
 
 		static _Params GetDefaultParams() { return _cDefault; };
 		_Params GetParams() { return _c; };
@@ -219,7 +220,9 @@ namespace HashColon::Clustering
 	public:
 		Kmeans(_Params params = _cDefault) : _c(params){};
 
-		static void Initialize(const std::string configFilePath = "");
+		static void Initialize(
+			const std::string configFilePath = "",
+			const std::string configNamespace = "Clustering.Kmeans");
 
 		static _Params GetDefaultParams() { return _cDefault; };
 		_Params GetParams() { return _c; };
@@ -271,7 +274,9 @@ namespace HashColon::Clustering
 	public:
 		DBSCAN(_Params params = _cDefault) : _c(params){};
 
-		static void Initialize(const std::string configFilePath = "");
+		static void Initialize(
+			const std::string configFilePath = "",
+			const std::string configNamespace = "Clustering.DBSCAN");
 
 		static _Params GetDefaultParams() { return _cDefault; };
 		_Params GetParams() { return _c; };
@@ -348,7 +353,8 @@ namespace HashColon::Clustering
 
 		static void Initialize(
 			const std::string identifierPostfix = "",
-			const std::string configFilePath = "");
+			const std::string configFilePath = "",
+			const std::string configNamespace = "Clustering.DistanceBasedDBSCAN");
 
 		static _Params GetDefaultParams() { return _cDefault; };
 		_Params GetParams() { return _c; };
@@ -427,7 +433,9 @@ namespace HashColon::Clustering
 			  _internalClustering(internalClusteringMethod),
 			  _c(params){};
 
-		static void Initialize(const std::string configFilePath = "");
+		static void Initialize(
+			const std::string configFilePath = "",
+			const std::string configNamespace = "Clustering.SpectralClustering");
 
 		static _Params GetDefaultParams() { return _cDefault; };
 		_Params GetParams() { return _c; };

@@ -10,7 +10,7 @@
 #include <HashColon/Helper.hpp>
 #include <HashColon/Real.hpp>
 #include <HashColon/Table.hpp>
-#include <HashColon/Feline/GeoValues.hpp>
+#include <HashColon/GeoValues.hpp>
 
 // AisCsvReader
 namespace HashColon::Feline
@@ -114,7 +114,7 @@ namespace HashColon::Feline
 
 		AisTrajectory<> ConvertCsvToTrajectory(const HashColon::Table &table) const;
 		std::vector<AisTrajectory<>> CutTrajectoryByTimeInterval(
-			const AisTrajectory<> &traj, HashColon::Feline::Duration criteria) const;
+			const AisTrajectory<> &traj, HashColon::Duration criteria) const;
 		std::vector<AisTrajectory<>> ConvertAll_fromRefinedAisCSV(
 			const std::vector<HashColon::Table> refinedAisCsv) const;
 
