@@ -50,10 +50,10 @@ namespace HashColon::LogUtils
 {
 	string LogFormat(string msg, ArgListType args)
 	{
-		// get current time;
-		auto now = system_clock::now();
-		// auto now_time_t = system_clock::to_time_t(now);
-		auto ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
+		// // get current time;
+		// auto now = system_clock::now();
+		// // auto now_time_t = system_clock::to_time_t(now);
+		// auto ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
 
 		stringstream ss;
 
@@ -69,20 +69,24 @@ namespace HashColon::LogUtils
 	string ErrFormat(string msg, ArgListType args)
 	{
 		// get current time;
-		auto now = system_clock::now();
+		// auto now = system_clock::now();
 
-		// auto now_time_t = system_clock::to_time_t(now);
-		auto ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
+		// // auto now_time_t = system_clock::to_time_t(now);
+		// auto ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
 
 		stringstream ss;
 		// print timestamp and tag
 		ss << TimeStamp()
-		   << "[" << get<string>(args.at(Tag::type)) << "]"
-		   // print filename and line
-		   << ": @" << get<string>(args.at(Tag::file)) << "#" << get<int>(args.at(Tag::line)) << std::endl
-		   << "\t{" << get<string>(args.at(Tag::func)) << "()}"
-		   << ": " << msg;
+		   << "[" << get<string>(args.at(Tag::type)) << "]: ";
 
+		// print filename and line
+		if (args.find(Tag::file) != args.end() && args.find(Tag::line) != args.end() && args.find(Tag::func) != args.end())
+		{
+			ss << "@" << get<string>(args.at(Tag::file)) << "#" << get<int>(args.at(Tag::line)) << "\n"
+			   << "\t{" << get<string>(args.at(Tag::func)) << "()}: \n";
+		}
+
+		ss << msg;
 		// return formatted string
 		return ss.str();
 	}
@@ -204,7 +208,6 @@ namespace HashColon
 				// if val is stderr
 				else if (lowerVal == "stderr")
 				{
-					cout << "!!!!" << endl;
 					targetStreamList.push_back(LogUtils::Stderr);
 				}
 				else
