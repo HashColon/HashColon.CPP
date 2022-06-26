@@ -156,6 +156,12 @@ namespace HashColon
 
 }
 
+// Thread/Process performance
+namespace HashColon
+{
+	std::pair<float, float> GetCpuMem_fromPID(int pid);
+}
+
 //// Typenames helper functions
 // namespace HashColon::TypeName
 //{

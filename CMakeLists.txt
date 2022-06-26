@@ -3,7 +3,7 @@ project(HashColon VERSION 1.0.0)
 
 # Build options
 set(CMAKE_VERBOSE_MAKEFILE ON)
-set(HASHCOLON_TEST_CODE OFF)
+set(HASHCOLON_TEST_CODE ON)
 
 # ==== C/C++ standard ====
 # C11, C++17 required 
@@ -13,16 +13,16 @@ set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_STANDARD_REQUIRED True)
 
 # ==== External libraries ====
-# Eigen3
-find_package(Eigen3 3.3... REQUIRED NO_MODULE)
-
-# Boost
-find_package(Boost 1.65...
-REQUIRED
+find_package(PkgConfig REQUIRED)
+find_package(Eigen3 3.3... REQUIRED NO_MODULE)  # Eigen3
+find_package(GDAL 2.2... REQUIRED)              # GDAL
+find_package(OpenMP)                            # OpenMP
+find_package(Boost 1.65... REQUIRED             # Boost
 COMPONENTS
     filesystem
     system
 )
+pkg_check_modules(flann REQUIRED flann)
 
 # Project source files
 add_library(HashColon 
@@ -125,10 +125,10 @@ if(HASHCOLON_TEST_CODE)
         # -pg
     #)
     set_target_properties(HashColon_Test
-PROPERTIES 
-    LINK_FLAGS
-        -fopenmp
-)
+        PROPERTIES 
+        LINK_FLAGS
+            "-fopenmp -pthread"
+    )
 
 endif()
 

@@ -232,3 +232,31 @@ namespace HashColon
 	}
 
 }
+
+#include <iostream>
+
+// Thread/Process performance
+namespace HashColon
+{
+#ifdef __GNUC__
+	pair<float, float> GetCpuMem_fromPID(int pid)
+	{
+		pair<float, float> re;
+		stringstream syscmd;
+
+		syscmd << "ps -p " << pid << " -o %cpu=,%mem=";
+		FILE *ps_out = ::popen(syscmd.str().c_str(), "r");
+		if (ps_out != nullptr)
+		{
+			if (2 == fscanf(ps_out, "%f %f", &re.first, &re.second))
+				return re;
+		}
+		return {-100.0, -100.0};
+	}
+#elif _MSC_VER
+#warning GetCpuMem_fromPID(): Not implemented for MSVC
+#else
+#warning GetCpuMem_fromPID: Undefined compiler
+#endif
+
+}
