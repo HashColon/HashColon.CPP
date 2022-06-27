@@ -213,22 +213,22 @@ namespace HashColon
 				else
 				{
 					path pathval = trimVal.c_str();
-					// if val is a file
-					if (is_regular_file(pathval))
-					{
-						shared_ptr<std::ofstream> ofFile = make_shared<std::ofstream>(trimVal);
-						targetStreamList.push_back(ofFile);
-					}
 					// if val is a directory
-					else if (is_directory(pathval))
+					if (is_directory(pathval))
 					{
 						shared_ptr<std::ofstream> ofFile = make_shared<std::ofstream>(_local::getFilename(trimVal, prefix));
 						targetStreamList.push_back(ofFile);
 					}
-					// if val is not a file nor directory
+					// else check if the given file is a valid output file
 					else
 					{
-						throw CommonLogger::Exception("Invalid stream input for " + prefix + ": should be one of file/directory/stdin/stdout.");
+						// if val is a valid file for output
+						shared_ptr<std::ofstream> ofFile = make_shared<std::ofstream>(trimVal);
+						if (ofFile->is_open())
+							targetStreamList.push_back(ofFile);
+						// if val is not a file nor directory
+						else
+							throw CommonLogger::Exception("Invalid stream input for " + prefix + ": should be one of file/directory/stdin/stdout.");
 					}
 				}
 			}

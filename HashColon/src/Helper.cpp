@@ -233,8 +233,6 @@ namespace HashColon
 
 }
 
-#include <iostream>
-
 // Thread/Process performance
 namespace HashColon
 {
