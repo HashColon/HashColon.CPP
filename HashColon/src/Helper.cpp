@@ -1,9 +1,14 @@
-// HashColon config
 #include <HashColon/Helper.hpp>
 // std libraries
 #include <chrono>
 #include <ctime>
 #include <iomanip>
+#include <mutex>
+#include <regex>
+#include <sstream>
+#include <string>
+#include <thread>
+#include <vector>
 // check filesystem support
 #if defined __has_include
 #if __has_include(<filesystem>)
@@ -23,13 +28,6 @@
 #else
 #error C++ compiler with __has_include support required.
 #endif
-
-#include <mutex>
-#include <regex>
-#include <sstream>
-#include <string>
-#include <vector>
-// header file for this source file
 
 using namespace std;
 
@@ -256,5 +254,73 @@ namespace HashColon
 #else
 #warning GetCpuMem_fromPID: Undefined compiler
 #endif
+
+}
+
+// time guard for periodic processes
+namespace HashColon
+{
+	TimeGuard::TimeGuard(const Duration period)
+	{
+		ResetPeriod(period);
+		Restart();
+	};
+
+	void TimeGuard::Restart()
+	{
+		_start = std::chrono::system_clock::now();
+	}
+
+	void TimeGuard::ResetPeriod(const Duration period)
+	{
+		_period = period;
+	}
+
+	void TimeGuard::ResetPeriod_sec(const size_t period_sec)
+	{
+		ResetPeriod(std::chrono::seconds(period_sec));
+	}
+
+	void TimeGuard::ResetPeriod_millisec(const size_t period_millisec)
+	{
+		ResetPeriod(std::chrono::milliseconds(period_millisec));
+	}
+
+	void TimeGuard::ResetPeriod_nanosec(const size_t period_nanosec)
+	{
+		ResetPeriod(std::chrono::nanoseconds(period_nanosec));
+	}
+
+	void TimeGuard::CheckPeriod(std::function<void(void)> ok,
+								std::function<void(void)> period_violated)
+	{
+		TimePoint now = std::chrono::system_clock::now();
+		auto interval = now - _start;
+		if (interval <= _period)
+		{
+			ok();
+		}
+		else
+		{
+			period_violated();
+		}
+	}
+
+	void TimeGuard::CheckAndContinuePeriod(std::function<void(void)> ok,
+										   std::function<void(void)> period_violated)
+	{
+		TimePoint now = std::chrono::system_clock::now();
+		auto interval = now - _start;
+		if (interval <= _period)
+		{
+			ok();
+		}
+		else
+		{
+			period_violated();
+		}
+		_start += _period;
+		std::this_thread::sleep_until(_start);
+	}
 
 }
