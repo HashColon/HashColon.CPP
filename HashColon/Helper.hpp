@@ -3,6 +3,7 @@
 
 // std libraries
 #include <chrono>
+#include <functional>
 #include <string>
 #include <vector>
 // dependant external libraries
@@ -160,6 +161,31 @@ namespace HashColon
 namespace HashColon
 {
 	std::pair<float, float> GetCpuMem_fromPID(int pid);
+}
+
+// time guard for periodic processes
+namespace HashColon
+{
+	class TimeGuard
+	{
+	private:
+		TimePoint _start;
+		Duration _period;
+
+	public:
+		TimeGuard(const Duration period);
+		void Restart();
+		void ResetPeriod(const Duration period);
+		void ResetPeriod_sec(const size_t period_sec);
+		void ResetPeriod_millisec(const size_t period_millisec);
+		void ResetPeriod_nanosec(const size_t period_nanosec);
+		void CheckPeriod(
+			std::function<void(void)> ok = []() {},
+			std::function<void(void)> period_violated = []() {});
+		void CheckAndContinuePeriod(
+			std::function<void(void)> ok = []() {},
+			std::function<void(void)> period_violated = []() {});
+	};
 }
 
 //// Typenames helper functions
