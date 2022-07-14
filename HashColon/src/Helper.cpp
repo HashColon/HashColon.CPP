@@ -314,13 +314,13 @@ namespace HashColon
 		if (interval <= _period)
 		{
 			ok();
+			_start += _period;
+			std::this_thread::sleep_until(_start);
 		}
 		else
 		{
 			period_violated();
 		}
-		_start += _period;
-		std::this_thread::sleep_until(_start);
 	}
 
 }
