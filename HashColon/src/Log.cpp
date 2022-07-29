@@ -252,45 +252,58 @@ namespace HashColon
 
 		// add logStreams options using SetStreams
 		cli->add_option_function<vector<string>>(
-			"--logStreams",
-			[](const vector<string> &vals)
-			{ _local::SetStreams(vals, _cDefault.logStreams, "log"); },
-			"Streams for default logging. List of any of the File/Directory/Stdout/Stderr.");
+			   "--logStreams",
+			   [](const vector<string> &vals)
+			   { _local::SetStreams(vals, _cDefault.logStreams, "log");GlobalLogger.Reset(); },
+			   "Streams for default logging. List of any of the File/Directory/Stdout/Stderr.")
+			->default_val(vector<string>{"-"})
+			->run_callback_for_default();
 
 		// add errorStreams options using SetStreams
 		cli->add_option_function<vector<string>>(
-			"--errorStreams",
-			[](const vector<string> &vals)
-			{ _local::SetStreams(vals, _cDefault.errorStreams, "error"); },
-			"Streams for error logging. List of any of the File/Directory/Stdout/Stderr.");
+			   "--errorStreams",
+			   [](const vector<string> &vals)
+			   { _local::SetStreams(vals, _cDefault.errorStreams, "error"); GlobalLogger.Reset(); },
+			   "Streams for error logging. List of any of the File/Directory/Stdout/Stderr.")
+			->default_val(vector<string>{"-"})
+			->run_callback_for_default();
 
 		// add debugStreams options using SetStreams
 		cli->add_option_function<vector<string>>(
-			"--debugStreams",
-			[](const vector<string> &vals)
-			{ _local::SetStreams(vals, _cDefault.debugStreams, "debug"); },
-			"Streams for debug message logging. List of any of the File/Directory/Stdout/Stderr.");
+			   "--debugStreams",
+			   [](const vector<string> &vals)
+			   { _local::SetStreams(vals, _cDefault.debugStreams, "debug");GlobalLogger.Reset(); },
+			   "Streams for debug message logging. List of any of the File/Directory/Stdout/Stderr.")
+			->default_val(vector<string>{"-"})
+			->run_callback_for_default();
 
 		// add messageStreams options using SetStreams
 		cli->add_option_function<vector<string>>(
-			"--messageStreams",
-			[](const vector<string> &vals)
-			{ _local::SetStreams(vals, _cDefault.messageStreams, "message"); },
-			"Streams for messages. List of any of the File/Directory/Stdout/Stderr.");
+			   "--messageStreams",
+			   [](const vector<string> &vals)
+			   { _local::SetStreams(vals, _cDefault.messageStreams, "message"); GlobalLogger.Reset(); },
+			   "Streams for messages. List of any of the File/Directory/Stdout/Stderr.")
+			->default_val(vector<string>{"-"})
+			->run_callback_for_default();
 
 		// set verbose level
-		cli->add_option(
-			"--verboseLvl",
-			_cDefault.verbose_level,
-			"Enable verbose level. Logs with level exceeding verbose level will not be logged.");
+		cli->add_option_function<int>(
+			   "--verboseLvl",
+			   [](const int &val)
+			   { _cDefault.verbose_level = val; GlobalLogger.Reset(); },
+			   "Enable verbose level. Logs with level exceeding verbose level will not be logged.")
+			->default_val(5)
+			->run_callback_for_default();
 
-		cli->callback(
-			[&]()
-			{
-				GlobalLogger.Reset();
-			});
+		// cli->callback(
+		// 	[&]()
+		// 	{
+		// 		cout << "!" << endl;
+		// 		GlobalLogger.Reset();
+		// 	});
 
-		cli->configurable();
+		// cli->silent();
+		// cli->configurable();
 	}
 
 	CommonLogger::CommonLogger(_Params params)

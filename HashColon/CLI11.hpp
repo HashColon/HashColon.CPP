@@ -6808,7 +6808,15 @@ class App {
         // Delegate to subcommand if needed
         auto selected_subcommands = get_subcommands();
         if(!selected_subcommands.empty()) {
-            return selected_subcommands.at(0)->help(prev, mode);
+            // HASHCOLON
+            std::string re = "";
+            for(auto subcomm : selected_subcommands)
+            {
+                if(subcomm->parsed())
+                    re += subcomm->help(prev,mode);
+            }
+            if(!re.empty())
+                return re;
         }
         return formatter_->make_help(this, prev, mode);
     }

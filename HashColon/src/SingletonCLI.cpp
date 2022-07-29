@@ -41,11 +41,15 @@ namespace HashColon
 			try
 			{
 				child = parent->get_subcommand(name);
+				// child = parent->get_option_group(name);
 			}
 			catch (const CLI::OptionNotFound &e)
 			{
 				parent->add_subcommand(name, "");
 				child = parent->get_subcommand(name);
+				child->group("Option group");
+				// parent->add_option_group(name, "");
+				// child = parent->get_option_group(name);
 			}
 			parent = child;
 		} while (sscn.rdbuf()->in_avail());
@@ -67,10 +71,12 @@ namespace HashColon
 	}
 
 	SingletonCLI &SingletonCLI::Initialize(
-		ConfigurationFileType configtype, string appDescription)
+		ConfigurationFileType configtype,
+		string appDescription, string appName)
 	{
 		// set app description
 		_appDescription = appDescription;
+		_appName = appName;
 
 		// Instatiate singleton
 		GetInstance();
@@ -116,7 +122,7 @@ namespace HashColon
 		GetInstance().GetCLI()->set_config("--config", "", "Read configuration files", true)->expected(configCnt, configCnt + 1)->check(CLI::ExistingFile);
 
 		// allow config extras
-		GetInstance().GetCLI()->allow_config_extras(true);
+		// GetInstance().GetCLI()->allow_config_extras(true);
 
 		stringstream ss;
 		for (size_t i = 0; i < configFiles.size(); i++)

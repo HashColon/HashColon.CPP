@@ -20,11 +20,12 @@ namespace HashColon
 		static inline std::shared_ptr<SingletonCLI> _instance = nullptr;
 		static inline std::once_flag _onlyOne;
 		static inline std::string _appDescription = "";
+		static inline std::string _appName = "";
 
 		CLI::App cli;
 		std::vector<std::string> _configfiles;
 
-		SingletonCLI(size_t id) : cli(_appDescription){};
+		SingletonCLI(size_t id) : cli(_appDescription, _appName){};
 		SingletonCLI(const SingletonCLI &rs) { _instance = rs._instance; };
 		SingletonCLI &operator=(const SingletonCLI &rs);
 		CLI::App *GetCLI_core(CLI::App *app, const std::string iClassname);
@@ -41,7 +42,7 @@ namespace HashColon
 		static SingletonCLI &GetInstance(size_t thread_id = 0);
 		static SingletonCLI &Initialize(
 			ConfigurationFileType configtype = ConfigurationFileType::toml,
-			std::string appDescription = "");
+			std::string appDescription = "", std::string appName = "");
 
 		SingletonCLI &AddConfigFile(std::string configFileName);
 		SingletonCLI &AddConfigFile(std::vector<std::string> configFileNames);
