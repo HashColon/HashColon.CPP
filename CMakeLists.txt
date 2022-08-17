@@ -14,10 +14,10 @@ set (CMAKE_CXX_STANDARD_REQUIRED True)
 
 # ==== External libraries ====
 find_package(PkgConfig REQUIRED)
-find_package(Eigen3 3.3... REQUIRED NO_MODULE)  # Eigen3
-find_package(GDAL 2.2... REQUIRED)              # GDAL
+find_package(Eigen3 3.3 REQUIRED NO_MODULE)  # Eigen3
+find_package(GDAL 2.2 REQUIRED)              # GDAL
 find_package(OpenMP)                            # OpenMP
-find_package(Boost 1.65... REQUIRED             # Boost
+find_package(Boost 1.65 REQUIRED             # Boost
 COMPONENTS
     filesystem
     system
