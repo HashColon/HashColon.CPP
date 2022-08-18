@@ -218,7 +218,7 @@ namespace Eigen
 	using MatrixXR = Matrix<HashColon::Real, Dynamic, Dynamic>;
 	using MatrixX2R = Matrix<HashColon::Real, Dynamic, 2>;
 	using MatrixX3R = Matrix<HashColon::Real, Dynamic, 3>;
-	using MatrixX4 = Matrix<HashColon::Real, Dynamic, 4>;
+	using MatrixX4R = Matrix<HashColon::Real, Dynamic, 4>;
 
 	template <int Size>
 	using RowVectorR = Matrix<HashColon::Real, 1, Size>;
