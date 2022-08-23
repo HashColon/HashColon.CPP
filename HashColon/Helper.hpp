@@ -188,6 +188,8 @@ namespace HashColon
 	};
 }
 
+#define AsLambda(func) [&](auto&&... args) -> decltype(func(std::forward<decltype(args)>(args)...)) { return func(std::forward<decltype(args)>(args)...); }
+
 //// Typenames helper functions
 // namespace HashColon::TypeName
 //{
