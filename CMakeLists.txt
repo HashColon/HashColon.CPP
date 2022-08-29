@@ -25,7 +25,7 @@ find_package(Boost 1.65 REQUIRED # Boost
 pkg_check_modules(flann REQUIRED flann)
 
 # set public headers
-file(GLOB_RECURSE HASHCOLON_PUBLIC_HEADERLISTS
+file(GLOB_RECURSE HASHCOLON_PUBLIC_HEADERLIST
     HashColon/Array.hpp
     HashColon/CAGD.hpp
     HashColon/CLI11.hpp HashColon/CLI11_JsonSupport.hpp
@@ -46,7 +46,7 @@ file(GLOB_RECURSE HASHCOLON_PUBLIC_HEADERLISTS
 )
 
 # set src files
-file(GLOB_RECURSE HASHCOLON_SOURCELISTS
+file(GLOB_RECURSE HASHCOLON_SOURCELIST
 
     # HashColon
     HashColon/src/CAGD.cpp
@@ -73,12 +73,12 @@ file(GLOB_RECURSE HASHCOLON_SOURCELISTS
 
 # Project source files
 add_library(HashColon SHARED
-    ${HASHCOLON_SOURCELISTS}
+    ${HASHCOLON_SOURCELIST}
 )
 
 set_target_properties(HashColon
     PROPERTIES
-    PUBLIC_HEADER "${HASHCOLON_PUBLIC_HEADERLISTS}"
+    PUBLIC_HEADER ${HASHCOLON_PUBLIC_HEADERLIST}
 )
 
 # set libraries
