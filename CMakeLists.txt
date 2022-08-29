@@ -3,7 +3,7 @@ project(HashColon VERSION 1.0.0)
 
 # Build options
 set(CMAKE_VERBOSE_MAKEFILE ON)
-set(HASHCOLON_TEST_CODE ON)
+set(HASHCOLON_TEST_CODE OFF)
 
 # ==== C/C++ standard ====
 # C11, C++17 required
@@ -24,8 +24,29 @@ find_package(Boost 1.65 REQUIRED # Boost
 )
 pkg_check_modules(flann REQUIRED flann)
 
-# Project source files
-add_library(HashColon
+# set public headers
+file(GLOB_RECURSE HASHCOLON_PUBLIC_HEADERLISTS
+    HashColon/Array.hpp
+    HashColon/CAGD.hpp
+    HashColon/CLI11.hpp HashColon/CLI11_JsonSupport.hpp
+    HashColon/Clustering.hpp
+    HashColon/Exception.hpp
+    HashColon/GeoValues.hpp
+    HashColon/HashColon_config.h
+    HashColon/Helper.hpp
+    HashColon/Log.hpp
+    HashColon/Real.hpp
+    HashColon/SingletonCLI.hpp
+    HashColon/Statistics.hpp
+    HashColon/Table.hpp
+    HashColon/ThreadPool.hpp
+    HashColon/Feline/AisPreprocess.hpp
+    HashColon/Feline/FelineJsonIO.hpp
+    HashColon/Feline/GeoData.hpp
+)
+
+# set src files
+file(GLOB_RECURSE HASHCOLON_SOURCELISTS
 
     # HashColon
     HashColon/src/CAGD.cpp
@@ -48,6 +69,16 @@ add_library(HashColon
     # HashColon/Feline/src/TrajectoryClustering.cpp
     # HashColon/Feline/src/XtdEstimation.cpp
     # HashColon/Feline/src/XtdTrajectoryClustering.cpp
+)
+
+# Project source files
+add_library(HashColon SHARED
+    ${HASHCOLON_SOURCELISTS}
+)
+
+set_target_properties(HashColon
+    PROPERTIES
+    PUBLIC_HEADER "${HASHCOLON_PUBLIC_HEADERLISTS}"
 )
 
 # set libraries
@@ -141,6 +172,9 @@ endif()
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 
-install(TARGETS HashColon)
+install(
+    TARGETS HashColon
+    PUBLIC_HEADER
+)
 
 include(CPack)
