@@ -78,7 +78,7 @@ add_library(HashColon SHARED
 
 set_target_properties(HashColon
     PROPERTIES
-    PUBLIC_HEADER ${HASHCOLON_PUBLIC_HEADERLIST}
+    PUBLIC_HEADER "${HASHCOLON_PUBLIC_HEADERLIST}"
 )
 
 # set libraries
