@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.10.2)
+
 project(HashColon VERSION 1.0.0)
 
 # Build options
@@ -57,7 +58,7 @@ add_library(HashColon SHARED
 
 # set libraries
 target_link_libraries(HashColon
-    PUBLIC
+    PRIVATE
 
     # Eigen3::Eigen
     Boost::filesystem
