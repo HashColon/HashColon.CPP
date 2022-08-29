@@ -24,27 +24,6 @@ find_package(Boost 1.65 REQUIRED # Boost
 )
 pkg_check_modules(flann REQUIRED flann)
 
-# set public headers
-# file(GLOB_RECURSE HASHCOLON_PUBLIC_HEADERLIST
-# HashColon/Array.hpp
-# HashColon/CAGD.hpp
-# HashColon/CLI11.hpp HashColon/CLI11_JsonSupport.hpp
-# HashColon/Clustering.hpp
-# HashColon/Exception.hpp
-# HashColon/GeoValues.hpp
-# HashColon/HashColon_config.h
-# HashColon/Helper.hpp
-# HashColon/Log.hpp
-# HashColon/Real.hpp
-# HashColon/SingletonCLI.hpp
-# HashColon/Statistics.hpp
-# HashColon/Table.hpp
-# HashColon/ThreadPool.hpp
-# HashColon/Feline/AisPreprocess.hpp
-# HashColon/Feline/FelineJsonIO.hpp
-# HashColon/Feline/GeoData.hpp
-# )
-
 # set src files
 file(GLOB_RECURSE HASHCOLON_SOURCELIST
 
@@ -76,26 +55,31 @@ add_library(HashColon SHARED
     ${HASHCOLON_SOURCELIST}
 )
 
-# set_target_properties(HashColon
-# PROPERTIES
-# PUBLIC_HEADER "${HASHCOLON_PUBLIC_HEADERLIST}"
-# )
-
 # set libraries
 target_link_libraries(HashColon
     PUBLIC
-    Eigen3::Eigen
+
+    # Eigen3::Eigen
     Boost::filesystem
     Boost::system
+)
+
+set(HASHCOLON_INCLUDE_BUILD_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${EIGEN3_INCLUDE_DIRS}
+    ${Boost_INCLUDE_DIRS}
+)
+set(HASHCOLON_INCLUDE_INSTALL_DIRS
+    include
+    ${EIGEN3_INCLUDE_DIRS}
+    ${Boost_INCLUDE_DIRS}
 )
 
 # set include directories
 target_include_directories(HashColon
     PUBLIC
-    ${Eigen3_INCLUDE_DIRS}
-    ${Boost_INCLUDE_DIRS}
-    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR};${CMAKE_CURRENT_SOURCE_DIR}/ext>"
-    "$<INSTALL_INTERFACE:include/HashColon;include/HashColon/ext>"
+    "$<BUILD_INTERFACE:${HASHCOLON_INCLUDE_BUILD_DIRS}>"
+    "$<INSTALL_INTERFACE:${HASHCOLON_INCLUDE_INSTALL_DIRS}>"
 )
 
 # set compiler options
@@ -190,8 +174,9 @@ install(
 # set cmake-config process(for find_package) for hashcolon
 install(
     EXPORT HashColon-export
-    FILE hashcolon-config.cmake
     DESTINATION share/cmake/hashcolon/
+    FILE hashcolon-config.cmake
+    COMPONENT
 )
 
 include(CPack)
