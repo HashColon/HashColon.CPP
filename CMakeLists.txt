@@ -69,9 +69,11 @@ target_link_libraries(HashColon
 
 set(HASHCOLON_INCLUDE_BUILD_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/HashColon
 )
 set(HASHCOLON_INCLUDE_INSTALL_DIRS
     include
+    include/HashColon
 )
 
 # set include directories
