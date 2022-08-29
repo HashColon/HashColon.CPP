@@ -63,6 +63,8 @@ target_link_libraries(HashColon
     # Eigen3::Eigen
     Boost::filesystem
     Boost::system
+    gdal
+    flann
 )
 
 set(HASHCOLON_INCLUDE_BUILD_DIRS
