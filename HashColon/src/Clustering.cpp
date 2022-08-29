@@ -13,7 +13,7 @@
 // modified external libraries
 #include <HashColon/CLI11.hpp>
 #include <HashColon/CLI11_JsonSupport.hpp>
-#include <dkm_modified/dkm_parallel.hpp>
+#include <ext/dkm_modified/dkm_parallel.hpp>
 // HashColon libraries
 #include <HashColon/Exception.hpp>
 #include <HashColon/Log.hpp>

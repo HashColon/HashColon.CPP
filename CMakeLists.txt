@@ -25,25 +25,25 @@ find_package(Boost 1.65 REQUIRED # Boost
 pkg_check_modules(flann REQUIRED flann)
 
 # set public headers
-file(GLOB_RECURSE HASHCOLON_PUBLIC_HEADERLIST
-    HashColon/Array.hpp
-    HashColon/CAGD.hpp
-    HashColon/CLI11.hpp HashColon/CLI11_JsonSupport.hpp
-    HashColon/Clustering.hpp
-    HashColon/Exception.hpp
-    HashColon/GeoValues.hpp
-    HashColon/HashColon_config.h
-    HashColon/Helper.hpp
-    HashColon/Log.hpp
-    HashColon/Real.hpp
-    HashColon/SingletonCLI.hpp
-    HashColon/Statistics.hpp
-    HashColon/Table.hpp
-    HashColon/ThreadPool.hpp
-    HashColon/Feline/AisPreprocess.hpp
-    HashColon/Feline/FelineJsonIO.hpp
-    HashColon/Feline/GeoData.hpp
-)
+# file(GLOB_RECURSE HASHCOLON_PUBLIC_HEADERLIST
+# HashColon/Array.hpp
+# HashColon/CAGD.hpp
+# HashColon/CLI11.hpp HashColon/CLI11_JsonSupport.hpp
+# HashColon/Clustering.hpp
+# HashColon/Exception.hpp
+# HashColon/GeoValues.hpp
+# HashColon/HashColon_config.h
+# HashColon/Helper.hpp
+# HashColon/Log.hpp
+# HashColon/Real.hpp
+# HashColon/SingletonCLI.hpp
+# HashColon/Statistics.hpp
+# HashColon/Table.hpp
+# HashColon/ThreadPool.hpp
+# HashColon/Feline/AisPreprocess.hpp
+# HashColon/Feline/FelineJsonIO.hpp
+# HashColon/Feline/GeoData.hpp
+# )
 
 # set src files
 file(GLOB_RECURSE HASHCOLON_SOURCELIST
@@ -76,10 +76,10 @@ add_library(HashColon SHARED
     ${HASHCOLON_SOURCELIST}
 )
 
-set_target_properties(HashColon
-    PROPERTIES
-    PUBLIC_HEADER "${HASHCOLON_PUBLIC_HEADERLIST}"
-)
+# set_target_properties(HashColon
+# PROPERTIES
+# PUBLIC_HEADER "${HASHCOLON_PUBLIC_HEADERLIST}"
+# )
 
 # set libraries
 target_link_libraries(HashColon
@@ -92,10 +92,10 @@ target_link_libraries(HashColon
 # set include directories
 target_include_directories(HashColon
     PUBLIC
-    .
-    ./ext
     ${Eigen3_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIRS}
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR};${CMAKE_CURRENT_SOURCE_DIR}/ext>"
+    "$<INSTALL_INTERFACE:include/HashColon;include/HashColon/ext>"
 )
 
 # set compiler options
@@ -136,8 +136,6 @@ if(HASHCOLON_TEST_CODE)
     # set include directories
     target_include_directories(HashColon_Test
         PUBLIC
-        .
-        ./ext
         ${Eigen3_INCLUDE_DIRS}
         ${Boost_INCLUDE_DIRS}
     )
@@ -172,9 +170,28 @@ endif()
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 
+# set installation process for hashcolon
 install(
     TARGETS HashColon
-    PUBLIC_HEADER
+    EXPORT HashColon-export
+)
+
+# set installation process for header files
+install(
+    DIRECTORY HashColon DESTINATION include
+    PATTERN "*.h"
+    PATTERN "*.hh"
+    PATTERN "*.hpp"
+    PATTERN "working" EXCLUDE
+    PATTERN "src" EXCLUDE
+    PATTERN "Types_Deprecated" EXCLUDE
+)
+
+# set cmake-config process(for find_package) for hashcolon
+install(
+    EXPORT HashColon-export
+    FILE hashcolon-config.cmake
+    DESTINATION share/cmake/hashcolon/
 )
 
 include(CPack)
