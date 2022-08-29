@@ -66,18 +66,16 @@ target_link_libraries(HashColon
 
 set(HASHCOLON_INCLUDE_BUILD_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${EIGEN3_INCLUDE_DIRS}
-    ${Boost_INCLUDE_DIRS}
 )
 set(HASHCOLON_INCLUDE_INSTALL_DIRS
     include
-    ${EIGEN3_INCLUDE_DIRS}
-    ${Boost_INCLUDE_DIRS}
 )
 
 # set include directories
 target_include_directories(HashColon
     PUBLIC
+    ${EIGEN3_INCLUDE_DIRS}
+    ${Boost_INCLUDE_DIRS}
     "$<BUILD_INTERFACE:${HASHCOLON_INCLUDE_BUILD_DIRS}>"
     "$<INSTALL_INTERFACE:${HASHCOLON_INCLUDE_INSTALL_DIRS}>"
 )
