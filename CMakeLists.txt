@@ -5,6 +5,7 @@ project(HashColon VERSION 1.0.0)
 # Build options
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(HASHCOLON_TEST_CODE OFF)
+set(BUILD_FELINE OFF)
 
 # ==== C/C++ standard ====
 # C11, C++17 required
@@ -16,18 +17,23 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # ==== External libraries ====
 find_package(PkgConfig REQUIRED)
 find_package(Eigen3 3.3 REQUIRED NO_MODULE) # Eigen3
-find_package(GDAL 2.2 REQUIRED) # GDAL
 find_package(OpenMP) # OpenMP
 find_package(Boost 1.65 REQUIRED # Boost
     COMPONENTS
     filesystem
     system
 )
-pkg_check_modules(flann REQUIRED flann)
+if(BUILD_FELINE)
+    find_package(GDAL 2.2 REQUIRED) # GDAL
+    pkg_check_modules(flann REQUIRED flann)
+endif()
+
+# Project source files
+add_library(HashColon)
 
 # set src files
-file(GLOB_RECURSE HASHCOLON_SOURCELIST
-
+target_sources(HashColon
+PRIVATE
     # HashColon
     HashColon/src/CAGD.cpp
     HashColon/src/Clustering.cpp
@@ -39,22 +45,22 @@ file(GLOB_RECURSE HASHCOLON_SOURCELIST
     HashColon/src/Statistics.cpp
     HashColon/src/Table.cpp
     HashColon/src/ThreadPool.cpp
-
-    # HashColon/Feline
-    HashColon/Feline/src/AisPreprocess.cpp
-    HashColon/Feline/src/FelineJsonIO.cpp
-    HashColon/Feline/src/GeoData.cpp
-
-    # Trajectory, XTD stuffs are disabled
-    # HashColon/Feline/src/TrajectoryClustering.cpp
-    # HashColon/Feline/src/XtdEstimation.cpp
-    # HashColon/Feline/src/XtdTrajectoryClustering.cpp
 )
 
-# Project source files
-add_library(HashColon SHARED
-    ${HASHCOLON_SOURCELIST}
-)
+if(BUILD_FELINE)
+    target_sources(HashColon
+    PRIVATE
+        # HashColon/Feline
+        HashColon/Feline/src/AisPreprocess.cpp
+        HashColon/Feline/src/FelineJsonIO.cpp
+        HashColon/Feline/src/GeoData.cpp
+
+        # Trajectory, XTD stuffs are disabled
+        # HashColon/Feline/src/TrajectoryClustering.cpp
+        # HashColon/Feline/src/XtdEstimation.cpp
+        # HashColon/Feline/src/XtdTrajectoryClustering.cpp
+    )
+endif()
 
 # set libraries
 target_link_libraries(HashColon
