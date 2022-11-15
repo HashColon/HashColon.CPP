@@ -13,6 +13,11 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/type_index.hpp>
 
+#ifdef __GNUC__
+#include <unistd.h>
+#include <sys/syscall.h>
+#endif
+
 // Filesystem helper functions
 namespace HashColon::Fs
 {
@@ -160,7 +165,11 @@ namespace HashColon
 // Thread/Process performance
 namespace HashColon
 {
+	#ifdef __GNUC__
 	std::pair<float, float> GetCpuMem_fromPID(int pid);
+	inline size_t GetPID() { return (size_t)::getpid(); }
+    	inline size_t GetTID() { return (size_t)::syscall(SYS_gettid); }
+	#endif
 }
 
 // time guard for periodic processes
