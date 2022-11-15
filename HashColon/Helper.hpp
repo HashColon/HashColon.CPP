@@ -194,6 +194,7 @@ namespace HashColon
 		void CheckAndContinuePeriod(
 			std::function<void(void)> ok = []() {},
 			std::function<void(void)> period_violated = []() {});
+		TimePoint GetPeriodStartTime() { return _start; };
 	};
 }
 
