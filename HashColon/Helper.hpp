@@ -147,6 +147,7 @@ namespace HashColon
 		inline TimePoint(std::pair<std::string, std::string> timedef) { fromString(timedef.first, timedef.second); };
 		
 		inline static void SetDefaultFormat(std::string frmstr) { defaultFormat = frmstr; };
+		inline static TimePoint Now() { return std::chrono::time_point<std::chrono::system_clock>::now(); };
 
 	public:
 		inline TimePoint &operator=(std::string datetimeStr)
