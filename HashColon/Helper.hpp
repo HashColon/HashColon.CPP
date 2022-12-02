@@ -129,9 +129,10 @@ namespace HashColon
 	// TimePoint definition
 	class TimePoint : public std::chrono::time_point<std::chrono::system_clock>
 	{
+	private:
+		inline static std::string defaultFormat = "%Y-%m-%d %T";
+	
 	public:
-		inline static const std::string defaultFormat = "%Y-%m-%d %T";
-
 		constexpr TimePoint()
 			: std::chrono::time_point<std::chrono::system_clock>(){};
 
@@ -144,6 +145,8 @@ namespace HashColon
 
 		inline TimePoint(std::string datetimeStr) { fromString(datetimeStr); };
 		inline TimePoint(std::pair<std::string, std::string> timedef) { fromString(timedef.first, timedef.second); };
+		
+		inline SetDefaultFormat(std::string frmstr) { defaultFormat = frmstr; };
 
 	public:
 		inline TimePoint &operator=(std::string datetimeStr)
