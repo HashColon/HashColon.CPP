@@ -130,7 +130,7 @@ namespace HashColon
 	class TimePoint : public std::chrono::time_point<std::chrono::system_clock>
 	{
 	public:
-		inline static const std::string defaultFormat = "%F %T";
+		inline static const std::string defaultFormat = "%Y-%m-%d %T";
 
 		constexpr TimePoint()
 			: std::chrono::time_point<std::chrono::system_clock>(){};
