@@ -143,30 +143,33 @@ namespace HashColon
 		constexpr TimePoint(const time_point<std::chrono::system_clock, Duration2> &t)
 			: std::chrono::time_point<std::chrono::system_clock>(t){};
 
-		inline TimePoint(std::string datetimeStr) { fromString(datetimeStr); };
-		inline TimePoint(std::pair<std::string, std::string> timedef) { fromString(timedef.first, timedef.second); };
+		inline TimePoint(std::string datetimeStr);
+		inline TimePoint(std::pair<std::string, std::string> timedef);
 
-		inline static void SetDefaultFormat(std::string frmstr) { defaultFormat = frmstr; };
-		inline static std::string GetDefaultFormat() { return defaultFormat; };
+		inline static void SetDefaultFormat(std::string frmstr);
+		inline static std::string GetDefaultFormat();
 
 		static TimePoint Now();
 		static TimePoint UtcNow();
 
-	public:
-		inline TimePoint &operator=(std::string datetimeStr)
-		{
-			fromString(datetimeStr);
-			return (*this);
-		};
-		inline TimePoint &operator=(std::pair<std::string, std::string> timedef)
-		{
-			fromString(timedef.first, timedef.second);
-			return (*this);
-		};
+		inline TimePoint &operator=(const std::string datetimeStr);
+		inline TimePoint &operator=(const std::pair<std::string, std::string> timedef);
+
 		void fromString(std::string datetimeStr, const std::string formatStr = defaultFormat);
 		std::string toString(const std::string formatStr = defaultFormat) const;
+		TimePoint Local2Utc();
+		TimePoint Utc2Local();
+
+		friend std::ostream &operator<<(std::ostream &lhs, const TimePoint &rhs);
+		friend std::ostream &operator<<(std::ostream &lhs,
+										const std::pair<TimePoint, std::string> rhs);
+		friend std::ostream &operator>>(std::ostream &lhs, const TimePoint &rhs);
 	};
 
+	std::ostream &operator<<(std::ostream &lhs, const TimePoint &rhs);
+	std::ostream &operator<<(std::ostream &lhs,
+							 const std::pair<TimePoint, std::string> rhs);
+	std::ostream &operator>>(std::istream &lhs, TimePoint &rhs);
 }
 
 // Thread/Process performance

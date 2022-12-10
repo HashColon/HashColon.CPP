@@ -186,6 +186,49 @@ namespace HashColon
 	// mutex for ctime functions
 	mutex ctime_mx;
 
+	TimePoint::TimePoint(string datetimeStr)
+	{
+		fromString(datetimeStr);
+	}
+	TimePoint::TimePoint(pair<string, string> timedef)
+	{
+		fromString(timedef.first, timedef.second);
+	}
+
+	void TimePoint::SetDefaultFormat(string frmstr)
+	{
+		defaultFormat = frmstr;
+	}
+	string TimePoint::GetDefaultFormat()
+	{
+		return defaultFormat;
+	}
+
+	TimePoint TimePoint::Now()
+	{
+		return chrono::system_clock::now();
+	};
+
+	TimePoint TimePoint::UtcNow()
+	{
+		lock_guard<mutex> lock_mx(ctime_mx);
+		// get now
+		std::time_t t = std::time(NULL);
+		std::time_t utc = std::mktime(std::gmtime(&t));
+		return TimePoint(chrono::system_clock::from_time_t(utc));
+	}
+
+	TimePoint &TimePoint::operator=(string datetimeStr)
+	{
+		fromString(datetimeStr);
+		return (*this);
+	};
+	TimePoint &TimePoint::operator=(pair<string, string> timedef)
+	{
+		fromString(timedef.first, timedef.second);
+		return (*this);
+	};
+
 	//{ TimePoint functions
 	void TimePoint::fromString(string datetimeStr, const string formatStr)
 	{
@@ -229,15 +272,35 @@ namespace HashColon
 		return ss.str();
 	}
 
-	TimePoint TimePoint::Now() { return std::chrono::system_clock::now(); };
-
-	TimePoint TimePoint::UtcNow()
+	TimePoint TimePoint::Local2Utc()
 	{
 		lock_guard<mutex> lock_mx(ctime_mx);
-		// get now
-		std::time_t t = std::time(NULL);
-		std::time_t utc = std::mktime(std::gmtime(&t));
+		time_t this_C = chrono::system_clock::to_time_t(*this);
+		time_t utc = mktime(gmtime(&this_C));
 		return TimePoint(chrono::system_clock::from_time_t(utc));
+	}
+	TimePoint TimePoint::Utc2Local()
+	{
+		lock_guard<mutex> lock_mx(ctime_mx);
+		time_t this_C = chrono::system_clock::to_time_t(*this);
+		time_t local = mktime(localtime(&this_C));
+		return TimePoint(chrono::system_clock::from_time_t(local));
+	}
+
+	ostream &operator<<(ostream &lhs, const TimePoint &rhs)
+	{
+		lhs << rhs.toString();
+		return lhs;
+	}
+
+	ostream &operator<<(ostream &lhs, const pair<TimePoint, string> rhs)
+	{
+		lhs << rhs.first.toString(rhs.second);
+		return lhs;
+	}
+	ostream &operator>>(istream &lhs, const TimePoint &rhs)
+	{
+		lhs >> rhs;
 	}
 }
 
