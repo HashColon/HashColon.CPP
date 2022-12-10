@@ -143,11 +143,11 @@ namespace HashColon
 		constexpr TimePoint(const time_point<std::chrono::system_clock, Duration2> &t)
 			: std::chrono::time_point<std::chrono::system_clock>(t){};
 
-		inline TimePoint(std::string datetimeStr);
-		inline TimePoint(std::pair<std::string, std::string> timedef);
+		TimePoint(std::string datetimeStr);
+		TimePoint(std::pair<std::string, std::string> timedef);
 
-		inline static void SetDefaultFormat(std::string frmstr);
-		inline static std::string GetDefaultFormat();
+		static void SetDefaultFormat(std::string frmstr);
+		static std::string GetDefaultFormat();
 
 		static TimePoint Now();
 		static TimePoint UtcNow();

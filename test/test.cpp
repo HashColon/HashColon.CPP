@@ -93,6 +93,10 @@ int main(int argc, char *argv[])
 
     // SingletonCLI::GetInstance().Parse(argc, argv, {"./test/test.conf"});
 
+    TimePoint a("2022-12-12 13:00:00");
+
+    cout << TimePoint::Now().Local2Utc() << endl;
+
     cout << TimePoint::Now().toString() << endl;
     cout << TimePoint::UtcNow().toString() << endl;
 }
