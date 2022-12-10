@@ -131,7 +131,7 @@ namespace HashColon
 	{
 	private:
 		inline static std::string defaultFormat = "%Y-%m-%d %T";
-	
+
 	public:
 		constexpr TimePoint()
 			: std::chrono::time_point<std::chrono::system_clock>(){};
@@ -145,10 +145,12 @@ namespace HashColon
 
 		inline TimePoint(std::string datetimeStr) { fromString(datetimeStr); };
 		inline TimePoint(std::pair<std::string, std::string> timedef) { fromString(timedef.first, timedef.second); };
-		
+
 		inline static void SetDefaultFormat(std::string frmstr) { defaultFormat = frmstr; };
 		inline static std::string GetDefaultFormat() { return defaultFormat; };
-		inline static TimePoint Now() { return std::chrono::system_clock::now(); };
+
+		static TimePoint Now();
+		static TimePoint UtcNow();
 
 	public:
 		inline TimePoint &operator=(std::string datetimeStr)
@@ -170,11 +172,11 @@ namespace HashColon
 // Thread/Process performance
 namespace HashColon
 {
-	#ifdef __GNUC__
+#ifdef __GNUC__
 	std::pair<float, float> GetCpuMem_fromPID(int pid);
 	inline size_t GetPID() { return (size_t)::getpid(); }
-    	inline size_t GetTID() { return (size_t)::syscall(SYS_gettid); }
-	#endif
+	inline size_t GetTID() { return (size_t)::syscall(SYS_gettid); }
+#endif
 }
 
 // time guard for periodic processes
@@ -203,7 +205,7 @@ namespace HashColon
 	};
 }
 
-#define AsLambda(func) [&](auto&&... args) -> decltype(func(std::forward<decltype(args)>(args)...)) { return func(std::forward<decltype(args)>(args)...); }
+#define AsLambda(func) [&](auto &&...args) -> decltype(func(std::forward<decltype(args)>(args)...)) { return func(std::forward<decltype(args)>(args)...); }
 
 //// Typenames helper functions
 // namespace HashColon::TypeName

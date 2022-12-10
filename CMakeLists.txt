@@ -4,7 +4,7 @@ project(HashColon VERSION 1.0.0)
 
 # Build options
 set(CMAKE_VERBOSE_MAKEFILE ON)
-set(HASHCOLON_TEST_CODE OFF)
+set(HASHCOLON_TEST_CODE ON)
 set(BUILD_FELINE OFF)
 
 # ==== C/C++ standard ====

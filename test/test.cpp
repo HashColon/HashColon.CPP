@@ -84,12 +84,15 @@ void unittest_CommonLogger()
 
 int main(int argc, char *argv[])
 {
-    SingletonCLI::Initialize();
-    CommonLogger::Initialize("./test/test.conf", "Log");
+    // SingletonCLI::Initialize();
+    // CommonLogger::Initialize("./test/test.conf", "Log");
 
-    SingletonCLI::GetInstance().GetCLI()->callback(unittest_CommonLogger);
+    // SingletonCLI::GetInstance().GetCLI()->callback(unittest_CommonLogger);
 
-    // SingletonCLI::GetInstance().GetCLI()->callback();
+    // // SingletonCLI::GetInstance().GetCLI()->callback();
 
-    SingletonCLI::GetInstance().Parse(argc, argv, {"./test/test.conf"});
+    // SingletonCLI::GetInstance().Parse(argc, argv, {"./test/test.conf"});
+
+    cout << TimePoint::Now().toString() << endl;
+    cout << TimePoint::UtcNow().toString() << endl;
 }

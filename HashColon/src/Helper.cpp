@@ -229,6 +229,16 @@ namespace HashColon
 		return ss.str();
 	}
 
+	TimePoint TimePoint::Now() { return std::chrono::system_clock::now(); };
+
+	TimePoint TimePoint::UtcNow()
+	{
+		lock_guard<mutex> lock_mx(ctime_mx);
+		// get now
+		std::time_t t = std::time(NULL);
+		std::time_t utc = std::mktime(std::gmtime(&t));
+		return TimePoint(chrono::system_clock::from_time_t(utc));
+	}
 }
 
 // Thread/Process performance
