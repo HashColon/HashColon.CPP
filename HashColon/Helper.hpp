@@ -158,7 +158,6 @@ namespace HashColon
 		void fromString(std::string datetimeStr, const std::string formatStr = defaultFormat);
 		std::string toString(const std::string formatStr = defaultFormat) const;
 		TimePoint Local2Utc();
-		TimePoint Utc2Local();
 
 		friend std::ostream &operator<<(std::ostream &lhs, const TimePoint &rhs);
 		friend std::ostream &operator<<(std::ostream &lhs,

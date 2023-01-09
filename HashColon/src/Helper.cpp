@@ -1,7 +1,16 @@
 #include <HashColon/Helper.hpp>
 // std libraries
 #include <chrono>
-#include <ctime>
+#ifdef __GNUC__
+#define __USE_POSIX
+#define gmtime_threadsafe gmtime_r
+#define localtime_threadsafe localtime_r
+#elif _MSC_VER
+#define gmtime_threadsafe gmtime_s
+#define localtime_threadsage localtime_s
+#endif
+#include <ctime> // to use threadsafe function gmtime_r, localtime_r
+#undef __USE_POSIX
 #include <iomanip>
 #include <mutex>
 #include <regex>
@@ -211,11 +220,7 @@ namespace HashColon
 
 	TimePoint TimePoint::UtcNow()
 	{
-		lock_guard<mutex> lock_mx(ctime_mx);
-		// get now
-		std::time_t t = std::time(NULL);
-		std::time_t utc = std::mktime(std::gmtime(&t));
-		return TimePoint(chrono::system_clock::from_time_t(utc));
+		return Now().Local2Utc();
 	}
 
 	TimePoint &TimePoint::operator=(string datetimeStr)
@@ -241,16 +246,14 @@ namespace HashColon
 			throw out_of_range("datetime string out of range ( HashColon::Feline::Types::Timepoint::fromString() ).");
 		else
 		{
-			time_t temptime_t;
-
 			// unfortunately, mktime and localtime from ctime is not threadsafe.
 			// therefore a lock should be provided.
 			// refer to the following link for more information about tregedic behavior of mktime & localtime
 			// https://stackoverflow.com/questions/16575029/localtime-not-thread-safe-but-okay-to-call-in-only-one-thread
-			{
-				lock_guard<mutex> lock_mx(ctime_mx);
-				temptime_t = mktime(&temp_tm);
-			}
+			lock_guard<mutex> lock_mx(ctime_mx);
+			time_t temptime_t;
+
+			temptime_t = mktime(&temp_tm);
 			auto temp_tp = chrono::system_clock::from_time_t(temptime_t);
 			(*this) = temp_tp;
 		}
@@ -258,33 +261,30 @@ namespace HashColon
 
 	string TimePoint::toString(const string formatStr) const
 	{
-		time_t this_C = chrono::system_clock::to_time_t(*this);
-		stringstream ss;
-
 		// unfortunately, mktime and localtime from ctime is not threadsafe.
 		// therefore a lock should be provided.
 		// refer to the following link for more information about tregedic behavior of mktime & localtime
 		// https://stackoverflow.com/questions/16575029/localtime-not-thread-safe-but-okay-to-call-in-only-one-thread
-		{
-			lock_guard<mutex> lock_mx(ctime_mx);
-			ss << put_time(localtime(&this_C), formatStr.c_str());
-		}
+		lock_guard<mutex> lock_mx(ctime_mx);
+		time_t this_C = chrono::system_clock::to_time_t(*this);
+		struct tm buf;
+		stringstream ss;
+
+		ss << put_time(localtime_threadsafe(&this_C, &buf), formatStr.c_str());
 		return ss.str();
 	}
 
 	TimePoint TimePoint::Local2Utc()
 	{
+		// unfortunately, mktime and localtime from ctime is not threadsafe.
+		// therefore a lock should be provided.
+		// refer to the following link for more information about tregedic behavior of mktime & localtime
+		// https://stackoverflow.com/questions/16575029/localtime-not-thread-safe-but-okay-to-call-in-only-one-thread
 		lock_guard<mutex> lock_mx(ctime_mx);
+		struct tm buf;
 		time_t this_C = chrono::system_clock::to_time_t(*this);
-		time_t utc = mktime(gmtime(&this_C));
+		time_t utc = mktime(gmtime_threadsafe(&this_C, &buf));
 		return TimePoint(chrono::system_clock::from_time_t(utc));
-	}
-	TimePoint TimePoint::Utc2Local()
-	{
-		lock_guard<mutex> lock_mx(ctime_mx);
-		time_t this_C = chrono::system_clock::to_time_t(*this);
-		time_t local = mktime(localtime(&this_C));
-		return TimePoint(chrono::system_clock::from_time_t(local));
 	}
 
 	ostream &operator<<(ostream &lhs, const TimePoint &rhs)

@@ -82,6 +82,22 @@ void unittest_CommonLogger()
     cout << "re2: cpu%: " << re2.first << ", mem%: " << re2.second << endl;
 }
 
+void unittest_utc()
+{
+    TimeGuard perioric(chrono::milliseconds(100));
+    TimePoint tp1 = TimePoint::UtcNow();
+    TimePoint tp2;
+    do
+    {
+        tp2 = tp1;
+        tp1 = TimePoint::UtcNow();
+        cout << tp1 << endl;
+
+        perioric.CheckAndContinuePeriod();
+    } while ((tp1 - tp2) < chrono::hours(1));
+    cout << "젲앙 왜 이따구로 찍히는데?" << endl;
+}
+
 int main(int argc, char *argv[])
 {
     // SingletonCLI::Initialize();
@@ -93,10 +109,12 @@ int main(int argc, char *argv[])
 
     // SingletonCLI::GetInstance().Parse(argc, argv, {"./test/test.conf"});
 
-    TimePoint a("2022-12-12 13:00:00");
+    // TimePoint a("2022-12-12 13:00:00");
 
-    cout << TimePoint::Now().Local2Utc() << endl;
+    // cout << TimePoint::Now().Local2Utc() << endl;
 
-    cout << TimePoint::Now().toString() << endl;
-    cout << TimePoint::UtcNow().toString() << endl;
+    // cout << TimePoint::Now().toString() << endl;
+    // cout << TimePoint::UtcNow().toString() << endl;
+
+    unittest_utc();
 }
