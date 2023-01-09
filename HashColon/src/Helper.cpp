@@ -268,9 +268,10 @@ namespace HashColon
 		lock_guard<mutex> lock_mx(ctime_mx);
 		time_t this_C = chrono::system_clock::to_time_t(*this);
 		struct tm buf;
+		struct tm tm_lt = (*localtime_threadsafe(&this_C, &buf));
 		stringstream ss;
 
-		ss << put_time(localtime_threadsafe(&this_C, &buf), formatStr.c_str());
+		ss << put_time(&tm_lt, formatStr.c_str());
 		return ss.str();
 	}
 
@@ -283,7 +284,8 @@ namespace HashColon
 		lock_guard<mutex> lock_mx(ctime_mx);
 		struct tm buf;
 		time_t this_C = chrono::system_clock::to_time_t(*this);
-		time_t utc = mktime(gmtime_threadsafe(&this_C, &buf));
+		struct tm tm_gt = (*gmtime_threadsafe(&this_C, &buf));
+		time_t utc = mktime(&tm_gt);
 		return TimePoint(chrono::system_clock::from_time_t(utc));
 	}
 
