@@ -141,4 +141,19 @@ namespace HashColon
 	{
 		return GetCLI_core(&cli, iClassname);
 	}
+	
+	string GetEnvName(string configNamespace, string varname)
+	{
+	    using namespace HashColon::String;
+	    string re = configNamespace + "_" + varname;
+		
+	    // replace '.' => '_'
+	    replace(re.begin(), re.end(), '.', '_');
+	    // replace '-' => '_'
+	    replace(re.begin(), re.end(), '-', '_');
+	    // To upper
+	    ToUpper(re);
+
+	    return re;
+	}
 }
