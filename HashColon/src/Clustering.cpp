@@ -243,15 +243,15 @@ namespace HashColon::Clustering
 		cli->add_option("--k", 
 				_cDefault.k, 
 				"K value for K-means clustering")
-			->envname(configNamespace, "k");
+			->envname(GetEnvName(configNamespace, "k"));
 		cli->add_option("--kmeansEpsilon", 
 				_cDefault.kmeansEpsilon, 
 				"Difference criteria for K-means clustering")
-			->envname(configNamespace, "kmeansEpsilon");
+			->envname(GetEnvName(configNamespace, "kmeansEpsilon"));
 		cli->add_option("--kmeansIteration", 
 				_cDefault.kmeansIteration, 
 				"Max iteration number for K-means clustering")
-			->envname(configNamespace, "kmeansIteration");
+			->envname(GetEnvName(configNamespace, "kmeansIteration"));
 	}
 
 	void Kmeans::TrainModel(
