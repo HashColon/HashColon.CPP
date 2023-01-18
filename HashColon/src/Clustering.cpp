@@ -45,8 +45,14 @@ namespace HashColon::Clustering
 			SingletonCLI::GetInstance().AddConfigFile(configFilePath);
 		}
 
-		cli->add_option("--minPts", _cDefault.minPts, "minPts value. If a point is a core point, at least minPts number of points should be in range of epsilon.");
-		cli->add_option("--DbscanEpsilon", _cDefault.DbscanEpsilon, "Epsilon value. Range value for cheking density");
+		cli->add_option("--minPts", 
+				_cDefault.minPts, 
+				"minPts value. If a point is a core point, at least minPts number of points should be in range of epsilon.")
+			->envname(GetEnvName(configNamespace, "minPts"));
+		cli->add_option("--DbscanEpsilon", 
+				_cDefault.DbscanEpsilon, 
+				"Epsilon value. Range value for cheking density")
+			->envname(GetEnvName(configNamespace, "DbscanEpsilon"));
 	}
 
 	void DBSCAN::TrainModel(
@@ -234,9 +240,18 @@ namespace HashColon::Clustering
 			SingletonCLI::GetInstance().AddConfigFile(configFilePath);
 		}
 
-		cli->add_option("--k", _cDefault.k, "K value for K-means clustering");
-		cli->add_option("--kmeansEpsilon", _cDefault.kmeansEpsilon, "Difference criteria for K-means clustering");
-		cli->add_option("--kmeansIteration", _cDefault.kmeansIteration, "Max iteration number for K-means clustering");
+		cli->add_option("--k", 
+				_cDefault.k, 
+				"K value for K-means clustering")
+			->envname(configNamespace, "k");
+		cli->add_option("--kmeansEpsilon", 
+				_cDefault.kmeansEpsilon, 
+				"Difference criteria for K-means clustering")
+			->envname(configNamespace, "kmeansEpsilon");
+		cli->add_option("--kmeansIteration", 
+				_cDefault.kmeansIteration, 
+				"Max iteration number for K-means clustering")
+			->envname(configNamespace, "kmeansIteration");
 	}
 
 	void Kmeans::TrainModel(
