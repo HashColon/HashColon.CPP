@@ -423,7 +423,8 @@ namespace HashColon
 			{
 				SetBaseLocation({val[0], val[1]});
 			},
-			"Set base location for equirectangular approximation in format [lon, lat].");
+			"Set base location for equirectangular approximation in format [lon, lat].")
+			->envname(GetEnvName(configNamespace, "baseLocation"));
 
 		cli->add_option_function<string>(
 			"--defaultDistanceType",
@@ -431,7 +432,8 @@ namespace HashColon
 			{
 				SetDistanceMethod(_coordsysName.at(val));
 			},
-			"Set default distance method. (" + allCoordSysNames + ")");
+			"Set default distance method. (" + allCoordSysNames + ")")
+			->envname(GetEnvName(configNamespace, "defaultDistanceType"));
 	}
 }
 
