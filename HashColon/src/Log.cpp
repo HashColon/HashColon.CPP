@@ -257,7 +257,8 @@ namespace HashColon
 			   { _local::SetStreams(vals, _cDefault.logStreams, "log");GlobalLogger.Reset(); },
 			   "Streams for default logging. List of any of the File/Directory/Stdout/Stderr.")
 			->default_val(vector<string>{"-"})
-			->run_callback_for_default();
+			->run_callback_for_default()
+			->envname(GetEnvName(configNamespace, "logStreams"));
 
 		// add errorStreams options using SetStreams
 		cli->add_option_function<vector<string>>(
@@ -266,7 +267,8 @@ namespace HashColon
 			   { _local::SetStreams(vals, _cDefault.errorStreams, "error"); GlobalLogger.Reset(); },
 			   "Streams for error logging. List of any of the File/Directory/Stdout/Stderr.")
 			->default_val(vector<string>{"-"})
-			->run_callback_for_default();
+			->run_callback_for_default()
+			->envname(GetEnvName(configNamespace, "errorStreams"));;
 
 		// add debugStreams options using SetStreams
 		cli->add_option_function<vector<string>>(
@@ -275,7 +277,8 @@ namespace HashColon
 			   { _local::SetStreams(vals, _cDefault.debugStreams, "debug");GlobalLogger.Reset(); },
 			   "Streams for debug message logging. List of any of the File/Directory/Stdout/Stderr.")
 			->default_val(vector<string>{"-"})
-			->run_callback_for_default();
+			->run_callback_for_default()
+			->envname(GetEnvName(configNamespace, "debugStreams"));;
 
 		// add messageStreams options using SetStreams
 		cli->add_option_function<vector<string>>(
@@ -284,7 +287,8 @@ namespace HashColon
 			   { _local::SetStreams(vals, _cDefault.messageStreams, "message"); GlobalLogger.Reset(); },
 			   "Streams for messages. List of any of the File/Directory/Stdout/Stderr.")
 			->default_val(vector<string>{"-"})
-			->run_callback_for_default();
+			->run_callback_for_default()
+			->envname(GetEnvName(configNamespace, "messageStreams"));;
 
 		// set verbose level
 		cli->add_option_function<int>(
@@ -293,7 +297,8 @@ namespace HashColon
 			   { _cDefault.verbose_level = val; GlobalLogger.Reset(); },
 			   "Enable verbose level. Logs with level exceeding verbose level will not be logged.")
 			->default_val(5)
-			->run_callback_for_default();
+			->run_callback_for_default()
+			->envname(GetEnvName(configNamespace, "verboseLvl"));;
 
 		// cli->callback(
 		// 	[&]()
