@@ -54,6 +54,13 @@ namespace HashColon
 
 		CLI::App *GetCLI(const std::string iClassname = "");
 	};
+	
+	/// @brief Helper function to get environment variant name from config-namespace & variable name
+	/// @param configNamespace config namespace
+	/// @param varname variable name 
+	/// @return Environment variable style name in string
+	/// @details Example: config.name => CONFIG_NAME, Log.logstream => LOG_LOGSTREAM
+	std::string GetEnvName(std::string configNamespace, std::string varname);
 }
 
 #endif
