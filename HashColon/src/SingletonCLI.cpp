@@ -8,6 +8,7 @@
 // HashColon libraries
 #include <HashColon/CLI11.hpp>
 #include <HashColon/CLI11_JsonSupport.hpp>
+#include <HashColon/Helper.hpp>
 
 using namespace std;
 namespace HashColon
