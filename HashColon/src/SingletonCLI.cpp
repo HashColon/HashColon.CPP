@@ -152,7 +152,7 @@ namespace HashColon
 	    // replace '-' => '_'
 	    replace(re.begin(), re.end(), '-', '_');
 	    // To upper
-	    ToUpper(re);
+	    String::ToUpper(re);
 
 	    return re;
 	}
