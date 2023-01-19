@@ -118,9 +118,14 @@ namespace HashColon
 	void SingletonCLI::Parse(int argc, char **argv, vector<string> configFiles = {})
 	{
 		// set number of config files
-		// set config
+		// set config		
 		size_t configCnt = GetInstance().GetConfigFileList().size() + configFiles.size();
-		GetInstance().GetCLI()->set_config("--config", "", "Read configuration files", true)->expected(configCnt, configCnt + 1)->check(CLI::ExistingFile);
+		
+		if(configCnt != 0)
+			GetInstance().GetCLI()
+			->set_config("--config", "", "Read configuration files", true)
+			->expected(configCnt, configCnt + 1)
+			->check(CLI::ExistingFile);
 
 		// allow config extras
 		// GetInstance().GetCLI()->allow_config_extras(true);
