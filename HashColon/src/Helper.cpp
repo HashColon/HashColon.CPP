@@ -388,13 +388,19 @@ namespace HashColon
 		auto interval = now - _start;
 		if (interval <= _period)
 		{
-			ok();
-			_start += _period;
+			// run function ok()
+			ok();		
+			// wait until the period to be finished.
 			std::this_thread::sleep_until(_start);
+			// reset start time
+			_start += _period;
 		}
 		else
 		{
+			// run function period_violated()
 			period_violated();
+			// reset start time
+			_start = std::chrono::system_clock::now();
 		}
 	}
 
