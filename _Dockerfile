@@ -1,0 +1,113 @@
+# make nas2_cpp_base image with all pre-request libraries for program
+FROM ubuntu:18.04
+
+RUN apt-get update && apt-get install git wget build-essential libboost-all-dev libeigen3-dev libflann-dev libgdal-dev libssl-dev openssl -y
+
+RUN mkdir /root/download
+WORKDIR /root/download
+#
+
+# cmake v3.24.3
+RUN wget --no-check-certificate https://github.com/Kitware/CMake/releases/download/v3.24.3/cmake-3.24.3.tar.gz
+RUN tar -xvzf cmake-3.24.3.tar.gz
+WORKDIR /root/download/cmake-3.24.3
+RUN ./bootstrap --prefix=/usr --parallel=$(nproc)
+RUN make install -j$(nproc)
+WORKDIR /root/download
+RUN rm -rf cmake-3.24.3*
+
+# rapidjson
+RUN git clone https://github.com/Tencent/rapidjson/
+WORKDIR /root/download/rapidjson
+RUN mkdir build
+WORKDIR /root/download/rapidjson/build
+RUN cmake ../
+RUN make && make install -j32
+WORKDIR /root/download
+RUN rm -rf rapidjson
+
+# hiredis
+RUN git clone https://github.com/redis/hiredis.git
+WORKDIR /root/download/hiredis
+RUN mkdir build
+WORKDIR /root/download/hiredis/build
+RUN cmake ../ 
+RUN make && make install -j32
+WORKDIR /root/download
+RUN rm -rf hiredis
+
+# nlohmann
+RUN git clone https://github.com/nlohmann/json.git
+WORKDIR /root/download/json
+RUN mkdir build
+WORKDIR /root/download/json/build
+RUN cmake ../
+RUN make && make install -j32
+WORKDIR /root/download
+RUN rm -rf json
+
+# CppLinuxSerial
+RUN git clone https://github.com/gbmhunter/CppLinuxSerial.git
+WORKDIR /root/download/CppLinuxSerial
+RUN mkdir build
+WORKDIR /root/download/CppLinuxSerial/build
+RUN cmake ../
+RUN make && make install -j32
+WORKDIR /root/download
+RUN rm -rf CppLinuxSerial
+
+# pqxx
+RUN git clone https://github.com/jtv/libpqxx.git
+WORKDIR /root/download/libpqxx
+RUN mkdir build
+WORKDIR /root/download/libpqxx/build
+RUN cmake ../
+RUN make && make install -j32
+WORKDIR /root/download
+RUN rm -rf libpqxx
+
+#GeographicLib
+RUN wget https://sourceforge.net/projects/geographiclib/files/distrib-C++/GeographicLib-2.1.1.tar.gz
+RUN tar xfpz GeographicLib-2.1.1.tar.gz
+WORKDIR /root/download/GeographicLib-2.1.1 
+RUN mkdir build
+WORKDIR /root/download/GeographicLib-2.1.1/build
+RUN cmake ../
+RUN make && make install -j32
+WORKDIR /root/download
+RUN rm -rf GeographicLib-2.1.1*
+
+# libmodbus v3.1.8
+RUN wget https://github.com/stephane/libmodbus/releases/download/v3.1.8/libmodbus-3.1.8.tar.gz
+RUN tar -zxvf libmodbus-3.1.8.tar.gz
+WORKDIR /root/download/libmodbus-3.1.8
+RUN ./configure && make install -j32
+WORKDIR /root/download
+RUN rm -rf libmodbus-3.1.8*
+
+# HashColon.CPP
+RUN git clone https://github.com/HashColon/HashColon.CPP.git
+WORKDIR /root/download/HashColon.CPP
+RUN mkdir build
+WORKDIR /root/download/HashColon.CPP/build
+RUN cmake ../
+RUN make && make install -j32
+WORKDIR /root/download
+RUN rm -rf HashColon.CPP
+
+# nas-common
+RUN mkdir nas2-common
+COPY src /root/download/nas2-common/src/
+COPY include /root/download/nas2-common/include/
+COPY CMakeLists.txt /root/download/nas2-common/
+RUN mkdir build
+WORKDIR /root/download/nas2-common/build
+RUN cmake ../
+RUN make install -j32
+WORKDIR /root/download
+
+# library linking
+#RUN echo "export PATH=$PATH:/usr/local/lib" >> ~/.bashrc
+RUN echo "LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib" >> /root/.bashrc
+RUN echo "/usr/local/lib" >> /etc/ld.so.conf.d/shared-lib.conf
+RUN ldconfig

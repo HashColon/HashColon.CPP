@@ -1,0 +1,10 @@
+
+option('enable_module_datetime',        type: 'feature', value: 'auto')
+option('enable_module_exception',       type: 'feature', value: 'auto')
+option('enable_module_filesystem',      type: 'feature', value: 'auto')
+option('enable_module_log',             type: 'feature', value: 'auto')
+option('enable_module_real',            type: 'feature', value: 'auto')
+option('enable_module_singleton_cli',   type: 'feature', value: 'auto')
+option('enable_module_thread',          type: 'feature', value: 'auto')
+option('enable_module_websocketstream', type: 'feature', value: 'auto')
+option('enable_documentation',          type: 'feature', value: 'auto')

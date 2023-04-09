@@ -1,0 +1,15 @@
+#ifndef _HG_HASHCOLON_HEADER_HEADER
+#define _HG_HASHCOLON_HEADER_HEADER
+
+/**
+ * @brief Check C++17 support
+ * @details
+ * There are essential & rich features those developers can utilize in C++17.
+ * ex) filesystem, variant, __has_include() & etc
+ * And its pretty old enough. Stop stickin' C++11/14.
+ */
+#if __cplusplus < 201703L
+#error "C++17 or later version is required for HashColon.CPP"
+#endif
+
+#endif

@@ -1,0 +1,33 @@
+#ifndef _HG_HASHCOLON_HEADER_FILESYSTEM
+#define _HG_HASHCOLON_HEADER_FILESYSTEM
+
+#include <HashColon/header>
+
+/*
+std:::filesystem is experimental in gcc-7.5.0.
+Therefore this shit is needed.
+HOW SHITTY IT IS!
+ */
+
+// YEAH! We have filesystem!
+#if __has_include(<filesystem>)
+#include <filesystem>
+#define HASHCOLON_HEADER_FILESYSTEM_STD
+
+// If we don't have filesystem, we have boost libraries
+#elif __has_include(<boost/filesystem.hpp>)
+#include <boost/filesystem.hpp>
+#define HASHCOLON_HEADER_FILESYSTEM_BOOST
+
+// If we have filesystem in experimental tab,
+#elif __has_include(<experimental/filesystem>)
+#include <experimental/filesystem>
+#define HASHCOLON_HEADER_FILESYSTEM_STD
+
+// This should not be happened
+#else
+#error C++17 std::filesystem or boost::filesystem required.
+
+#endif // __has_include(<filesystem>)
+
+#endif // _HG_HASHCOLON_HEADER_FILESYSTEM

@@ -1,20 +1,44 @@
-# HashColon Library
-C++ utility library by HashColon(wchyoo@snu.ac.kr)
-This projets consists of various functions.
+# Avikus C++ Common Library
 
-## Getting started 
-* Prerequisites
-    - Boost C++ libraries: 
-      (https://www.boost.org/)
-    - RapidJSON: A fast JSON/Parser for C++
-      (https://rapidjson.org/)  
-    - Eigen: C++ template library for linear algebra
-      (https://eigen.tuxfamily.org/index.php?title=Main_Page)
+C++ libraries including common functions for server-application development.
 
-## Log
-Classes/Functions for logging and showing messages
+This library is inspired by [HashColon.CPP](https://github.com/HashColon/HashColon.CPP/tree/master/HashColon/src).
 
-## TODO
-    - Add exit code information for HashColon::Exception
-    - Improve class CommonLogger to reduce the number of the constructor calls
-      use cout to check time consumption while constructing Commonlogger
+## Installation 
+
+### Prerequisites
+
+* C++17 support
+* External libraries:
+
+| Library | Version | Mandatory/<br/>Conditional | Related Module |
+|---------|---------|----------------------------|----------------|
+| [hiredis](https://github.com/redis/hiredis) | 1.1.0 | Mandatory | redis-manager |
+| [CLI11](https://github.com/CLIUtils/CLI11) | 2.3.2 | Mandatory<br/>_Included in include/CLI11._ | singleton-cli |
+| [boost::filesystem](https://www.boost.org/doc/libs/1_65_1/libs/filesystem/doc/index.htm) | 1.65.1 | Optional<br/>_If std::filesystem is partially supported._ | filesystem |
+| [boost::regex](https://www.boost.org/doc/libs/1_65_1/libs/regex/doc/html/index.html) | 1.65.1 | Optional, but recommended<br/>_std::regex is notoriously slow. Slower than python._ <br/> _Better stick to boost::regex_. | filesystem<br/> datetime (_if C++20 not supported_)|
+| [HowardHinnant/date](https://github.com/HowardHinnant/date) | 3.0.1 | Conditional<br/> _If C++20 not supported._<br/> _Included in include/date, src/date._ | datetime |
+| [rapidjson](https://github.com/Tencent/rapidjson) | _recent version_ | Conditional<br/> _If JSON config file is used. Enable it by AVIKUS_CONFIGURATION_BY_JSON._ | singleton-cli |
+
+### Install 
+
+_I'm seriously thinking about ditching CMAKE, cuz CMAKE sucks._ 
+
+_The Meson build system, on the other hand, is actually pretty nice. And to top it off, python-like code is infinitely superior to that CMAKE shits._
+
+## Doxygen Supports
+
+### Building Doxygen
+
+```shell
+sudo apt install doxygen graphviz
+cd docs
+doxygen 
+```
+### using Doxygen documentation
+Open `docs/html/index.html` with any of the web browser. 
+
+## Modules
+
+
+

@@ -1,0 +1,142 @@
+cmake_minimum_required(VERSION 3.24.0)
+
+# ==== Project Name & Version ====
+project(NAS2-common VERSION 0.1.0)
+
+# ==== Set Module informations ===
+set(NAS2_MODULE_NAME nas-common)
+file(GLOB_RECURSE SOURCELIST
+    src/avikus/datetime.cpp
+    src/avikus/log.cpp
+    src/avikus/real.cpp
+    src/avikus/redis-manager.cpp    
+    src/avikus/scribble.cpp
+    src/avikus/stringhelper.cpp
+    src/avikus/singleton-cli.cpp
+    src/avikus/filesystem.cpp
+    src/date/tz.cpp
+)
+file(GLOB_RECURSE PUBLIC_HEADERLIST    
+    include/avikus/datetime.hpp
+    include/avikus/exception.hpp
+    include/avikus/log.hpp
+    include/avikus/redis-manager.hpp    
+)
+
+# ==== Set build information
+set(USERPWD avi1357!!)
+
+set(REMOTE_INSTALL FALSE)
+set(REMOTE_HOST 192.168.0.27)
+set(REMOTE_USERNAME avikus)
+set(REMOTE_USERPWD avi1357!!)
+set(REMOTE_DIR ~/nas2_cpp)
+set(REMOTE_DIR_FULL ${REMOTE_USERNAME}@${REMOTE_HOST}:${REMOTE_DIR})
+
+set(USE_OS_TZDB 1)
+
+# if remote mode is on, disable remote install mode
+if(${REMOTE_MODE})
+    set(REMOTE_INSTALL FALSE)
+    message(VERBOSE "Remote deployment mode")
+endif()
+
+# ==== C/C++ standard ====
+# C11, C++17 required
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED True)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+# add prerequisites
+find_package(hiredis REQUIRED) # hiredis
+find_package(HashColon REQUIRED) # hashcolon
+find_package(Boost 1.65 REQUIRED # Boost
+    COMPONENTS
+    filesystem
+    system
+)
+
+# ==== nas-common: common library for nas2 ====
+add_library(${NAS2_MODULE_NAME} SHARED
+    ${SOURCELIST}
+)
+
+# include dirs
+target_include_directories(${NAS2_MODULE_NAME}
+    PUBLIC
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+    "$<INSTALL_INTERFACE:include>"
+)
+
+# compile options
+target_compile_options(${NAS2_MODULE_NAME}
+    PUBLIC
+    -pthread
+    -fPIC
+    -fpermissive
+    -O3
+)
+
+# library links
+target_link_libraries(${NAS2_MODULE_NAME}
+    PRIVATE
+    hiredis
+    PUBLIC
+    pthread
+    HashColon
+    Boost::filesystem
+)
+
+# linker options
+target_link_options(${NAS2_MODULE_NAME}
+    PUBLIC
+    -fopenmp
+    -pthread
+    -fPIC
+    -O3
+)
+
+set_target_properties(${NAS2_MODULE_NAME}
+    PROPERTIES
+    PUBLIC_HEADER
+    "${PUBLIC_HEADERLIST}"
+)
+
+# ==== CPack ====
+set(CPACK_PROJECT_NAME ${PROJECT_NAME})
+set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
+
+install(TARGETS ${NAS2_MODULE_NAME}
+    EXPORT ${NAS2_MODULE_NAME}-export
+    PUBLIC_HEADER DESTINATION include/nas2
+    LIBRARY DESTINATION lib
+)
+
+install(EXPORT ${NAS2_MODULE_NAME}-export
+    DESTINATION share/cmake/nas-common/
+    FILE nas-common-config.cmake
+)
+
+# ==== POST-BUILD installation steps ====
+
+# add remote install
+if(${REMOTE_INSTALL})
+    message(STATUS "[${NAS2_MODULE_NAME}] Remote deployment enabled: ${REMOTE_DIR_FULL}")
+
+    add_custom_command(
+        TARGET ${NAS2_MODULE_NAME}
+        POST_BUILD
+
+        COMMENT "[${NAS2_MODULE_NAME}] Remote deployment: ${REMOTE_DIR_FULL}"
+
+        # run remote-deploy script
+        COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/scripts/remote-deploy.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${NAS2_MODULE_NAME}
+        ${REMOTE_DIR_FULL}
+        ${REMOTE_USERPWD}
+    )
+endif()
+
+include(CPack)

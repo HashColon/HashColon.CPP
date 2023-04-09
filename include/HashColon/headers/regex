@@ -1,0 +1,30 @@
+#ifndef _HG_HASHCOLON_HEADER_REGEX
+#define _HG_HASHCOLON_HEADER_REGEX
+
+#include <HashColon/header>
+
+/* std::regex sucks. Better replace to boost::regex
+   Refer to the following to see why std::regex sucks.
+   https://stackoverflow.com/questions/52697265/why-is-c-regex-so-slow
+
+   Therefore unless it is forced,
+   we'll stick to boost::regex instead of the standard version
+ */
+
+// Someone brought a pistol to force you to use std::regex
+#ifdef HASHCOLON_HEADER_REGEX_STD
+#include <regex>
+
+// Hopefully we have boost/regex.hpp
+#elif __has_include(<boost/regex.hpp>)
+#include <boost/regex.hpp>
+#define HASHCOLON_HEADER_REGEX_BOOST
+
+// DAMN! we don't have boost/regex.hpp
+#else
+#include <regex>
+#define HASHCOLON_HEADER_REGEX_STD
+
+#endif // HASHCOLON_HEADER_REGEX_STD
+
+#endif // _HG_HASHCOLON_HEADER_REGEX
