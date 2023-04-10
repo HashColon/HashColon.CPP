@@ -8,3 +8,12 @@ option('enable_module_singleton_cli',   type: 'feature', value: 'auto')
 option('enable_module_thread',          type: 'feature', value: 'auto')
 option('enable_module_websocketstream', type: 'feature', value: 'auto')
 option('enable_documentation',          type: 'feature', value: 'auto')
+
+
+
+option('use_external_library_boost::filesystem', type:'feature', value: 'disabled')
+option('use_external_library_boost::regex',      type:'feature', value: 'auto')
+option('use_external_library_CLI11',             type:'feature', value: 'disabled')
+option('use_external_library_date',              type:'feature', value: 'disabled')
+option('use_external_library_rapidjson',         type:'feature', value: 'auto')
+option('use_external_library_websocketpp',       type:'feature', value: 'auto')

@@ -1,4 +1,4 @@
-# Avikus C++ Common Library
+# HashColon.CPP Library
 
 C++ libraries including common functions for server-application development.
 
@@ -18,7 +18,7 @@ This library is inspired by [HashColon.CPP](https://github.com/HashColon/HashCol
 | [boost::filesystem](https://www.boost.org/doc/libs/1_65_1/libs/filesystem/doc/index.htm) | 1.65.1 | Optional<br/>_If std::filesystem is partially supported._ | filesystem |
 | [boost::regex](https://www.boost.org/doc/libs/1_65_1/libs/regex/doc/html/index.html) | 1.65.1 | Optional, but recommended<br/>_std::regex is notoriously slow. Slower than python._ <br/> _Better stick to boost::regex_. | filesystem<br/> datetime (_if C++20 not supported_)|
 | [HowardHinnant/date](https://github.com/HowardHinnant/date) | 3.0.1 | Conditional<br/> _If C++20 not supported._<br/> _Included in include/date, src/date._ | datetime |
-| [rapidjson](https://github.com/Tencent/rapidjson) | _recent version_ | Conditional<br/> _If JSON config file is used. Enable it by AVIKUS_CONFIGURATION_BY_JSON._ | singleton-cli |
+| [rapidjson](https://github.com/Tencent/rapidjson) | _recent version_ | Conditional<br/> _If JSON config file is used. Enable it by HASHCOLON_CONFIGURATION_BY_JSON._ | singleton-cli |
 
 ### Install 
 

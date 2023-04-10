@@ -27,6 +27,59 @@ assert(
     'C++17 or later version is required for HashColon.CPP'
 )
 
+# Check for libraries libraries: 
+
+# boost::filesystem
+# Use boost::filesystem if the option 'use_external_library_boost::filesystem' is on.
+# or std::filesystem is not supported. (#include <filesystem> / #include <experimental/filesystem> is invalid)
+# Else, just use std::filesystem instead. Thats better
+dependency_boost_filesystem = dependency(
+    'boost', 
+    version: '>=1.65',
+    modules: ['filesystem', 'system'],
+    required: 
+        get_option(
+            'use_external_library_boost::filesystem'
+        ).enable_if(
+            # use boost::filesystem as mandatory if std::filesystem is invalid
+            not (
+                cpp_compiler.check_header('filesystem') 
+                or cpp_compiler.check_header('experimental/filesystem')
+            )
+        )
+)
+HashColon_dependencies += dependency_boost_filesystem
+
+# boost::regex
+# Use boost::regex if the option 'use_external_library_boost::regex' is on.
+# or whenever it is found. We prefer boost::regex than boost version.
+# If boost::regex is not found, then we will use std::regex
+dependency_boost_regex = dependency(
+    'boost',
+    version: '>=1.65',
+    modules: ['regex'],
+    required: 
+        get_option('use_external_library_boost::regex')
+)
+HashColon_dependencies += dependency_boost_regex
+
+# CLI11: 
+# Use CLI11 if the option 'use_external_library_CLI11' is on.
+# Else, just use internal codes instead.
+dependency_CLI11 = dependency('CLI11', version: '>=2.3.2', required:get_option('Lib_CLI11_provided'))
+if dependency_CLI11.found()
+    message('Using external library ' + dependency_CLI11.name() + " " dependency_CLI11.version())
+    HashColon_dependencies += dependency_CLI11
+else
+    message('Using internal codes for CLI11 2.3.2: ./include/CLI11/*')
+    HashColon_include_directory += 'include/CLI11'
+endif
+
+# date
+
+
+
+
 # ###########################################################################
 
 # # HashColon Modules 
